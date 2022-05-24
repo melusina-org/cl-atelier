@@ -1,0 +1,33 @@
+#!/bin/sh
+
+#### build — Build ${PROJECT_NAME}
+
+# ${PROJECT_NAME} (${HOMEPAGE})
+# This file is part of ${PROJECT_NAME}.
+#
+# Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+# All rights reserved.
+
+# ${LICENSE_HEADER}
+
+: ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
+: ${buildsystem:="${LISP_TEST_SYSTEM_NAME}"}
+
+build_sbcl()
+{
+    sbcl --noinform --disable-debugger "$@"
+}
+
+build_main()
+{
+    build_sbcl --eval "
+(unless (ql:where-is-system \"${buildsystem}\")
+ (push #p\"./\" ql:*local-project-directories*)
+ (ql:register-local-projects))"\
+		 --eval "(ql:quickload \"${buildsystem}\")"\
+		 --eval '(uiop:quit 0)'
+}
+
+build_main "$@"
+
+### End of file `build'

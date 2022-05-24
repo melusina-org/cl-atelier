@@ -1,0 +1,31 @@
+;;;; ${FILENAME} — ${SUMMARY}
+
+;;;; ${PROJECT_NAME} (${HOMEPAGE})
+;;;; This file is part of ${PROJECT_NAME}.
+;;;;
+;;;; Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+;;;; All rights reserved.
+
+;;;; ${LICENSE_HEADER}
+
+(in-package #:cl-user)
+
+;;;
+;;; Atelier
+;;;
+
+(ql:quickload "org.melusina.atelier" :silent t)
+
+(org.melusina.atelier:initialise)
+
+(setf org.melusina.atelier:*parameter-bindings*
+      '((:copyright-holder . "${COPYRIGHT_HOLDER}")
+        (:copyright-year . "${COPYRIGHT_YEAR}")
+	(:project-filename . "${PROJECT_FILENAME}")
+        (:project-name . "${PROJECT_NAME}")
+	(:project-description . "${PROJECT_DESCRIPTION}")
+        (:project-long-description . "${PROJECT_LONG_DESCRIPTION}")
+        (:homepage . "${HOMEPAGE}")
+        (:license . :${LICENSE_ID})))
+
+;;;; End of file `${FILENAME}'

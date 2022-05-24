@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# ${FILENAME} — ${SUMMARY}
+
+# ${PROJECT_NAME} (${HOMEPAGE})
+# This file is part of ${PROJECT_NAME}.
+#
+# Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+# All rights reserved.
+
+# ${LICENSE_HEADER}
+
+: ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
+: ${subrdir:=${TOPLEVELDIR}/subr}
+
+. "${subrdir}/stdlib.sh"
+
+
+${SHELL_NAMESPACE}_main()
+{
+    : 'Do nothing.'
+}
+
+${SHELL_NAMESPACE}_main "$@"
+
+# End of file `${FILENAME}'

@@ -1,0 +1,33 @@
+;;;; ${FILENAME} — ${SUMMARY}
+
+;;;; ${PROJECT_NAME} (${HOMEPAGE})
+;;;; This file is part of ${PROJECT_NAME}.
+;;;;
+;;;; Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+;;;; All rights reserved.
+
+;;;; ${LICENSE_HEADER}
+
+(asdf:defsystem #:${LISP_SYSTEM_NAME}
+  :description "${PROJECT_DESCRIPTION}"
+  :author "${COPYRIGHT_HOLDER}"
+  :license "${LICENSE_NAME}"
+  :depends-on (:alexandria)
+  :components
+  ((:module "src"
+      :components ((:file "package")
+                   (:file "utilities")
+		   (:file "entrypoint")))))
+
+(asdf:defsystem #:${LISP_TEST_SYSTEM_NAME}
+  :description "${PROJECT_DESCRIPTION}"
+  :author "${COPYRIGHT_HOLDER}"
+  :license "${LICENSE_NAME}"
+  :depends-on (:alexandria :kaputt)
+  :components
+  ((:module "testsuite"
+    :components ((:file "package")
+		 (:file "utilities")
+		 (:file "entrypoint")))))
+
+;;;; End of file `${FILENAME}'

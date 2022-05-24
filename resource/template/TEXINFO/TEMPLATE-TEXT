@@ -1,0 +1,78 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename ${PROJECT_FILENAME}.info
+@settitle ${PROJECT_NAME} Manual
+@c %**end of header
+
+@c for install-info
+@dircategory Software development
+@direntry
+* ${PROJECT_FILENAME}: ${PROJECT_DESCRIPTION}
+@end direntry
+
+@copying
+${PROJECT_NAME} software and associated documentation is distributed
+under the terms of the ${LICENSE_NAME}.
+
+@quotation
+Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+All rights reserved.
+
+${LICENSE_HEADER}
+@end quotation
+
+@end copying
+@titlepage
+
+@title ${PROJECT_NAME} Manual
+@subtitle draft version
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@c We use @andkey, etc to escape & from TeX in lambda lists --
+@c so we need to define them for info as well.
+@macro andallowotherkeys
+&allow-other-keys
+@end macro
+@macro andoptional
+&optional
+@end macro
+@macro andrest
+&rest
+@end macro
+@macro andkey
+&key
+@end macro
+@macro andbody
+&body
+@end macro
+
+@ifnottex
+
+@include include/ifnottex.texinfo
+
+@node Top, , ,
+@comment  node-name,  next,  previous,  up
+@top ${PROJECT_NAME}
+
+@insertcopying
+
+@menu
+* Introduction::
+@end menu
+
+@end ifnottex
+
+@node Introduction, , Top, Top
+@chapter Introduction
+
+${PROJECT_LONG_DESCRIPTION}
+
+@bye

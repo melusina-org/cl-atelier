@@ -1,0 +1,141 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename org.melusina.atelier.info
+@settitle Atelier Manual
+@c %**end of header
+
+@c for install-info
+@dircategory Software development
+@direntry
+* org.melusina.atelier: Atelier for Lisp developers
+@end direntry
+
+@copying
+Atelier software and associated documentation is distributed
+under the terms of the MIT License.
+
+@quotation
+Copyright © 2017–2022 Michaël Le Barbier
+All rights reserved.
+
+This file must be used under the terms of the MIT License.
+This source file is licensed as described in the file LICENSE, which
+you should have received as part of this distribution. The terms
+are also available at https://opensource.org/licenses/MIT
+@end quotation
+
+@end copying
+@titlepage
+
+@title Atelier Manual
+@subtitle draft version
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@c We use @andkey, etc to escape & from TeX in lambda lists --
+@c so we need to define them for info as well.
+@macro andallowotherkeys
+&allow-other-keys
+@end macro
+@macro andoptional
+&optional
+@end macro
+@macro andrest
+&rest
+@end macro
+@macro andkey
+&key
+@end macro
+@macro andbody
+&body
+@end macro
+
+@ifnottex
+
+@include include/ifnottex.texinfo
+
+@node Top, , ,
+@comment  node-name,  next,  previous,  up
+@top Atelier
+
+@insertcopying
+
+@menu
+* Introduction::
+* Template::
+* Linter::
+* Configuration::
+@end menu
+
+@end ifnottex
+
+@node Introduction, Template, Top, Top
+@chapter Introduction
+
+The @b{Atelier} for Common Lisp developers is providing useful tools
+for Lisp developpers such as project templates and a linter.
+
+@node Template, Linter, Introduction, Top
+@chapter File templates and project scaffolding
+
+@include include/fun-org.melusina.atelier-find-template.texinfo
+@include include/fun-org.melusina.atelier-list-templates.texinfo
+@include include/fun-org.melusina.atelier-write-template.texinfo
+@c Lisp Projects
+@include include/fun-org.melusina.atelier-new-lisp-file.texinfo
+@include include/fun-org.melusina.atelier-new-lisp-project.texinfo
+
+@example
+(atelier:new-lisp-project
+ #p"~/Enterprise/website/"
+ :copyright-holder "Enterprise"
+ :copyright-year "2018–2022"
+ :project-filename "com.enterprise.website"
+ :project-name "Website"
+ :project-description "A Common Lisp program for rendering our website"
+ :project-long-description #.(concatenate 'string
+   "A Common Lisp program for rendering our website and various "
+   "utilities to publish it.")
+ :homepage "https://github.com/enterprise/website"
+ :license :proprietary)
+@end example
+
+@c License
+@include include/fun-org.melusina.atelier-list-licenses.texinfo
+@c Parameters
+@include include/fun-org.melusina.atelier-list-template-parameter-names.texinfo
+@include include/fun-org.melusina.atelier-parameter-keyword.texinfo
+
+@node Linter, Configuration, Template, Top
+@chapter Linter
+
+@include include/var-org.melusina.atelier-star-linter-interactive-p-star.texinfo
+@include include/fun-org.melusina.atelier-lint.texinfo
+@include include/macro-org.melusina.atelier-define-inspector.texinfo
+@include include/fun-org.melusina.atelier-list-inspectors.texinfo
+@c Linter Classes
+@include include/class-org.melusina.atelier-linter.texinfo
+@include include/class-org.melusina.atelier-canonical-source-linter.texinfo
+@include include/class-org.melusina.atelier-extensive-linter.texinfo
+@include include/class-org.melusina.atelier-plain-line-comment-linter.texinfo
+@include include/class-org.melusina.atelier-plain-block-comment-linter.texinfo
+@c Linter Generic
+@include include/fun-org.melusina.atelier-content-inspectors.texinfo
+@include include/fun-org.melusina.atelier-file-inspectors.texinfo
+@include include/fun-org.melusina.atelier-hint-at-file-line.texinfo
+@include include/fun-org.melusina.atelier-hint-at-file.texinfo
+@include include/fun-org.melusina.atelier-lint-file.texinfo
+
+@node Configuration, , Linter, Top
+@chapter Configuration of program parameters
+
+@include include/var-org.melusina.atelier-star-parameter-bindings-star.texinfo
+
+@bye

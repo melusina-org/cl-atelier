@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# testsuite — Run test suite
+
+# Atelier (https://github.com/melusina-org/cl-atelier)
+# This file is part of Atelier.
+#
+# Copyright © 2017–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+: ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
+
+testsuite_sbcl()
+{
+    sbcl --noinform --disable-debugger "$@"
+}
+
+testsuite_run_all_tests()
+(
+    cd "${TOPLEVELDIR}"
+    testsuite_sbcl\
+	--eval '
+(unless (ql:where-is-system "org.melusina.atelier/testsuite")
+ (push #p"./" ql:*local-project-directories*)
+ (ql:register-local-projects))
+'\
+	--eval '
+(ql:quickload "org.melusina.atelier/testsuite" :silent t)
+'\
+	--eval '
+(org.melusina.atelier/testsuite:run-all-tests)
+'
+)
+
+testsuite_main()
+{
+    testsuite_run_all_tests
+    status="$?"
+
+    if [ "${status}" -gt 0 ]; then
+	1>&2 printf 'testsuite: Failure: There were some failed tests.\n'
+    fi
+    return "${status}"
+}
+
+testsuite_main "$@"
+
+# End of file `testsuite'
