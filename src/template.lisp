@@ -58,18 +58,6 @@
   "Returns a list containing the designators of known templates."
   (hash-table-keys *template-repository*))
 
-(defun find-template (designator)
-  "Find template by DESIGNATOR in *TEMPLATE-REPOSITORY*."
-  (cond
-    ((typep designator 'template)
-     designator)
-    ((keywordp designator)
-     (gethash designator *template-repository*))
-    ((stringp designator)
-     (gethash (make-symbol designator) *template-repository*))
-    (t
-     (error "~A: This does not designate a template." designator))))
-
 (defun list-template-parameter-names (template-designator)
   "List the parameters consumed by TEMPLATE-DESIGNATOR."
   (really-list-template-parameter-names (find-template template-designator)))
