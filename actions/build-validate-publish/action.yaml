@@ -30,20 +30,26 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: 'Checkout repository'
+      uses: actions/checkout@v3
+
     - name: 'Describe build environment'
-      shell: 'sh'
       run: development/describe
 
+    - name: 'Log in to the Artefact registry'
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: 'Build Artefact'
-      shell: 'sh'
-      run: development/build "${{ inputs.artefact }}"
+      run: development/build {{ inputs.artefact }}
 
     - name: 'Validate Artefact'
-      shell: 'sh'
-      run: development/testimage "${{ inputs.artefact }}"
+      run: development/testimage {{ inputs.artefact }}
 
     - name: 'Publish Artefact'
-      shell: 'sh'
-      run: development/publish "${{ inputs.artefact }}"
+      run: development/publish {{ inputs.artefact }}
 
 # End of file `action.yaml'
