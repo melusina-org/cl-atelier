@@ -15,20 +15,101 @@
 
 : ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
 : ${buildsystem:="org.melusina.atelier"}
+: ${subrdir:=${TOPLEVELDIR}/subr}
+: ${dockerdir:="${TOPLEVELDIR}/docker"}
 
-build_sbcl()
-{
-    sbcl --noinform --disable-debugger "$@"
-}
+. "${subrdir}/stdlib.sh"
+. "${subrdir}/cid.sh"
 
-build_main()
+build_atelier()
 {
-    build_sbcl --eval "
+   sbcl --noinform --disable-debugger --eval "
 (unless (ql:where-is-system \"${buildsystem}\")
  (push #p\"./\" ql:*local-project-directories*)
  (ql:register-local-projects))"\
 		 --eval "(ql:quickload \"${buildsystem}\")"\
 		 --eval '(uiop:quit 0)'
+}
+
+# build_docker_db
+#  The database of docker images we can build
+#
+# It has the following columns:
+#
+#  SYSTEM-DESIGNATOR TITLE DESCRIPTION LICENSE
+
+build_docker_db()
+{
+    find "${dockerdir}" -type f -name 'Dockerfile' \
+         | sed -e 's|/Dockerfile$||;s|.*/||'
+}
+
+
+# build_docker_image SYSTEM-DESIGNATOR
+#  Build the docker image for SYSTEM-DESIGNATOR
+#
+# The resulting image is tagged with the tag list provided by
+# `build_docker_tag'.
+#
+# The resulting image is labelled with the label list provided by
+# `build_docker_label`.
+
+build_docker_image()
+(
+    local docker_tag docker_label docker_file docker_cache
+
+    docker_file=$(docker_file "$1")
+    docker_tag=$(docker_tags "$1" | fold_lines)
+    docker_label=$(docker_labels "$1" | fold_lines)
+    docker_cache=''
+
+    if [ -n "${DISABLE_DOCKER_CACHE}" ]; then
+	docker_cache='--no-cache'
+    fi
+    
+    if [ ! -d "${dockerdir}/$1" ]; then
+	failwith 1 "build: docker: %s: Nothing is known about this docker." "$1"
+    fi
+
+    docker_info "$1"
+
+    docker build --progress=plain\
+	   ${docker_cache}\
+           --tag "${docker_tag}"\
+	   --label "${docker_label}"\
+	   --file "${docker_file}"\
+           "${TOPLEVELDIR}"
+)
+
+# build_artefact SYSTEM-DESIGNATOR
+#  Build the software artefact for SYSTEM-DESIGNATOR
+
+build_artefact()
+{
+    local artefact
+    for artefact in "$@"; do
+	printf 'build: artefact: %s\n' "${artefact}"
+        case "${artefact}" in
+            docker/*)
+                build_docker_image "${artefact#docker/}"
+                ;;
+            *)
+                failwith '%s: Nothing is known about this kind of artefact.' "${artefact#/*}"
+                ;;
+        esac
+	if [ $? -gt 0 ]; then
+	    failwith 'build: artefact: %s: There were some errors' "${artefact}"
+	fi
+    done
+}
+
+build_main()
+{
+    if [ $# -eq 0 ]; then
+        set --\
+	    'docker/linux'
+    fi
+    build_artefact "$@"
 }
 
 build_main "$@"

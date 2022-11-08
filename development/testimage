@@ -1,0 +1,69 @@
+#!/bin/sh
+
+# testimage — Test Docker image
+
+# Atelier (https://github.com/melusina-org/cl-atelier)
+# This file is part of Atelier.
+#
+# Copyright © 2017–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+: ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
+: ${buildsystem:="org.melusina.atelier"}
+: ${subrdir:=${TOPLEVELDIR}/subr}
+: ${dockerdir:="${TOPLEVELDIR}/docker"}
+
+. "${subrdir}/stdlib.sh"
+. "${subrdir}/cid.sh"
+
+test_docker_image()
+(
+    local tag tty
+
+    first ()
+    {
+	sed -n '1{p;q;}'
+    }
+
+    tag=$(docker_tags "$1" | first )
+    tty=$(if [ -t /dev/stdin ]; then printf '%s' '-t'; fi)
+    
+    docker run -i ${tty} --rm "${tag}" '/opt/atelier/libexec/setup/testimage'
+)
+
+test_artefact()
+{
+    local artefact
+    for artefact in "$@"; do
+	printf 'testimage: artefact: %s\n' "${artefact}"
+        case "${artefact}" in
+            docker/*)
+                test_docker_image "${artefact#docker/}"
+                ;;
+            *)
+                failwith '%s: Nothing is known about this kind of artefact.' "${artefact#/*}"
+                ;;
+        esac
+	if [ $? -gt 0 ]; then
+	    failwith 'testimage: artefact: %s: There were some errors' "${artefact}"
+	fi
+    done
+}
+
+test_main()
+{
+    if [ $# -eq 0 ]; then
+        set --\
+	    'docker/linux'
+    fi
+    test_artefact "$@"
+}
+
+test_main "$@"
+
+# End of file `testimage'

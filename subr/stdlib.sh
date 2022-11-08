@@ -245,4 +245,18 @@ when()
     if "${predicate}"; then "$@"; fi
 }
 
+#
+# Operation on lines
+#
+
+fold_lines()
+{
+    tr '\n' ',' | sed 's/,$//'
+}
+
+first_line()
+{
+    sed -n '1{p;q;}'
+}
+
 # End of file `stdlib.sh'

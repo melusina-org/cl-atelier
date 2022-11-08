@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# testimage — Test Docker image
+
+# Atelier (https://github.com/melusina-org/cl-atelier)
+# This file is part of Atelier.
+#
+# Copyright © 2017–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+: ${PACKAGE:='local'}
+: ${testimage_package:=${PACKAGE}}
+: ${testimage_testsuite:=/opt/${testimage_package}/libexec/testimage}
+: ${testimage_configfile:=/opt/${testimage_package}/etc/setup/users.conf}
+
+eprintf()
+{
+    1>&2 printf "$@"
+}
+
+testimage_main()
+{
+    local overall testcase
+    overall='SUCCESS'
+    for testcase in ${testimage_testsuite}/*; do
+	eprintf 'testimage: Info: %s\n' "${testcase##*/}"
+	if ! ${testcase}; then
+	    overall='FAILURE'
+	fi
+    done
+
+    case "${overall}" in
+	SUCCESS)
+	    exit 0
+	    ;;
+	FAILURE)
+	    eprintf 'testimage: Error: There were some errors.\n'
+	    exit 1
+	    ;;
+    esac
+}
+
+testimage_main "$@"
+
+# End of file `testimage'

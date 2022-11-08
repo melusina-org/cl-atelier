@@ -39,7 +39,10 @@ testsuite_run()
 
 testsuite_main()
 {
-    while getopts 'CL:' OPTARG; do
+    local OPTIND OPTION OPTARG
+    OPTIND=1
+
+    while getopts 'CL:' OPTION; do
 	case "${OPTION}" in
 	    C)	testsuiteclean='yes';;
 	    L)	testsuitelisp="${OPTARG}";;

@@ -1,0 +1,255 @@
+#!/bin/sh
+
+# describe — Describe environment
+
+# Atelier (https://github.com/melusina-org/cl-atelier)
+# This file is part of Atelier.
+#
+# Copyright © 2017–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+# Describe workstation setup to ease information sharing with developers
+
+main()
+{
+    describe_uname
+    describe_system
+    describe_architecture
+    describe_date
+    describe_sbcl
+    describe_brew
+    describe_macports
+    describe_quicklisp
+    describe_github
+}
+
+describe_uname()
+{
+    uname=$(uname)
+    printf 'Uname: %s\n' "${uname}"
+}
+
+describe_system__Linux()
+(
+    if [ -r /etc/os-release ]; then
+	. /etc/os-release
+	printf 'system="%s %s"' "${NAME} ${VERSION}"
+    else
+	printf 'system="Undescriptible Linux"'
+    fi
+)
+
+describe_system()
+{
+    local script
+    case "${uname}" in
+	Linux)
+	    script=$(describe_system__${uname})
+	    eval "${script}"
+	    ;;
+	*)
+	    system='Undescriptible System'
+    esac
+    printf 'System: %s\n' "${system}"
+}
+
+describe_architecture()
+{
+    architecture=$(uname -m)
+    printf 'Architecture: %s\n' "${architecture}"
+}
+
+describe_date()
+{
+    date=$(date)
+    printf 'Date: %s\n' "${date}"
+}
+
+describe_sbcl()
+{
+    sbcl_pathname=$(find_program sbcl)
+    case "${sbcl_pathname}" in
+	:NOT-FOUND)
+	    sbcl_version=':NOT-FOUND'
+	    ;;
+	*)
+	    sbcl_version=$(${sbcl_pathname} --version)
+	    sbcl_description=$(printf '%s (%s)' "${sbcl_pathname}" "${sbcl_version}")
+	    ;;
+    esac
+    printf 'SBCL: %s\n' "${sbcl_description}"
+}
+
+describe_brew()
+{
+    brew_pathname=$(find_program brew)
+    printf 'Brew: %s\n' "${brew_pathname}"
+}
+
+describe_macports()
+{
+    macports_pathname=$(find_program port)
+    printf 'MacPorts: %s\n' "${macports_pathname}"
+}
+
+describe_quicklisp()
+{
+    quicklisp_installed_p=$(quicklisp_installed_p)
+    printf 'QuickLisp: %s\n' "${quicklisp_installed_p}"
+}
+
+quicklisp_installed_p()
+{
+    local snippet lisp
+    snippet="(progn (write (and (member :quicklisp *features*) t)) (quit))"
+    lisp=$(pick_lisp)
+    case "${lisp}" in
+	*sbcl*)
+	    "${lisp}" --noinform --eval "${snippet}"
+	    ;;
+	:NOT-FOUND)
+	    printf 'NIL'
+	    ;;
+    esac
+}
+
+pick_lisp()
+{
+    local lisp_candidate
+    for lisp_candidate in ${sbcl_pathname}; do
+	if [ ! "${lisp_candiate}" = ":NOT-FOUND" ]; then
+	    printf '%s' "${lisp_candidate}"
+	    return
+	fi
+    done
+    printf ':NOT-FOUND'
+}
+
+find_program_1()
+{
+    local needle program IFS
+
+    needle="$1"
+    program=':NOT-FOUND'
+    IFS=':'
+
+    set -- ${PATH}
+    
+    while [ "${program}" = ':NOT-FOUND' ]; do
+	if [ $# -eq 0 ]; then
+	    break
+	fi
+	if [ -x "$1/${needle}" ]; then
+	    program="$1/${needle}"
+	fi
+	shift
+    done
+    printf '%s' "${program}"
+}
+
+find_program()
+{
+    local needle program
+
+    program=':NOT-FOUND'
+    while [ "${program}" = ':NOT-FOUND' ]; do
+	if [ $# -eq 0 ]; then
+	    break
+	fi
+	program=$(find_program_1 "$1")
+	shift
+    done
+    printf '%s' "${program}"
+}
+
+describe_variable()
+{
+    local variable replacement
+
+    while [ $# -gt 0 ]; do
+	variable="$1"
+	eval replacement="\$$1"
+	printf ' %s=\042%s\042\n' "${variable}" "${replacement}"
+	shift
+    done
+}
+
+describe_directory()
+{
+    while [ $# -gt 0 ]; do
+	printf ' Contents of \042%s\042:\n' "$1"
+	ls "$1" | sed -e 's/^/  /'
+	shift
+    done
+}
+
+describe_github()
+(
+    local variablename
+    
+    if ! [ "${GITHUB_ACTIONS}" = 'true' ]; then
+	printf 'GitHub Actions: NIL\n'
+	return
+    fi
+
+    printf 'GitHub Actions:\n'
+
+    describe_variable\
+	"HOME"\
+	"GITHUB_JOB"\
+	"GITHUB_REF"\
+	"GITHUB_SHA"\
+	"GITHUB_REPOSITORY"\
+	"GITHUB_REPOSITORY_OWNER"\
+	"GITHUB_RUN_ID"\
+	"GITHUB_RUN_NUMBER"\
+	"GITHUB_RETENTION_DAYS"\
+	"GITHUB_RUN_ATTEMPT"\
+	"GITHUB_ACTOR"\
+	"GITHUB_TRIGGERING_ACTOR"\
+	"GITHUB_WORKFLOW"\
+	"GITHUB_HEAD_REF"\
+	"GITHUB_BASE_REF"\
+	"GITHUB_EVENT_NAME"\
+	"GITHUB_SERVER_URL"\
+	"GITHUB_API_URL"\
+	"GITHUB_GRAPHQL_URL"\
+	"GITHUB_REF_NAME"\
+	"GITHUB_REF_PROTECTED"\
+	"GITHUB_REF_TYPE"\
+	"GITHUB_WORKSPACE"\
+	"GITHUB_ACTION"\
+	"GITHUB_EVENT_PATH"\
+	"GITHUB_ACTION_REPOSITORY"\
+	"GITHUB_ACTION_REF"\
+	"GITHUB_PATH"\
+	"GITHUB_ENV"\
+	"GITHUB_STEP_SUMMARY"\
+	"GITHUB_STATE"\
+	"GITHUB_OUTPUT"\
+	"RUNNER_OS"\
+	"RUNNER_ARCH"\
+	"RUNNER_NAME"\
+	"RUNNER_TOOL_CACHE"\
+	"RUNNER_TEMP"\
+	"RUNNER_WORKSPACE"\
+	"ACTIONS_RUNTIME_URL"\
+	"ACTIONS_CACHE_URL"\
+	"GITHUB_ACTIONS"\
+	"CI"
+
+    describe_directory \
+	"/github/home"\
+	"/github/workflow"\
+	"/github/file_commands"\
+	"/github/workspace"
+)
+
+main "$@"
+
+# End of file `describe'

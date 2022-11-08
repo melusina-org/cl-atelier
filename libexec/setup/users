@@ -1,0 +1,210 @@
+#!/bin/sh
+
+# users — Setup users
+
+
+# Atelier (https://github.com/melusina-org/cl-atelier)
+# This file is part of Atelier.
+#
+# Copyright © 2017–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+: ${PACKAGE:='local'}
+: ${users_package:=${PACKAGE}}
+: ${users_configfile:=/opt/${users_package}/etc/setup/users.conf}
+
+users_secure_variables='
+ BLOCKSIZE
+ CHARSET
+ COLORFGBG
+ COLORTERM
+ DISPLAY XAUTHORIZATION XAUTHORITY
+ EDITOR VISUAL
+ HOME MAIL
+ LANG
+ LANGUAGE
+ LC_ALL
+ LC_COLLATE
+ LC_CTYPE
+ LC_MESSAGES
+ LC_MONETARY
+ LC_NUMERIC
+ LC_TIME
+ LINES COLUMNS
+ LSCOLORS
+ MAKEFLAGS
+ MAKEOBJDIR
+ MAKEOBJDIRPREFIX
+ SSH_AUTH_SOCK
+ TZ
+'
+
+is_true()
+{
+    case "$1" in
+        [Yy][Ee][Ss]|[Tt][Rr][Uu][Ee])
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# users_secure_path
+#  The secure path deduced from actual system configuration.
+#
+# This is designed to be used after setting up file hierarchies.
+
+users_secure_path()
+{
+    if [ -f /etc/login.defs ]; then
+    sed -n -e '
+/^ENV_SUPATH/{
+  s/.*PATH=//
+  p
+}
+' /etc/login.defs
+    else
+        printf "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    fi
+}
+
+
+# users_edit_sudoers
+#  Edit sudoers to add secure variables and secure path
+
+users_edit_sudoers()
+{
+    sed -i -e "$(users_edit_sudoers__secure_variables)" /etc/sudoers
+    sed -i -e "
+s@secure_path=\".*@secure_path=\"$(users_secure_path)\"@
+" /etc/sudoers
+}
+
+users_edit_sudoers__secure_variables()
+{
+    printf '/Defaults[[:space:]]*env_reset/a'
+    printf '\134\nDefaults        env_keep += "%s"' ${users_secure_variables}
+    printf '\n'
+}
+
+users_config()
+{
+    git config --file "${users_configfile}" "$@"
+}
+
+users_db()
+{
+    git config --file "${users_configfile}" --list\
+        | awk -F '[.]' -v "key=$1" '
+($1 == key) && !($2 in s){
+   s[$2]
+   u[n++] = $2
+}
+
+END {
+  for (i = 0; i < n; ++i) {
+    print u[i]
+  }
+}
+'
+}
+
+groups_make()
+{
+    local groupname gid gidflag __varname__
+    groupname="$1"
+
+    for __varname__ in gid; do
+        eval ${__varname__}=\$\(users_config "group.$1.${__varname__}"\)
+    done
+
+    if [ -n "${gid}" ]; then
+	gidflag="--gid ${gid}"
+    fi
+
+    groupadd\
+	${gidflag}\
+        "${groupname}"
+}
+
+users_make()
+{
+    local username comment homedir createhome system shell uid gid
+    local additionalusers additionalgroups
+    local systemflag createhomeflag uidflag groupflag
+    local additional
+    local __varname__
+
+    username="$1"
+    for __varname__ in comment homedir createhome system shell\
+			       additionalusers additionalgroups uid gid; do
+        eval ${__varname__}=\$\(users_config "user.$1.${__varname__}"\)
+    done
+
+    if is_true "${createhome}"; then
+        createhomeflag='--create-home'
+    else
+        createhomeflag=''
+    fi
+
+    if is_true "${system}"; then
+        systemflag='--system'
+    else
+        systemflag=''
+    fi
+
+    if [ -n "${uid}" ]; then
+	uidflag="--uid ${uid}"
+    fi
+
+    if [ -n "${gid}" ]; then
+	groupflag="--gid ${gid}"
+    else
+	groupflag='--user-group'
+    fi
+
+
+    useradd\
+        --comment "${comment:-I am too lazy to document my users}"\
+        --home-dir "${homedir:-/home/$1}"\
+        ${systemflag}\
+        ${createhomeflag}\
+	${uidflag}\
+	${groupflag}\
+        --shell "${shell:-/bin/bash}"\
+        ${additionalgroups:+--groups }${additionalgroups}\
+        "${username}"
+
+    if [ -n "${additionalusers}" ]; then
+        for additional in ${additionalusers}; do
+            usermod -G "${username}" -a "${additional}"
+        done
+    fi
+}
+
+users_main()
+{
+    local groupname username
+
+    users_db 'group' | while read groupname; do
+        groups_make "${groupname}" || exit 1
+    done || exit 1
+
+    users_db 'user' | while read username; do
+        users_make "${username}" || exit 1
+    done || exit 1
+
+    users_edit_sudoers
+}
+
+
+users_main "$@"
+
+# End of file `users'

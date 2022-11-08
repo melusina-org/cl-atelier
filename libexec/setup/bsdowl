@@ -1,0 +1,70 @@
+#!/bin/sh
+
+### bsdowl -- Setup BSD Owl
+
+# Atelier (https://github.com/melusina-org/cl-atelier)
+# This file is part of Atelier.
+#
+# Copyright © 2017–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+: ${PACKAGE:='local'}
+: ${bsdowl_package:=${PACKAGE}}
+
+: ${bsdowl_quickstart:='/usr/share/common-lisp/source/bsdowl/bsdowl.lisp'}
+: ${bsdowl_prefix:="/opt/${bsdowl_package}"}
+: ${bsdowl_src:="${bsdowl_prefix}/var/src"}
+: ${bsdowl_own:=root}
+: ${bsdowl_group:=root}
+
+
+bsdowl_install_dependencies()
+{
+    env DEBIAN_FRONTEND=noninteractive apt-get install -y\
+	autoconf\
+	bmake\
+	libarchive-tools\
+	curl
+}
+
+bsdowl_build()
+{
+    install -d -o "${bsdowl_own}" -g "${bsdowl_group}" -m 700 "${bsdowl_src}"
+    su -l "${bsdowl_own}" -c "
+ set -e	  
+ cd ${bsdowl_src}
+ curl -L https://github.com/foretspaisibles/bsdowl/archive/master.zip | bsdtar xf -
+ cd bsdowl-master
+ autoconf
+ ./configure --prefix=${bsdowl_prefix} --with-credentials=sudo
+ bmake all
+"
+}
+
+bsdowl_install()
+(
+    cd "${bsdowl_src}/bsdowl-master"
+    bmake install
+)
+
+bsdowl_clean()
+{
+    rm -Rf "${bsdowl_src}/bsdowl-master"
+}
+
+bsdowl_main()
+{
+    bsdowl_install_dependencies
+    bsdowl_build
+    bsdowl_install
+    bsdowl_clean
+}
+
+bsdowl_main "$@"
+
+### End of file `bsdowl'
