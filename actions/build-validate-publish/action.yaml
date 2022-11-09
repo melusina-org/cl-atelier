@@ -18,6 +18,14 @@ inputs:
     description: 'The registry to push artefact to'
     required: false
     default: 'ghcr.io'
+  username:
+    description: 'The username to log in to the Artefact Registry'
+    required: 'false'
+    default: "${{ github.actor }}"
+  password:
+    description: 'The password to log in to the Artefact Registry'
+    required: 'false'
+    default: "${{ secrets.GITHUB_TOKEN }}"
   artefact:
     description: 'The artefact to build'
     required: true
@@ -39,12 +47,10 @@ runs:
 
     - name: 'Log in to the Artefact registry'
       uses: docker/login-action@v2
-      secrets:
-        password: "${{ secrets.GITHUB_TOKEN }}"
       with:
         registry: "${{ inputs.registry }}"
-        username: "${{ github.actor }}"
-        password: "${{ secrets.password }}"
+        username: "${{ inputs.username }}"
+        password: "${{ inputs.password }}"
 
     - name: 'Build Artefact'
       shell: 'sh'
