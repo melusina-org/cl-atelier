@@ -34,6 +34,7 @@ runs:
       uses: actions/checkout@v3
 
     - name: 'Describe build environment'
+      shell: 'sh'
       run: development/describe
 
     - name: 'Log in to the Artefact registry'
@@ -44,12 +45,15 @@ runs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 'Build Artefact'
+      shell: 'sh'
       run: development/build {{ inputs.artefact }}
 
     - name: 'Validate Artefact'
+      shell: 'sh'
       run: development/testimage {{ inputs.artefact }}
 
     - name: 'Publish Artefact'
+      shell: 'sh'
       run: development/publish {{ inputs.artefact }}
 
 # End of file `action.yaml'
