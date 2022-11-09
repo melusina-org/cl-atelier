@@ -21,9 +21,9 @@ jobs:
       - name: 'Log in to the Container registry'
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: "${{ env.REGISTRY }}"
+          username: "${{ github.actor }}"
+          password: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: 'Build, validate and publish Linux'
         uses: melusina-org/cl-atelier/actions/build-validate-publish@actions-2

@@ -36,14 +36,14 @@ runs:
 
     - name: 'Build Artefact'
       shell: 'sh'
-      run: development/build {{ inputs.artefact }}
+      run: development/build "${{ inputs.artefact }}"
 
     - name: 'Validate Artefact'
       shell: 'sh'
-      run: development/testimage {{ inputs.artefact }}
+      run: development/testimage "${{ inputs.artefact }}"
 
     - name: 'Publish Artefact'
       shell: 'sh'
-      run: development/publish {{ inputs.artefact }}
+      run: development/publish "${{ inputs.artefact }}"
 
 # End of file `action.yaml'
