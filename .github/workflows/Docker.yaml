@@ -15,18 +15,8 @@ jobs:
       packages: write
 
     steps:
-      - name: 'Checkout repository'
-        uses: actions/checkout@v3
-
-      - name: 'Log in to the Container registry'
-        uses: docker/login-action@v2
-        with:
-          registry: "${{ env.REGISTRY }}"
-          username: "${{ github.actor }}"
-          password: "${{ secrets.GITHUB_TOKEN }}"
-
       - name: 'Build, validate and publish Linux'
-        uses: ./actions/build-validate-publish
+        uses: melusina-org/cl-atelier/actions/build-validate-publish@actions-2
         with:
           artefact: 'docker/linux'
           description: 'Custom Linux System for Atelier'
