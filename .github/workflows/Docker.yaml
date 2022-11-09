@@ -17,8 +17,14 @@ jobs:
     steps:
       - name: 'Checkout repository'
         uses: actions/checkout@v3
+
       - name: 'Log in to the Container registry'
         uses: docker/login-action@v2
+        with:
+          registry: {{ inputs.registry }}
+          username: {{ github.actor }}
+          password: {{ secrets.GITHUB_TOKEN }}
+
       - name: 'Build, validate and publish Linux'
         uses: melusina-org/cl-atelier/actions/build-validate-publish@actions-2
         with:
