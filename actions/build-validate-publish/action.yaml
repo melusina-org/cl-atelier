@@ -1,0 +1,49 @@
+# action.yaml — Definition of the build-validate-publish action
+
+# Atelier (https://github.com/melusina-org/cl-atelier)
+# This file is part of Atelier.
+#
+# Copyright © 2017–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+name: 'Build, validate and publish'
+description: 'Build, validate and publish an artefact'
+inputs:
+  registry:
+    description: 'The registry to push artefact to'
+    required: false
+    default: 'ghcr.io'
+  artefact:
+    description: 'The artefact to build'
+    required: true
+  description:
+    description: 'The description of the artefact to build.'
+    required: true
+  license:
+    description: 'The licence of the artefact to build.'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Describe build environment'
+      shell: 'sh'
+      run: development/describe
+
+    - name: 'Build Artefact'
+      shell: 'sh'
+      run: development/build "${{ inputs.artefact }}"
+
+    - name: 'Validate Artefact'
+      shell: 'sh'
+      run: development/testimage "${{ inputs.artefact }}"
+
+    - name: 'Publish Artefact'
+      shell: 'sh'
+      run: development/publish "${{ inputs.artefact }}"
+
+# End of file `action.yaml'

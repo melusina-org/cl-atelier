@@ -8,7 +8,7 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  build-and-push-image:
+  build-and-publish-linux-image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -18,21 +18,16 @@ jobs:
       - name: 'Checkout repository'
         uses: actions/checkout@v3
 
-      - name: 'Describe build environment'
-        run: development/describe
-
       - name: 'Log in to the Container registry'
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: "${{ env.REGISTRY }}"
+          username: "${{ github.actor }}"
+          password: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: 'Build Docker image'
-        run: development/build docker/linux
-
-      - name: 'Test Docker image'
-        run: development/testimage docker/linux
-
-      - name: 'Publish Docker image'
-        run: development/publish docker/linux
+      - name: 'Build, validate and publish Linux'
+        uses: ./actions/build-validate-publish
+        with:
+          artefact: 'docker/linux'
+          description: 'Custom Linux System for Atelier'
+          license: 'MIT'
