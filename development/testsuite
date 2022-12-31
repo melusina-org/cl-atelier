@@ -14,35 +14,53 @@
 # are also available at https://opensource.org/licenses/MIT
 
 : ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
+: ${testsuitesystem:="org.melusina.atelier/testsuite"}
+: ${testsuiteclean:='no'}
+: ${testsuitelisp:='sbcl'}
 
-testsuite_sbcl()
+testsuite_lisp()
 {
-    sbcl --noinform --disable-debugger "$@"
+    case "${testsuitelisp}" in
+	sbcl)
+	    sbcl --noinform --disable-debugger "$@"
+	    ;;
+	ccl|ccl64)
+	    ccl64 "$@"
+	    ;;
+    esac
 }
 
-testsuite_run_all_tests()
-(
-    cd "${TOPLEVELDIR}"
-    testsuite_sbcl\
-	--eval '
-(unless (ql:where-is-system "org.melusina.atelier/testsuite")
- (push #p"./" ql:*local-project-directories*)
- (ql:register-local-projects))
-'\
-	--eval '(ql:quickload "org.melusina.atelier/testsuite" :silent t)'\
-	--eval '(org.melusina.atelier/testsuite:run-all-tests)'\
-	--eval '(org.melusina.confidence:quit)'
-)
+testsuite_run()
+{
+    if [ $# -eq 0 ]; then
+	set -- 'run-all-tests'
+    fi
+    testsuite_lisp\
+	--eval "(declaim (optimize safety) (optimize debug))"\
+	--eval "(ql:quickload \"${testsuitesystem}\" :silent t)"\
+	--eval "(${testsuitesystem}:$1)"\
+	--eval "(org.melusina.confidence:quit)"
+}
 
 testsuite_main()
 {
-    testsuite_run_all_tests
-    status="$?"
+    local OPTIND OPTION OPTARG
+    OPTIND=1
 
-    if [ "${status}" -gt 0 ]; then
-	1>&2 printf 'testsuite: Failure: There were some failed tests.\n'
+    while getopts 'CL:' OPTION; do
+	case "${OPTION}" in
+	    C)	testsuiteclean='yes';;
+	    L)	testsuitelisp="${OPTARG}";;
+	esac
+    done
+
+    shift $((OPTIND - 1))
+
+    if [ "${testsuiteclean}" = 'yes' ]; then
+	(cd "${TOPLEVELDIR}" && development/clean)
     fi
-    return "${status}"
+
+    testsuite_run "$@"
 }
 
 testsuite_main "$@"
