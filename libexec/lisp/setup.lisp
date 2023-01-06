@@ -3,7 +3,7 @@
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
 ;;;;
-;;;; Copyright © 2017–2022 Michaël Le Barbier
+;;;; Copyright © 2017–2023 Michaël Le Barbier
 ;;;; All rights reserved.
 
 ;;;; This file must be used under the terms of the MIT License.
@@ -23,7 +23,7 @@
 
 (setf org.melusina.atelier:*parameter-bindings*
       '((:copyright-holder . "Michaël Le Barbier")
-        (:copyright-year . "2017–2022")
+        (:copyright-year . "2017–2023")
 	(:project-filename . "atelier")
         (:project-name . "Atelier")
 	(:project-description . "Atelier for Lisp developers")
