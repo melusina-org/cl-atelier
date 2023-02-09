@@ -363,8 +363,8 @@ These scripts are merely place hodlers."
 These scripts are specific to Lisp projects."
      :template-list
      ((:lisp-development-lint #p"development/lint")
-      (:lisp-development-lint #p"development/testsuite")
-      (:lisp-development-lint #p"development/build")))
+      (:lisp-development-testsuite #p"development/testsuite")
+      (:lisp-development-build #p"development/build")))
     (:template-name "Atelier Lisp Project"
      :template-id :atelier-lisp-project
      :template-description "A complete Lisp project template"
