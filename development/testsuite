@@ -29,12 +29,9 @@ testsuite_run_all_tests()
  (push #p"./" ql:*local-project-directories*)
  (ql:register-local-projects))
 '\
-	--eval '
-(ql:quickload "org.melusina.atelier/testsuite" :silent t)
-'\
-	--eval '
-(org.melusina.atelier/testsuite:run-all-tests)
-'
+	--eval '(ql:quickload "org.melusina.atelier/testsuite" :silent t)'\
+	--eval '(org.melusina.atelier/testsuite:run-all-tests)'\
+	--eval '(org.melusina.confidence:quit)'
 )
 
 testsuite_main()

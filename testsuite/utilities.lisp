@@ -35,6 +35,11 @@
 	      (invoke-restart 'atelier::autocorrect))))
        ,@body-forms)))
 
+
+;;;;
+;;;; Testsuite Utilities
+;;;;
+
 (define-testcase validate-first-line ()
   (assert-string= "A" (atelier::first-line (atelier::join-lines '("A" "B"))))
   (assert-string= "A" (atelier::first-line "A"))

@@ -111,8 +111,7 @@ If environment is provided, it is a plist which is added to the current
 *PARAMETER-BINDINGS*.
 
 The PATHNAME argument can actually be a pathname, a string instepreted as a UNIX path,
-a stream or the value T.
-"
+a stream or the value T."
   (let ((filename 
           (cond
 	    ((assoc :filename environment)
@@ -123,14 +122,14 @@ a stream or the value T.
 	     (concatenate 'string (pathname-name pathname) "." (pathname-type pathname)))
 	    (t
              (pathname-name pathname))))
-	(environment*
+	(local-environment
 	  environment))
     (when filename
-      (push (cons :filename filename) environment*))
+      (push (cons :filename filename) local-environment))
     (really-write-template
      (find-template template-designator)
      pathname
-     (template-environment environment*))))
+     (template-environment local-environment))))
 
 
 ;;;
@@ -436,7 +435,6 @@ These scripts are specific to Lisp projects."
 	    (:project-long-description . ,project-long-description)
             (:homepage . ,homepage)
             (:license . ,license))))
-    (print *parameter-bindings*)
     (write-template :atelier-lisp-project pathname environment)))
 
 (defun new-lisp-file (name summary)
