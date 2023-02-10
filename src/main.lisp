@@ -13,8 +13,9 @@
 
 (in-package #:org.melusina.atelier)
 
-(defun initialise ()
+(defun initialize ()
   (license-repository-load)
-  (template-repository-load))
+  (template-repository-load)
+  (values))
 
 ;;;; End of file `main.lisp'

@@ -27,7 +27,7 @@
    #:list-template-parameter-names
    #:list-licenses
    #:write-template
-   #:initialise
+   #:initialize
    #:new-lisp-project
    #:new-lisp-file
    
@@ -54,5 +54,9 @@
    #:define-inspector
    #:list-inspectors
    ))
+
+(in-package #:org.melusina.atelier)
+
+(declaim (ftype (function nil (values null)) initialize))
 
 ;;;; End of file `package.lisp'

@@ -14,7 +14,7 @@
 (in-package #:org.melusina.atelier/testsuite)
 
 (define-testcase run-all-tests ()
-  (atelier:initialise)
+  (atelier:initialize)
   (testsuite-utilities)
   (testsuite-parameter)
   (testsuite-linter))
