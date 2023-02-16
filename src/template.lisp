@@ -20,6 +20,9 @@
 (defparameter *template-repository* (make-hash-table)
   "A hash-table with all templates.")
 
+(defun template-repository-empty-p ()
+  (= 0 (hash-table-count *template-repository*)))
+
 (defclass template nil
   ((template-name
     :initarg :template-name
@@ -44,6 +47,10 @@
 
 (defun find-template (designator)
   "Find template by DESIGNATOR in *TEMPLATE-REPOSITORY*."
+  (when (template-repository-empty-p)
+    (restart-case (error "The template repository is empty.")
+      (initialize ()
+	(initialize))))    
   (cond
     ((typep designator 'template)
      designator)
@@ -144,12 +151,11 @@ a stream or the value T."
   (:documentation
    "This class represents a file template which creates a file when written."))
 
-(defun make-file-template (&key template-id template-name template-text)
+(defun make-file-template (&rest initargs
+			   &key template-id template-name template-text)
   "Make a file template."
-  (make-instance 'file-template
-		 :template-id template-id
-		 :template-name template-name
-		 :template-text template-text))
+  (declare (ignore template-id template-name template-text))
+  (apply #'make-instance 'file-template initargs))
 
 (defun template-repository-load-definition-file (definition-pathname)
   "Load the file template from DEFINITION-PATHNAME."
@@ -187,7 +193,14 @@ a stream or the value T."
       ((or (stringp pathname) (pathnamep pathname))
        (ensure-directories-exist pathname)
        (with-open-file (stream pathname :direction :output)
-	 (write-string template-instance stream)))
+	 (write-string template-instance stream))
+       (when (member (slot-value template 'template-id)
+		     '(:shell-script
+		       :lisp-development-build
+		       :lisp-development-lint
+		       :lisp-development-testsuite)
+		     :test #'string-equal)
+	 (osicat-posix:chmod pathname #o755)))
       (t
        (error "Cannot write template instance to ~A." pathname)))))
 
@@ -426,16 +439,19 @@ These scripts are specific to Lisp projects."
 			      project-description project-long-description
 			      homepage license)
   "Create a new lisp project in PATHNAME."
-  (let ((*parameter-bindings*
-	  `((:copyright-holder . ,copyright-holder)
-            (:copyright-year . ,copyright-year)
-	    (:project-filename . ,project-filename)
-            (:project-name . ,project-name)
-	    (:project-description . ,project-description)
-	    (:project-long-description . ,project-long-description)
-            (:homepage . ,homepage)
-            (:license . ,license))))
-    (write-template :atelier-lisp-project pathname environment)))
+  (let* ((argv-parameter-bindings
+	   `((:copyright-holder . ,copyright-holder)
+             (:copyright-year . ,copyright-year)
+	     (:project-filename . ,project-filename)
+             (:project-name . ,project-name)
+	     (:project-description . ,project-description)
+	     (:project-long-description . ,project-long-description)
+             (:homepage . ,homepage)
+             (:license . ,license)))
+	 (merged-parameter-bindings
+	   (merge-parameter-bindings *parameter-bindings* argv-parameter-bindings)))
+    (let ((*parameter-bindings* merged-parameter-bindings))
+      (write-template :atelier-lisp-project pathname environment))))
 
 (defun new-lisp-file (name summary)
   "Create a new file NAME with SUMMARY."

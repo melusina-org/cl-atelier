@@ -69,7 +69,16 @@ between shell-case or lisp-case."
 (defun parameter-replacement-text (item &optional (alist *parameter-bindings*) default)
   (let ((binding
 	  (assoc item alist :test #'parameter-name-equal)))
-    (if binding (cdr binding) default)))
+    (cond
+      ((cdr binding)
+       (cdr binding))
+      (default
+       default)
+      (t
+       (restart-case
+	   (error "There is no replacement text for ~S under current bindings." item)
+	 (use-replacement-text (value)
+	   value))))))
 
 (defun list-parameter-names (template-text)
   "The list of parameter names occuring in TEMPLATE-TEXT."
@@ -126,14 +135,17 @@ It is an error to sort BINDINGS featuring a cyclic dependency."
       (toposort))))
 
 (defun merge-parameter-bindings (bindings1 bindings2)
-  "Make new bindings by adding to BINDINGS1 new parameters found in BINDINGS2."
+  "Make new bindings by adding to BINDINGS1 new parameters found in BINDINGS2.
+When an entry of BINDINGS2 maps a key to NIL, the entry is ignored. When an entry
+of BINDINGS2 uses the same key as an entry of BINDINGS1, that entry is ignored."
   (flet ((newp (binding)
-	   (and (assoc (car binding) bindings1 :test #'parameter-name-equal) t)))
-    (loop with accumulator = bindings1
-	  for binding in bindings2
-	  do (unless (newp binding)
-	       (push binding accumulator))
-	  finally (return accumulator))))
+	   (and (cdr binding)
+		(not (assoc (car binding) bindings1 :test #'parameter-name-equal)))))
+    (loop :with accumulator = bindings1
+	  :for binding :in bindings2
+	  :do (when (newp binding)
+		(push binding accumulator))
+	  :finally (return accumulator))))
     
 
 (defun parameter-replace (template-text bindings)

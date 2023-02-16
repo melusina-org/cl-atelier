@@ -14,7 +14,11 @@
 (asdf:defsystem #:org.melusina.atelier
   :description "An atelier for Lisp developers"
   :author "Michaël Le Barbier"
-  :depends-on (#:alexandria #:cl-ppcre #:trivia #:org.melusina.rashell)
+  :depends-on (#:alexandria
+	       #:cl-ppcre
+	       #:org.melusina.rashell
+	       #:osicat
+	       #:trivia)
   :components
   ((:module "src"
     :components ((:file "package")
@@ -37,7 +41,9 @@
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"
   :author "Michaël Le Barbier"
-  :depends-on (#:alexandria #:org.melusina.confidence #:org.melusina.atelier)
+  :depends-on (#:alexandria
+	       #:org.melusina.atelier
+	       #:org.melusina.confidence)
   :components
   ((:module "testsuite"
     :components ((:file "package")

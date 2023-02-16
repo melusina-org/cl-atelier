@@ -158,6 +158,37 @@ main()
     (assert-string= expected-text-cpp
 		    (atelier::parameter-replace *template-text-cpp* *parameter-bindings*))))
 
+
+(define-testcase ensure-merge-parameter-bindings-ignore-nil-values ()
+  (assert-string=
+   (cdr (assoc :project-name *parameter-bindings*))
+   (cdr (assoc :project-name (atelier::merge-parameter-bindings
+			      *parameter-bindings*
+			      '((:project-name)))))))
+
+(define-testcase ensure-merge-parameter-bindings-does-not-duplicate-keys ()
+  (assert-eq (length *parameter-bindings*)
+	     (length (atelier::merge-parameter-bindings
+		      *parameter-bindings*
+		      '((:project-name) (:copyright-holder) (:copyright-year))))))
+
+(define-testcase ensure-merge-parameter-bindings-only-add-new-values ()
+  (assert-string=
+   "Atelier"
+   (cdr (assoc :project-name (atelier::merge-parameter-bindings
+			      *parameter-bindings*
+			      '((:project-name . "Overridden Project Name"))))))
+  (assert-string=
+   "Value for missing key"
+   (cdr (assoc :missing-key (atelier::merge-parameter-bindings
+			     *parameter-bindings*
+			     '((:missing-key . "Value for missing key")))))))
+
+(define-testcase testsuite-merge-parameter-bindings ()
+  (ensure-merge-parameter-bindings-ignore-nil-values)
+  (ensure-merge-parameter-bindings-does-not-duplicate-keys)
+  (ensure-merge-parameter-bindings-only-add-new-values))
+
 (define-testcase testsuite-parameter ()
   (ensure-sort-parameter-bindings-lists-all-parameters)
   (ensure-sort-parameter-bindings-finds-all-cycles)

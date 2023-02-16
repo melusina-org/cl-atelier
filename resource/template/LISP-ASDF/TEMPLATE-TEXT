@@ -23,7 +23,7 @@
   :description "${PROJECT_DESCRIPTION}"
   :author "${COPYRIGHT_HOLDER}"
   :license "${LICENSE_NAME}"
-  :depends-on (:alexandria :kaputt)
+  :depends-on (:alexandria :org.melusina.confidence)
   :components
   ((:module "testsuite"
     :components ((:file "package")

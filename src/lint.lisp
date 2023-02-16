@@ -721,6 +721,8 @@ for CONTENTS are a string or a list of strings."
   
 (defun lint (&rest pathnames)
   "Lint file PATHNAME with the given linters."
+  (when (template-repository-empty-p)
+    (initialize))
   (labels ((finalize (hints lines)
 	     (values hints (join-lines lines)))
 	   (lint-1 (pathname)

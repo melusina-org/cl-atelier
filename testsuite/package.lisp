@@ -12,11 +12,14 @@
 ;;;; are also available at https://opensource.org/licenses/MIT
 
 (defpackage #:org.melusina.atelier/testsuite
-  (:local-nicknames (#:atelier #:org.melusina.atelier))
+  (:local-nicknames
+   (#:rashell #:org.melusina.rashell)
+   (#:atelier #:org.melusina.atelier))
   (:use #:common-lisp)
   (:import-from #:org.melusina.confidence
    #:define-testcase
    #:define-assertion
+   #:assert-t
    #:assert-eq
    #:assert-set-equal
    #:assert-string=
