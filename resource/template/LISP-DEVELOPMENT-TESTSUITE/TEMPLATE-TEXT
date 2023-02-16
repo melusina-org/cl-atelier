@@ -34,7 +34,8 @@ testsuite_run()
     fi
     testsuite_lisp\
 	--eval "(ql:quickload \"${testsuitesystem}\" :silent t)"\
-	--eval "(${testsuitesystem}:$1)"
+	--eval "(${testsuitesystem}:$1)"\
+	--eval '(org.melusina.confidence:quit)'
 }
 
 testsuite_main()

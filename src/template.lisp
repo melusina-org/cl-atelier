@@ -198,6 +198,7 @@ a stream or the value T."
 		     '(:shell-script
 		       :lisp-development-build
 		       :lisp-development-lint
+		       :lisp-development-makedoc
 		       :lisp-development-testsuite)
 		     :test #'string-equal)
 	 (osicat-posix:chmod pathname #o755)))
@@ -301,13 +302,13 @@ and the testsuite: package definition, utilities and entrypoints."
        ((:summary . "Utilities for ${PROJECT_NAME}")))
       (:lisp-source #p"src/entrypoint.lisp"
        ((:summary . "Entrypoint for ${PROJECT_NAME}")))
-      (:lisp-package #p"testsuite/package.lisp"
+      (:lisp-testsuite-package #p"testsuite/package.lisp"
        ((:summary . "Package for ${PROJECT_NAME} tests")
 	(:lisp-package-name . "${LISP_TEST_PACKAGE_NAME}")))
       (:lisp-source #p"testsuite/utilities.lisp"
        ((:summary . "Utilities for ${PROJECT_NAME} tests")
 	(:lisp-package-name . "${LISP_TEST_PACKAGE_NAME}")))
-      (:lisp-source #p"testsuite/entrypoint.lisp"
+      (:lisp-testsuite-entrypoint #p"testsuite/entrypoint.lisp"
        ((:summary . "Entrypoint for ${PROJECT_NAME}")
 	(:lisp-package-name . "${LISP_TEST_PACKAGE_NAME}")))))
     (:template-name "Atelier DevOps Actions"
@@ -384,7 +385,8 @@ These scripts are specific to Lisp projects."
 		     :atelier-lisp-system-scaffolding
 		     :atelier-devops-actions
 		     :atelier-lisp-devops-actions
-		     :atelier-lisp-documentation))))
+		     :atelier-lisp-documentation
+		     (:lisp-git-ignore #p".gitignore")))))
 
 
 ;;;

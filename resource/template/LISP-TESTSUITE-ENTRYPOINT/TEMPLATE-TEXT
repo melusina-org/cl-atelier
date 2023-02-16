@@ -1,0 +1,16 @@
+;;;; ${FILENAME} — ${SUMMARY}
+
+;;;; ${PROJECT_NAME} (${HOMEPAGE})
+;;;; This file is part of ${PROJECT_NAME}.
+;;;;
+;;;; Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+;;;; All rights reserved.
+
+;;;; ${LICENSE_HEADER}
+
+(in-package ${LISP_PACKAGE_NAME})
+
+(define-testcase run-all-tests ()
+  (assert-t t))
+
+;;;; End of file `${FILENAME}'
