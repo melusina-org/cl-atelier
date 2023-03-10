@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#### build — Build ${PROJECT_NAME}
+# build — Build ${PROJECT_NAME}
 
 # ${PROJECT_NAME} (${HOMEPAGE})
 # This file is part of ${PROJECT_NAME}.
@@ -30,4 +30,4 @@ build_main()
 
 build_main "$@"
 
-### End of file `build'
+# End of file `build'

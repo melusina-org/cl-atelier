@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#### testsuite — Testsuite for ${PROJECT_NAME}
+# testsuite — Testsuite for ${PROJECT_NAME}
 
 # ${PROJECT_NAME} (${HOMEPAGE})
 # This file is part of ${PROJECT_NAME}.
@@ -61,4 +61,4 @@ testsuite_main()
 
 testsuite_main "$@"
 
-### End of file `testsuite'
+# End of file `testsuite'

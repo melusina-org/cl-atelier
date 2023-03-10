@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#### makedoc — Makedoc for ${PROJECT_NAME}
+# makedoc — Makedoc for ${PROJECT_NAME}
 
 # ${PROJECT_NAME} (${HOMEPAGE})
 # This file is part of ${PROJECT_NAME}.
@@ -39,7 +39,9 @@ makedoc_extract()
     makedoc_sbcl \
 	--eval "(ql:quickload :${makedocsystem})"\
 	--eval '(with-compilation-unit () (load "libexec/lisp/docstrings.lisp"))' \
-	--eval "(sb-texinfo:generate-includes \"obj/makedoc/include/\" (list :${makedocsystem}) :base-package :${makedocsystem})" \
+	--eval "(sb-texinfo:generate-includes
+ \"obj/makedoc/include/\"
+ (list :${makedocsystem}) :base-package :${makedocsystem})" \
 	--eval '(quit)'
 }
 
@@ -81,4 +83,4 @@ makedoc_main()
 
 makedoc_main "$@"
 
-### End of file `makedoc'
+# End of file `makedoc'

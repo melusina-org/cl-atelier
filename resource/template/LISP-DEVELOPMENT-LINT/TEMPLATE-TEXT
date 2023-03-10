@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#### lint — Linter for ${PROJECT_NAME}
+# lint — Linter for ${PROJECT_NAME}
 
 # ${PROJECT_NAME} (${HOMEPAGE})
 # This file is part of ${PROJECT_NAME}.
@@ -20,9 +20,14 @@ lint_sbcl()
 lint_main()
 {
     lint_sbcl --load "${TOPLEVELDIR}/libexec/lisp/setup.lisp"\
-	      --eval '(org.melusina.atelier:lint #p"src" #p"testsuite")'
+	      --eval '(org.melusina.atelier:lint
+ #p"src"
+ #p"testsuite"
+ #p"libexec/lisp/setup.lisp"
+ #p"development"
+ #p"operation")'
 }
 
 lint_main "$@"
 
-### End of file `lint'
+# End of file `lint'
