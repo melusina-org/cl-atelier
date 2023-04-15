@@ -720,9 +720,15 @@ for CONTENTS are a string or a list of strings."
 	:return linter))
   
 (defun lint (&rest pathnames)
-  "Lint file PATHNAME with the given linters."
+  "Lint file PATHNAMES with the given linters.
+
+When the first item of PATHNAMES is a list itself, then the linter
+is called on pathnames on that list."
   (when (template-repository-empty-p)
     (initialize))
+  (when (listp (first pathnames))
+    (return-from lint
+      (apply #'lint (first pathnames))))
   (labels ((finalize (hints lines)
 	     (values hints (join-lines lines)))
 	   (lint-1 (pathname)
@@ -786,6 +792,7 @@ for CONTENTS are a string or a list of strings."
 				    (:and (:name ".hg") :prune)
 				    (:and (:name ".svn") :prune)
 				    (:and (:name "CVS") :prune)
+				    (:and (:name "*.fasl") :prune)
 				    (:and (:has-kind :regular) :print))
 				  pathnames))
 	(setf hints (nconc hints (handler-lint-1 (pathname pathname)))))
