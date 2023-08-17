@@ -40,7 +40,7 @@ makedoc_runpatches()
 makedoc_extract()
 {
     makedoc_sbcl \
-	--eval "(ql:quickload :${makedocsystem})"\
+	--eval "(ql:quickload :${makedocsystem} :silent t)"\
 	--eval '(with-compilation-unit () (load "libexec/lisp/docstrings.lisp"))' \
 	--eval "(sb-texinfo:generate-includes\
                   \"obj/makedoc/include/\"\

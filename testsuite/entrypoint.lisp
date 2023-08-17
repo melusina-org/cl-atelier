@@ -17,6 +17,7 @@
   (atelier:initialize)
   (testsuite-utilities)
   (testsuite-parameter)
-  (testsuite-linter))
+  (testsuite-linter)
+  (testsuite-template))
 
 ;;;; End of file `entrypoint.lisp'

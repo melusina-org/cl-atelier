@@ -37,6 +37,9 @@ makedoc_runpatches()
 makedoc_extract()
 {
     makedoc_sbcl \
+        --eval "(unless (ql:where-is-system :${makedocsystem})
+                  (pushnew #p\".\" ql:*local-project-directories*)
+                  (ql:register-local-projects))"\
 	--eval "(ql:quickload :${makedocsystem})"\
 	--eval '(with-compilation-unit () (load "libexec/lisp/docstrings.lisp"))' \
 	--eval "(sb-texinfo:generate-includes

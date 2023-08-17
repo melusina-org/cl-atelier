@@ -33,6 +33,9 @@ testsuite_run()
 	set -- 'run-all-tests'
     fi
     testsuite_lisp\
+        --eval "(unless (ql:where-is-system :${testsuitesystem})
+                  (pushnew #p\".\" ql:*local-project-directories*)
+                  (ql:register-local-projects))"\
 	--eval "(ql:quickload \"${testsuitesystem}\" :silent t)"\
 	--eval "(${testsuitesystem}:$1)"\
 	--eval '(org.melusina.confidence:quit)'

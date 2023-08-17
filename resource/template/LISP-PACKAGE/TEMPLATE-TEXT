@@ -9,7 +9,7 @@
 ;;;; ${LICENSE_HEADER}
 
 (defpackage ${LISP_PACKAGE_NAME}
-  (:use #:cl)
+  (:use #:common-lisp)
   (:export
   ))
 

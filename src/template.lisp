@@ -296,6 +296,7 @@ and the testsuite: package definition, utilities and entrypoints."
        ((:summary . "System definition for ${PROJECT_NAME}")))
       (:lisp-setup #p"libexec/lisp/setup.lisp"
        ((:summary . "Project setup for ${PROJECT_NAME}")))
+      (:lisp-docstrings #p"libexec/lisp/docstrings.lisp")
       (:lisp-package #p"src/package.lisp"
        ((:summary . "Package for ${PROJECT_NAME}")))
       (:lisp-source #p"src/utilities.lisp"
@@ -316,7 +317,8 @@ and the testsuite: package definition, utilities and entrypoints."
      :template-description "This template provides scripts for development and operations.
 These scripts are merely place hodlers."
      :template-list
-     ((:shell-script #p"development/audit"
+     ((:shell-stdlib #p"subr/stdlib.sh")
+      (:shell-script #p"development/audit"
        ((:summary . "Audit ${PROJECT_NAME}")))
       (:shell-script #p"development/build"
        ((:summary . "Build ${PROJECT_NAME}")))
