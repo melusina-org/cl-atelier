@@ -1,12 +1,79 @@
-name: Delivery
-
+name: 'Continuous Integration of Lisp System'
 on:
   - workflow_dispatch
-
+  - push
 jobs:
-  delivery:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+  testsuite-fast:
+    name: 'Run Fast Testsuite'
+    strategy:
+      matrix:
+        implementation: ['abcl']
+        os: ['ubuntu-latest']
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     steps:
-    - uses: actions/checkout@v1
-    - uses: foretspaisibles/cl-atelier/actions/makedoc@github
+      - name: 'Checkout repository'
+        uses: actions/checkout@v3
+      - name: 'Setup Common Lisp'
+        uses: melusina-org/setup-common-lisp@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+      - name: 'Setup QuickLisp'
+        uses: melusina-org/setup-quicklisp@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+      - name: 'Compile main system with ASDF'
+        uses: melusina-org/asdf-operate@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+          system: 'org.melusina.atelier'
+          operation: 'asdf:compile-op'
+      - name: 'Compile testsuite system with ASDF'
+        uses: melusina-org/asdf-operate@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+          system: 'org.melusina.atelier/testsuite'
+          operation: 'asdf:compile-op'
+      - name: 'Run the testsuite'
+        uses: melusina-org/run-common-lisp-program@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+          system: 'org.melusina.atelier/testsuite'
+          entrypoint: 'run-all-tests'
+  testsuite-tier-1:
+    name: 'Run Testsuite Tier 1'
+    needs: testsuite-fast
+    strategy:
+      matrix:
+        implementation: ['abcl']
+        os: ['ubuntu-latest', 'macos-latest']
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: 'Install MacPorts'
+        if: runner.os == 'macOS'
+        uses: melusina-org/gha-install-macports@v1
+      - name: 'Checkout repository'
+        uses: actions/checkout@v3
+      - name: 'Setup Common Lisp'
+        uses: melusina-org/setup-common-lisp@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+      - name: 'Setup QuickLisp'
+        uses: melusina-org/setup-quicklisp@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+      - name: 'Compile with ASDF'
+        uses: melusina-org/asdf-operate@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+          system: 'org.melusina.atelier/testsuite'
+          operation: 'asdf:compile-op'
+      - name: 'Run the testsuite'
+        uses: melusina-org/run-common-lisp-program@v1
+        with:
+          implementation: ${{ matrix.implementation }}
+          system: 'org.melusina.atelier/testsuite'
+          entrypoint: 'run-all-tests'
