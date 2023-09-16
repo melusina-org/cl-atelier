@@ -3,6 +3,8 @@
 The atelier for Lisp developers is providing useful tools for Lisp
 developpers such as project templates and a linter.
 
+[![Continuous Integration](https://github.com/melusina-org/cl-atelier/actions/workflows/continuous-integration.yaml/badge.svg)](https://github.com/melusina-org/cl-atelier/actions/workflows/continuous-integration.yaml)
+
 *This software is Copyright © 2017–2023 Michaël Le Barbier and
 is distributed under the terms described in the LICENSE file.*
 
