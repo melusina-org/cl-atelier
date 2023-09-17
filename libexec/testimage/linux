@@ -1,11 +1,11 @@
 #!/bin/sh
 
-# testimage — Test Docker Image for Personalised Linux system
+# linux — Test Docker Image for Personalised Linux system
 
 # Atelier (https://github.com/melusina-org/cl-atelier)
 # This file is part of Atelier.
 #
-# Copyright © 2017–2022 Michaël Le Barbier
+# Copyright © 2017–2023 Michaël Le Barbier
 # All rights reserved.
 
 # This file must be used under the terms of the MIT License.
@@ -21,4 +21,4 @@ test -x /usr/bin/bsdtar
 test -f "/opt/${PACKAGE}/share/bsdowl/bps.uses.mk"
 id atelier
 
-# End of file `testimage'
+# End of file `linux'

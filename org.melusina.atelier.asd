@@ -61,4 +61,13 @@
 		 (:file "lint")
 		 (:file "entrypoint")))))
 
+(asdf:defsystem #:org.melusina.atelier/development
+  :description "Development tools for Atelier"
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:org.melusina.atelier)
+  :components
+  ((:module "libexec/lisp"
+    :components ((:file "development")))))
+
 ;;;; End of file `org.melusina.atelier.asd'

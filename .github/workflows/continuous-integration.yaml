@@ -12,3 +12,4 @@ jobs:
       testsuite-entrypoint: 'run-all-tests'
       linter-system: 'org.melusina.atelier/development'
       linter-entrypoint: 'lint'
+
