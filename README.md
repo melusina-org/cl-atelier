@@ -21,9 +21,9 @@ is distributed under the terms described in the LICENSE file.*
 	  :project-name "Atelier"
 	  :project-description "An Atelier for Lisp developers"
 	  :project-long-description
-	  #.(concatenate 'string
+      #.(concatenate 'string
         "The atelier for Lisp developers is providing useful tools "
-	    "for Lisp developpers such as project templates and a linter.")
-	  :homepage "https://github.com/melusina-org/cl-atelier"
-	  :license :mit)
+        "for Lisp developpers such as project templates and a linter.")
+      :homepage "https://github.com/melusina-org/cl-atelier"
+      :license :mit)
 ~~~
