@@ -1,0 +1,29 @@
+main-system: 'org.melusina.atelier'
+unit-tests:
+  system: 'org.melusina.atelier/testsuite'
+  entrypoint: 'run-all-tests'
+linter:
+  system: 'org.melusina.atelier/development'
+  entrypoint: 'lint'
+
+fast:
+  os:
+    - ubuntu-latest
+  implementation:
+    - sbcl
+tier-1:
+  os:
+    - ubuntu-latest
+    - macos-latest
+  implementation:
+    - sbcl
+tier-2:
+  os:
+    - ubuntu-latest
+    - macos-latest
+  implementation:
+    - abcl
+    - ccl
+    - clisp
+    - ecl
+    - gcl
