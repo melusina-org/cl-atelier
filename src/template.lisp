@@ -294,8 +294,8 @@ and the testsuite: package definition, utilities and entrypoints."
      :template-list
      ((:lisp-asdf #p"${PROJECT_FILENAME}.asd"
        ((:summary . "System definition for ${PROJECT_NAME}")))
-      (:lisp-setup #p"libexec/lisp/setup.lisp"
-       ((:summary . "Project setup for ${PROJECT_NAME}")))
+      (:lisp-development #p"libexec/lisp/development.lisp"
+       ((:summary . "Development System for ${PROJECT_NAME}")))
       (:lisp-docstrings #p"libexec/lisp/docstrings.lisp")
       (:lisp-package #p"src/package.lisp"
        ((:summary . "Package for ${PROJECT_NAME}")))
