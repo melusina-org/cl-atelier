@@ -221,8 +221,12 @@ The FILE-PREDICATE can have one of the following forms:
      The predicate that recognises every file.
   * NIL
      The predicate that recognises no file.
+  * (:HAS-PREFIX STRING)
+     The predicate that recognises files whose name starts with STRING.
   * (:HAS-SUFFIX STRING)
      The predicate that recognises files whose name ends with STRING.
+  * (:HAS-NAME STRING)
+     The predicate that recognises files whose name is STRING.
   * (:HAS-SHEBANG STRING)
      The predicate that recognises files with a SHEBANG similar to STRING.
   * (:OR PREDICATE1 …)
