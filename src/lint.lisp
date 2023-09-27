@@ -494,6 +494,11 @@ care of."
 		    (:has-suffix ".zsh")
 		    (:has-suffix ".ksh")
 		    (:has-suffix ".bash")
+		    (:has-suffix ".sh.in")
+		    (:has-suffix ".zsh.in")
+		    (:has-suffix ".ksh.in")
+		    (:has-suffix ".bash.in")
+		    (:has-name "configure.ac")
 		    (:has-shebang "*/bin/sh*"))
   :comment-prefix "# "
   :comment-prefix-regex '(:sequence
@@ -504,8 +509,23 @@ care of."
 (define-plain-linter
   :file-type :application/makefile
   :file-predicate '(:or
-		    (:has-prefix "Makefile")
-		    (:has-suffix ".mk"))
+		    (:has-name "Makefile")
+		    (:has-name "Makefile.in")
+		    (:has-prefix "Makefile.")
+		    (:has-suffix ".mk")
+		    (:has-suffix ".mk.in"))
+  :comment-prefix "# "
+  :comment-prefix-regex '(:sequence
+			  (:greedy-repetition 1 nil #\Number_sign)
+			  (:greedy-repetition 0 nil #\Space))
+  :line-inspectors '(hint-at-file-line-when-it-is-very-long))
+
+(define-plain-linter
+  :file-type :application/dockerfile
+  :file-predicate '(:or
+		    (:has-name "Dockerfile")
+		    (:has-prefix "Dockerfile.")
+		    (:has-suffix ".dockerfile"))
   :comment-prefix "# "
   :comment-prefix-regex '(:sequence
 			  (:greedy-repetition 1 nil #\Number_sign)
@@ -688,6 +708,12 @@ for CONTENTS are a string or a list of strings."
 	     (unless (stringp (first expr))
 	       (error "A :HAS-PREFIX clause must have a string agument."))
 	     (string-prefix-p (first expr) (namestring pathname)))
+	   (has-name (expr)
+	     (unless (= 1 (length expr))
+	       (error "A :HAS-NAME clause must have one argument."))
+	     (unless (stringp (first expr))
+	       (error "A :HAS-NAME clause must have a string agument."))
+	     (string= (first expr) (namestring pathname)))
 	   (has-shebang (expr)
 	     (let ((first-line
 		     (first (read-file-into-list pathname))))
@@ -703,6 +729,8 @@ for CONTENTS are a string or a list of strings."
 		(some #'eval-predicate (rest expr)))
 	       (:and
 		(every #'eval-predicate (rest expr)))
+	       (:has-name
+		(has-name (rest expr)))
 	       (:has-suffix
 		(has-suffix (rest expr)))
 	       (:has-prefix
