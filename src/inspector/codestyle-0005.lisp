@@ -46,7 +46,7 @@ license under which the file is released."
 			(:sequence
 			 #\Space
 			 (:greedy-repetition 0 nil :everything)
-			 (:alternation ,(project-name) "https" "Copyright" "This file is part of" "All rights reserved")	
+			 (:alternation "https" "Copyright" "This file is part of" "All rights reserved")	
 			 (:greedy-repetition 0 nil :everything)))
 		       #\Newline)))
 	       `(:sequence

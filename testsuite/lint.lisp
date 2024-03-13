@@ -64,6 +64,7 @@
   (validate-codestyle-0003-hint-at-file-when-it-lacks-canonical-header-line)
   (validate-codestyle-0004-hint-at-file-when-it-lacks-canonical-footer-line)
   (validate-codestyle-0005-hint-at-file-when-it-lacks-canonical-project-identification)
+  (validate-codestyle-0005-hint-at-script-when-it-lacks-canonical-project-identification)
   (validate-codestyle-0006-hint-at-file-when-it-lacks-project-license-information))
 
 ;;;; End of file `lint.lisp'
