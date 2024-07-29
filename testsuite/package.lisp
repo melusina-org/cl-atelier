@@ -11,12 +11,9 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(defpackage #:org.melusina.atelier/testsuite
-  (:local-nicknames
-   (#:rashell #:org.melusina.rashell)
-   (#:atelier #:org.melusina.atelier))
+(defpackage #:atelier/testsuite
   (:use #:common-lisp)
-  (:import-from #:org.melusina.confidence
+  (:import-from #:confidence
    #:define-testcase
    #:define-assertion
    #:assert-t

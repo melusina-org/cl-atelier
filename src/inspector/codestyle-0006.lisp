@@ -11,7 +11,7 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(in-package #:org.melusina.atelier)
+(in-package #:atelier)
 
 (define-inspector :codestyle-006 hint-at-file-when-it-lacks-project-license-information (contents)
   "Hint at file when it lacks the canonical project license information."

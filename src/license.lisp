@@ -11,7 +11,7 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(in-package #:org.melusina.atelier)
+(in-package #:atelier)
 
 (defparameter *license-repository-pathname* (merge-pathnames "license/" *resourcedir*)
   "The pathname to our license repository.")

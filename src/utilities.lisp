@@ -11,7 +11,7 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(in-package #:org.melusina.atelier)
+(in-package #:atelier)
 
 (defun string-match (pattern text)
   "Predicate recognising TEXT matching a globbing PATTERN."

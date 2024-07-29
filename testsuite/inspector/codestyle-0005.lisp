@@ -11,7 +11,7 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(in-package #:org.melusina.atelier/testsuite)
+(in-package #:atelier/testsuite)
 
 (define-testcase validate-codestyle-0005-hint-at-file-when-it-lacks-canonical-project-identification ()
   (let ((file-1

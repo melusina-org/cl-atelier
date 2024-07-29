@@ -11,8 +11,7 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(defpackage #:org.melusina.atelier
-  (:local-nicknames (#:rashell #:org.melusina.rashell))
+(defpackage #:atelier
   (:use #:common-lisp)
   (:import-from #:alexandria
    #:hash-table-keys
@@ -55,7 +54,7 @@
    #:list-inspectors
    ))
 
-(in-package #:org.melusina.atelier)
+(in-package #:atelier)
 
 (declaim (ftype (function nil (values null)) initialize))
 

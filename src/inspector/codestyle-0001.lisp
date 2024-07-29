@@ -11,7 +11,7 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(in-package #:org.melusina.atelier)
+(in-package #:atelier)
 
 (define-inspector :codestyle-0001 hint-at-file-when-character-encoding-is-not-utf8 (pathname)
   "Hint at PATHNAME when it is not a valid UTF8 file."

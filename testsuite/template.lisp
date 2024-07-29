@@ -11,7 +11,7 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(in-package #:org.melusina.atelier/testsuite)
+(in-package #:atelier/testsuite)
 
 (rashell:define-test grep (pattern pathname)
   ((fixed-string :flag "-F")

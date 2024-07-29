@@ -11,7 +11,7 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(in-package #:org.melusina.atelier/testsuite)
+(in-package #:atelier/testsuite)
 
 (define-testcase validate-codestyle-0002-hint-at-file-line-when-it-is-very-long ()
     (let ((short-line

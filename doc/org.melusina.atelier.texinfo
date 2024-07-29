@@ -85,12 +85,12 @@ for Lisp developpers such as project templates and a linter.
 @node Template, Linter, Introduction, Top
 @chapter File templates and project scaffolding
 
-@include include/fun-org.melusina.atelier-find-template.texinfo
-@include include/fun-org.melusina.atelier-list-templates.texinfo
-@include include/fun-org.melusina.atelier-write-template.texinfo
+@include include/fun-atelier-find-template.texinfo
+@include include/fun-atelier-list-templates.texinfo
+@include include/fun-atelier-write-template.texinfo
 @c Lisp Projects
-@include include/fun-org.melusina.atelier-new-lisp-file.texinfo
-@include include/fun-org.melusina.atelier-new-lisp-project.texinfo
+@include include/fun-atelier-new-lisp-file.texinfo
+@include include/fun-atelier-new-lisp-project.texinfo
 
 @example
 (atelier:new-lisp-project
@@ -108,34 +108,34 @@ for Lisp developpers such as project templates and a linter.
 @end example
 
 @c License
-@include include/fun-org.melusina.atelier-list-licenses.texinfo
+@include include/fun-atelier-list-licenses.texinfo
 @c Parameters
-@include include/fun-org.melusina.atelier-list-template-parameter-names.texinfo
-@include include/fun-org.melusina.atelier-parameter-keyword.texinfo
+@include include/fun-atelier-list-template-parameter-names.texinfo
+@include include/fun-atelier-parameter-keyword.texinfo
 
 @node Linter, Configuration, Template, Top
 @chapter Linter
 
-@include include/var-org.melusina.atelier-star-linter-interactive-p-star.texinfo
-@include include/fun-org.melusina.atelier-lint.texinfo
-@include include/macro-org.melusina.atelier-define-inspector.texinfo
-@include include/fun-org.melusina.atelier-list-inspectors.texinfo
+@include include/var-atelier-star-linter-interactive-p-star.texinfo
+@include include/fun-atelier-lint.texinfo
+@include include/macro-atelier-define-inspector.texinfo
+@include include/fun-atelier-list-inspectors.texinfo
 @c Linter Classes
-@include include/class-org.melusina.atelier-linter.texinfo
-@include include/class-org.melusina.atelier-canonical-source-linter.texinfo
-@include include/class-org.melusina.atelier-extensive-linter.texinfo
-@include include/class-org.melusina.atelier-plain-line-comment-linter.texinfo
-@include include/class-org.melusina.atelier-plain-block-comment-linter.texinfo
+@include include/class-atelier-linter.texinfo
+@include include/class-atelier-canonical-source-linter.texinfo
+@include include/class-atelier-extensive-linter.texinfo
+@include include/class-atelier-plain-line-comment-linter.texinfo
+@include include/class-atelier-plain-block-comment-linter.texinfo
 @c Linter Generic
-@include include/fun-org.melusina.atelier-content-inspectors.texinfo
-@include include/fun-org.melusina.atelier-file-inspectors.texinfo
-@include include/fun-org.melusina.atelier-hint-at-file-line.texinfo
-@include include/fun-org.melusina.atelier-hint-at-file.texinfo
-@include include/fun-org.melusina.atelier-lint-file.texinfo
+@include include/fun-atelier-content-inspectors.texinfo
+@include include/fun-atelier-file-inspectors.texinfo
+@include include/fun-atelier-hint-at-file-line.texinfo
+@include include/fun-atelier-hint-at-file.texinfo
+@include include/fun-atelier-lint-file.texinfo
 
 @node Configuration, , Linter, Top
 @chapter Configuration of program parameters
 
-@include include/var-org.melusina.atelier-star-parameter-bindings-star.texinfo
+@include include/var-atelier-star-parameter-bindings-star.texinfo
 
 @bye

@@ -15,6 +15,7 @@
 
 : ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
 : ${testsuitesystem:="org.melusina.atelier/testsuite"}
+: ${testsuitepackage:=${testsuitesystem#'org.melusina.'}}
 : ${testsuiteclean:='no'}
 : ${testsuitelisp:='sbcl'}
 
@@ -41,7 +42,7 @@ testsuite_run()
                   (pushnew #p\".\" ql:*local-project-directories*)
                   (ql:register-local-projects))"\
 	--eval "(ql:quickload \"${testsuitesystem}\" :silent t)"\
-	--eval "(${testsuitesystem}:$1)"\
+	--eval "(${testsuitepackage}:$1)"\
 	--eval "(org.melusina.confidence:quit)"
 }
 
