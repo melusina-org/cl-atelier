@@ -511,6 +511,7 @@ care of."
   :file-predicate '(:or
 		    (:has-name "Makefile")
 		    (:has-name "Makefile.in")
+		    (:has-name "Makefile.config.in")
 		    (:has-prefix "Makefile.")
 		    (:has-suffix ".mk")
 		    (:has-suffix ".mk.in"))
