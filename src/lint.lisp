@@ -714,7 +714,7 @@ for CONTENTS are a string or a list of strings."
 	       (error "A :HAS-NAME clause must have one argument."))
 	     (unless (stringp (first expr))
 	       (error "A :HAS-NAME clause must have a string agument."))
-	     (string= (first expr) (namestring pathname)))
+	     (string= (first expr) (file-namestring pathname)))
 	   (has-shebang (expr)
 	     (let ((first-line
 		     (first (read-file-into-list pathname))))
