@@ -12,6 +12,7 @@
 
 : ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
 : ${testsuitesystem:="${LISP_TEST_SYSTEM_NAME}"}
+: ${testsuitepackage:="${LISP_TEST_PACKAGE_NAME}"}
 : ${testsuiteclean:='no'}
 : ${testsuitelisp:='sbcl'}
 
@@ -37,8 +38,8 @@ testsuite_run()
                   (pushnew #p\".\" ql:*local-project-directories*)
                   (ql:register-local-projects))"\
 	--eval "(ql:quickload \"${testsuitesystem}\" :silent t)"\
-	--eval "(${testsuitesystem}:$1)"\
-	--eval '(org.melusina.confidence:quit)'
+	--eval "(${testsuitepackage#?:}:$1)"\
+	--eval '(confidence:quit)'
 }
 
 testsuite_main()

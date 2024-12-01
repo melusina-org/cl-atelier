@@ -92,11 +92,26 @@ The prepared template environment features license information and *PARAMETER-BI
 		   (cons :license-text license-text)
 		   (cons :license-header license-header)
 		   (cons :license-id license-id)))))
+       (lisp-package-name ()
+	 (let ((project-filename
+		 (cdr (or (assoc :project-filename environment
+				 :test #'parameter-name-equal)
+			  (assoc :project-filename *parameter-bindings*
+				 :test #'parameter-name-equal)))))
+	   (subseq project-filename
+		   (cond
+		     ((position #\. project-filename)
+		      (1+ (position #\. project-filename
+				    :from-end t)))
+		     (t 0)))))
        (lisp-environment ()
-	 '((:lisp-system-name . "${PROJECT_FILENAME}")
-	   (:lisp-test-system-name . "${PROJECT_FILENAME}/testsuite")
-	   (:lisp-package-name . "#:${PROJECT_FILENAME}")
-	   (:lisp-test-package-name . "#:${PROJECT_FILENAME}/testsuite")))
+	 (list
+	  '(:lisp-system-name . "${PROJECT_FILENAME}")
+	  '(:lisp-test-system-name . "${LISP_SYSTEM_NAME}/testsuite")
+	  (cons :lisp-package-name
+		(concatenate 'string "#:" (lisp-package-name)))
+	  (cons :lisp-test-package-name
+		(concatenate 'string "#:" (lisp-package-name) "/testsuite"))))
        (shell-environment ()
 	 (when (assoc :filename environment)
 	   (list (cons :shell-namespace

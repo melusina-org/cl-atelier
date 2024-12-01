@@ -20,7 +20,7 @@ lint_sbcl()
 lint_main()
 {
     lint_sbcl --load "${TOPLEVELDIR}/libexec/lisp/setup.lisp"\
-	      --eval '(org.melusina.atelier:lint
+	      --eval '(atelier:lint
  #p"src"
  #p"testsuite"
  #p"libexec/lisp/setup.lisp"
