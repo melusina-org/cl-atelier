@@ -8,11 +8,11 @@
 
 ;;;; ${LICENSE_HEADER}
 
-(defpackage ${LISP_PACKAGE_NAME}
+(defpackage #:${LISP_PACKAGE_NAME}
   (:use #:common-lisp)
   (:export
   ))
 
-(in-package ${LISP_PACKAGE_NAME})
+(in-package #:${LISP_PACKAGE_NAME})
 
 ;;;; End of file `${FILENAME}'

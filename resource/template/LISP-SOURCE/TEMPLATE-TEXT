@@ -8,6 +8,6 @@
 
 ;;;; ${LICENSE_HEADER}
 
-(in-package ${LISP_PACKAGE_NAME})
+(in-package #:${LISP_PACKAGE_NAME})
 
 ;;;; End of file `${FILENAME}'

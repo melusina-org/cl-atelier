@@ -8,7 +8,7 @@
 
 ;;;; ${LICENSE_HEADER}
 
-(in-package ${LISP_PACKAGE_NAME})
+(in-package #:${LISP_PACKAGE_NAME})
 
 (define-testcase run-all-tests ()
   (assert-t t))

@@ -38,7 +38,7 @@ testsuite_run()
                   (pushnew #p\".\" ql:*local-project-directories*)
                   (ql:register-local-projects))"\
 	--eval "(ql:quickload \"${testsuitesystem}\" :silent t)"\
-	--eval "(${testsuitepackage#?:}:$1)"\
+	--eval "(${testsuitepackage}:$1)"\
 	--eval '(confidence:quit)'
 }
 

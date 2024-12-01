@@ -45,7 +45,7 @@ makedoc_extract()
 	--eval '(with-compilation-unit () (load "libexec/lisp/docstrings.lisp"))' \
 	--eval "(sb-texinfo:generate-includes
  \"obj/makedoc/include/\"
- (list '${makedocpackage}) :base-package '${makedocpackage})" \
+ (list '#:${makedocpackage}) :base-package '#:${makedocpackage})" \
 	--eval '(quit)'
 }
 

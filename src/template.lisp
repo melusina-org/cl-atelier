@@ -109,9 +109,9 @@ The prepared template environment features license information and *PARAMETER-BI
 	  '(:lisp-system-name . "${PROJECT_FILENAME}")
 	  '(:lisp-test-system-name . "${LISP_SYSTEM_NAME}/testsuite")
 	  (cons :lisp-package-name
-		(concatenate 'string "#:" (lisp-package-name)))
+		(lisp-package-name))
 	  (cons :lisp-test-package-name
-		(concatenate 'string "#:" (lisp-package-name) "/testsuite"))))
+		(concatenate 'string (lisp-package-name) "/testsuite"))))
        (shell-environment ()
 	 (when (assoc :filename environment)
 	   (list (cons :shell-namespace
