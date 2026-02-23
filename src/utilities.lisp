@@ -181,4 +181,22 @@ such that:
 	(reduce #'catamorphism sequence :initial-value (list nil nil nil))
       (nreverse (cons (cons current-taste (nreverse current-subsequence)) accumulator)))))
 
+
+(defun find-regular-files (&rest pathnames)
+  (let ((prune-list
+	  (list ".DS_Store" ".git" ".hg" ".svn" "CVS" "*.fasl")))
+    (flet ((find-predicate (prune-list)
+	     (let ((prune-expr
+		     (loop :for (prune . tail) :on prune-list
+			   :collect "-name"
+			   :collect prune
+			   :when tail
+			   :collect "-o")))
+	       `("(" ,@prune-expr ")" "-prune" "-o" "-type" "f" "-print"))))
+  (uiop:run-program
+   (append (list "/usr/bin/find")
+	   (mapcar #'namestring pathnames)
+	   (find-predicate prune-list))
+   :output :lines))))
+
 ;;;; End of file `utilities.lisp'

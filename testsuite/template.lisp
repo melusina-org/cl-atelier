@@ -13,25 +13,59 @@
 
 (in-package #:atelier/testsuite)
 
-(rashell:define-test grep (pattern pathname)
-  ((fixed-string :flag "-F")
-   (ignore-case :flag "-i"))
-  (:program #p"/usr/bin/grep"
-	    :rest (list pattern pathname)))
+(defmacro run-predicate (command &key directory)
+  `(multiple-value-bind (standard-output error-output exit-code)
+       (uiop:run-program ,command :ignore-error-status t :directory ,directory)
+     (declare (ignore standard-output error-output))
+     (zerop exit-code)))
 
-(rashell:define-test sh (pathname)
-  nil
-  (:program #p"/bin/sh"
-   :rest (list pathname)))	    
+(defun grep (pattern pathname &key fixed-string ignore-case directory)
+  (let ((command (list "grep")))
+    (when fixed-string (push "-F" command))
+    (when ignore-case (push "-i" command))
+    (setf command (nconc (nreverse command) (list pattern (namestring pathname))))
+    (run-predicate command :directory directory)))
 
-(rashell:define-utility git-init ()
-  nil
-  (:program #p"/opt/local/bin/git"
-   :rest '("init")))
+(defun sh (pathname &key directory)
+  (run-predicate (list "sh" (namestring pathname))
+		 :directory directory))
+
+(defun git-init (&key directory)
+ (run-predicate (list "git" "init")
+		:directory directory))
+
+(declaim (inline call-with-temporary-directory))
+(defun call-with-temporary-directory (function)
+  (flet ((make-directory-pathname ()
+	  (uiop:ensure-directory-pathname
+	   (merge-pathnames
+	    (format nil "atelier-test-~6X/" (random #xFFFFFF))
+	    (uiop:temporary-directory))))
+	 (validate-directory-pathname (pathname)
+	   (let ((directory-name
+		   (car (last (pathname-directory pathname)))))
+	     (and (uiop:ensure-directory-pathname pathname)
+		  (zerop (search "atelier-test-" directory-name :test #'string=))
+		  (= (length directory-name) #.(length "atelier-test-123456"))))))
+    (let ((directory
+	    (make-directory-pathname)))
+      (ensure-directories-exist directory)
+      (unwind-protect
+	   (funcall function directory)
+	(uiop:delete-directory-tree directory
+				    :validate #'validate-directory-pathname
+				    :if-does-not-exist :ignore)))))
+
+(defmacro with-temporary-directory ((pathname) &body body)
+  `(locally (declare (inline call-with-temporary-directory))
+     (call-with-temporary-directory (lambda (,pathname) ,@body))))
+
+(defun file-regular-p (pathname)
+  (and (uiop:file-exists-p pathname) t))
 
 (define-testcase ensure-development-script-satisfy-formal-requirements (pathname)
-  (assert-t (rashell:test '(:has-kind :regular) pathname))
-  (assert-t (rashell:test '(:has-at-least-permission #o700) pathname)))
+  (assert-t (file-regular-p pathname))
+  (assert-t (file-has-required-permissions-p pathname #o700)))
   
 (define-testcase ensure-a-lisp-project-is-created-with-a-valid-testsuite (pathname)
   (ensure-development-script-satisfy-formal-requirements
@@ -50,7 +84,7 @@
    (sh "development/makedoc" :directory pathname)))
 
 (define-testcase ensure-a-lisp-project-is-created-fully-functional ()
-  (rashell:with-temporary-directory (pathname)
+  (with-temporary-directory (pathname)
     (with-fixed-parameter-bindings ()
       (git-init :directory pathname)
       (atelier:new-lisp-project pathname))

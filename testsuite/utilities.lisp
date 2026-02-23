@@ -63,6 +63,24 @@
 
 
 ;;;;
+;;;; File Utilities
+;;;;
+
+(defun file-mode (pathname)
+  "Return the Unix file mode of PATHNAME."
+  (parse-integer
+   (uiop:run-program (list "stat" #+darwin "-f%Op" #+linux "-c%a" (namestring pathname))
+		     :output '(:string :stripped t))
+   :radix 8))
+
+(defun file-has-required-permissions-p (pathname required-permissions)
+  "Predicate that recognises if file under PATHNAME has at least the REQUIRED-PERMISSIONS."
+  (let ((actual-permissions
+	  (file-mode pathname)))
+    (eq required-permissions (logand actual-permissions required-permissions))))
+
+
+;;;;
 ;;;; Testsuite Utilities
 ;;;;
 

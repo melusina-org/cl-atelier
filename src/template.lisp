@@ -216,7 +216,7 @@ a stream or the value T."
 		       :lisp-development-makedoc
 		       :lisp-development-testsuite)
 		     :test #'string-equal)
-	 (osicat-posix:chmod pathname #o755)))
+	 (uiop:run-program (list "/bin/chmod" "a+x" (namestring pathname)))))
       (t
        (error "Cannot write template instance to ~A." pathname)))))
 

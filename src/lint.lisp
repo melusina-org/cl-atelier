@@ -818,17 +818,12 @@ is called on pathnames on that list."
 		(not hints))
 	       (t
 		(uiop:quit (if hints 1 0))))))
-    (let ((hints nil))
-      (rashell:do-find (pathname ('(:or
-				    (:and (:name ".DS_Store") :prune)
-				    (:and (:name ".git") :prune)
-				    (:and (:name ".hg") :prune)
-				    (:and (:name ".svn") :prune)
-				    (:and (:name "CVS") :prune)
-				    (:and (:name "*.fasl") :prune)
-				    (:and (:has-kind :regular) :print))
-				  pathnames))
-	(setf hints (nconc hints (handler-lint-1 (pathname pathname)))))
+    (let ((hints
+	    nil)
+	  (regular-files
+	    (apply #'find-regular-files pathnames)))
+      (loop :for regular-file :in regular-files
+	    :do (setf hints (nconc hints (handler-lint-1 (pathname regular-file)))))
       (epilogue hints))))
 
 ;;;; End of file `lint.lisp'

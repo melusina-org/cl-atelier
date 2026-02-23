@@ -16,9 +16,8 @@
   :author "Michaël Le Barbier"
   :depends-on (#:alexandria
 	       #:cl-ppcre
-	       #:org.melusina.rashell
-	       #:osicat
-	       #:trivia)
+	       #:trivia
+	       #:uiop)
   :components
   ((:module "src"
     :components ((:file "package")
