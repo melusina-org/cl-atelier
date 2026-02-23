@@ -48,6 +48,7 @@
     :components ((:file "package")
 		 (:file "utilities")
 		 (:file "parameter")
+		 (:file "license")
 		 (:file "template")
 		 (:module "inspector"
 		  :components

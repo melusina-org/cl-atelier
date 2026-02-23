@@ -17,6 +17,7 @@
   (atelier:initialize)
   (testsuite-utilities)
   (testsuite-parameter)
+  (testsuite-license)
   (testsuite-linter)
   (testsuite-template))
 

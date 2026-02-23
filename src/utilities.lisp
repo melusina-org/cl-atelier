@@ -51,10 +51,10 @@
 
 (defun string-lines (string)
   "Prepare the list of lines in STRING."
-  (loop for start-of-line = 0 then (1+ end-of-line)
-        for end-of-line = (position #\Newline string :start start-of-line)
-        collect (subseq string start-of-line end-of-line)
-        while end-of-line))
+  (loop :for start-of-line = 0 :then (1+ end-of-line)
+        :for end-of-line = (position #\Newline string :start start-of-line)
+        :collect (subseq string start-of-line end-of-line)
+        :while end-of-line))
 
 (defun string-words (string)
   "Prepare the list of words in STRING."
