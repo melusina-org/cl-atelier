@@ -60,12 +60,22 @@
   `(locally (declare (inline call-with-temporary-directory))
      (call-with-temporary-directory (lambda (,pathname) ,@body))))
 
-(defun file-regular-p (pathname)
-  (and (uiop:file-exists-p pathname) t))
-
 (define-testcase ensure-development-script-satisfy-formal-requirements (pathname)
   (assert-t (file-regular-p pathname))
   (assert-t (file-has-required-permissions-p pathname #o700)))
+
+(define-testcase ensure-a-lisp-project-is-created-for-the-golden-path ()
+  (with-temporary-directory (pathname)
+    (with-fixed-parameter-bindings nil (atelier:new-lisp-project pathname))
+    (let ((asdf:*central-registry* (cons pathname asdf:*central-registry*)))
+      (asdf:clear-system "net.cl-user.acme.example")
+      (asdf:clear-system "net.cl-user.acme.example/testsuite")
+      (asdf:clear-system "net.cl-user.acme.example/development")
+      (asdf:load-system "net.cl-user.acme.example/testsuite")
+      (asdf:operate 'asdf:test-op "net.cl-user.acme.example")
+      (uiop:symbol-call "EXAMPLE/TESTSUITE" "RUN-ALL-TESTS")
+      (asdf:load-system "net.cl-user.acme.example/development")
+      (uiop:symbol-call "EXAMPLE/DEVELOPMENT" "LINT"))))
   
 (define-testcase ensure-a-lisp-project-is-created-with-a-valid-testsuite (pathname)
   (ensure-development-script-satisfy-formal-requirements
@@ -139,13 +149,14 @@
      :package-name package-name)))
 
 (define-testcase testsuite-template ()
+  (ensure-a-lisp-project-is-created-for-the-golden-path)
   (ensure-a-lisp-project-is-created-fully-functional
    :project-filename "example"
    :system-name "example"
    :package-name "example")
   (ensure-a-lisp-project-is-created-fully-functional
-   :project-filename "org.acme.example"
-   :system-name "org.acme.example"
+   :project-filename "net.cl-user.example"
+   :system-name "net.cl-user.example"
    :package-name "example"))
 
 ;;;; End of file `template.lisp'

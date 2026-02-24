@@ -20,6 +20,8 @@
    #:assert-eq
    #:assert-set-equal
    #:assert-string=
-   #:assert-type))
+   #:assert-type)
+  (:export
+   #:run-all-tests))
 
 ;;;; End of file `package.lisp'

@@ -28,7 +28,7 @@
 	  (atelier::join-lines
 	   '("; testsuite.lisp -- The testsuite for Example"
 	     ""
-	     ";;;; Example (https://github.com/acme/example)"
+	     ";;;; Example (https://cl-user.net/acme/example)"
 	     ";;;; This file is part of Example."
 	     ";;;;"
 	     ";;;; Copyright © 2017–2022 A. U. Thor"
@@ -66,7 +66,7 @@
 	     ""
 	     "# testsuite.sh — The testsuite for Example"
 	     ""
-	     "# Example (https://github.com/acme/example)"
+	     "# Example (https://cl-user.net/acme/example)"
 	     "# This file is part of Example."
 	     "#"
 	     "# Copyright © 2017–2022 A. U. Thor"

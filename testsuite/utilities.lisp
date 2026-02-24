@@ -16,7 +16,7 @@
 (defmacro with-fixed-parameter-bindings
     ((&key (copyright-holder "A. U. Thor")
 	   (copyright-year "2017–2022")
-	   (project-filename  "example")
+	   (project-filename  "net.cl-user.acme.example")
            (project-name "Example")
 	   (project-description "Example for Atelier testsuite")
            (project-long-description
@@ -24,7 +24,7 @@
 	       'string
 	       "The Example for the Atelier testsuite is useful to prepare tests"
 	       " for various tools such as project templates and the linter."))
-           (homepage "https://github.com/acme/example")
+           (homepage "https://cl-user.net/acme/example")
            (license :cecill-b))
      &body body-forms)
   `(let ((atelier:*parameter-bindings*
@@ -44,14 +44,14 @@
   `(let ((atelier:*parameter-bindings*
 	   '((:copyright-holder . "A. U. Thor")
              (:copyright-year . "2017–2022")
-	     (:project-filename . "example")
+	     (:project-filename . "net.cl-user.acme.example")
              (:project-name . "Example")
 	     (:project-description . "Example for Atelier testsuite")
              (:project-long-description .
 	      #.(concatenate 'string
 		 "The Example for the Atelier testsuite is useful to prepare tests"
 		 " for various tools such as project templates and the linter."))
-             (:homepage . "https://github.com/acme/example")
+             (:homepage . "https://cl-user.net/acme/example")
              (:license . :cecill-b)))
 	 (atelier::*hint-pathname*
 	   "testsuite.lisp"))
@@ -66,6 +66,9 @@
 ;;;;
 ;;;; File Utilities
 ;;;;
+
+(defun file-regular-p (pathname)
+  (and (uiop:file-exists-p pathname) t))
 
 (defun file-mode (pathname)
   "Return the Unix file mode of PATHNAME."

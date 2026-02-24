@@ -8,20 +8,18 @@
 
 ;;;; ${LICENSE_HEADER}
 
-(defpackage #:${LISP_SYSTEM_NAME}/development
+(defpackage #:${LISP_PACKAGE_NAME}/development
   (:use #:common-lisp)
-  (:local-nicknames
-   (#:atelier #:org.melusina.atelier))  
   (:export
    #:lint
    #+quicklisp
    #:reload))
 
-(in-package #:${LISP_SYSTEM_NAME}/development)
+(in-package #:${LISP_PACKAGE_NAME}/development)
 
 (defun system-relative-pathname (&rest pathnames)
   (labels ((system-source-directory ()
-	     (asdf:system-source-directory #.(string-downcase (package-name *package*))))
+	     (asdf:system-source-directory "${LISP_SYSTEM_NAME}"))
 	   (merge-one (pathname)
 	     (merge-pathnames pathname (system-source-directory))))
     (mapcar #'merge-one pathnames)))
