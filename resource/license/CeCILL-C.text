@@ -1,3 +1,13 @@
+---
+name: CeCILL-C Free Software License Agreement
+id: CECILL-C
+---
+This software is governed by the CeCILL-C license under French law and
+abiding by the rules of distribution of free software.  You can  use,
+modify and/ or redistribute the software under the terms of the CeCILL-C
+license as circulated by CEA, CNRS and INRIA at the following URL
+"https://cecill.info/licences/Licence_CeCILL-C_V1-en.txt"
+---
 
 CeCILL-C FREE SOFTWARE LICENSE AGREEMENT
 
@@ -515,3 +525,4 @@ jurisdiction, by the more diligent Party.
 
 
 Version 1.0 dated 2006-09-05.
+---

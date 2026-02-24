@@ -1,3 +1,12 @@
+---
+name: MIT License
+id: MIT
+---
+This file must be used under the terms of the MIT License.
+This source file is licensed as described in the file LICENSE, which
+you should have received as part of this distribution. The terms
+are also available at https://opensource.org/licenses/MIT
+---
 MIT License
 
 Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
@@ -19,3 +28,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+---

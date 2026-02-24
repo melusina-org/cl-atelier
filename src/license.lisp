@@ -61,7 +61,7 @@ The file format is expected to have three documents separated by '---':
         (text-lines
 	  nil))
     (loop :for line :in (string-lines content)
-          :for trimmed-line = (string-trim '(#\Space #\Tab #\Return) line)
+          :for trimmed-line = (string-right-trim '(#\Space #\Tab #\Return #\Newline) line)
           :do (cond
 		((string= trimmed-line "---")
                  (setf state
@@ -128,7 +128,7 @@ or a single text file with YAML Front Matter."
 	  (mapcar
 	   (lambda (pathname)
 	     (pathname-name pathname))
-	   (uiop:directory-files license-repository-pathname "*.txt"))))
+	   (uiop:directory-files license-repository-pathname "*.text"))))
     (nconc directory-licenses file-licenses)))
 
 (defun license-repository-load
@@ -137,17 +137,16 @@ or a single text file with YAML Front Matter."
   (let ((directory-licenses
 	  (uiop:subdirectories license-repository-pathname))
 	(file-licenses
-	  (uiop:directory-files license-repository-pathname "*.txt")))
+	  (uiop:directory-files license-repository-pathname "*.text")))
     (loop for pathname in directory-licenses
 	  for name = (car (last (pathname-directory pathname)))
 	  for designator = (make-keyword name)
 	  do (setf (gethash designator *license-repository*)
 		   (license-repository-load-definition pathname)))
-    (loop for pathname in file-licenses
-	  for name = (pathname-name pathname)
-	  for designator = (make-keyword name)
-	  do (setf (gethash designator *license-repository*)
-		   (license-repository-load-definition pathname)))))
+    (loop :for pathname :in file-licenses
+	  :for designator = (make-keyword (string-upcase (pathname-name pathname)))
+	  :do (setf (gethash designator *license-repository*)
+		    (license-repository-load-definition pathname)))))
 
 
 ;;;
