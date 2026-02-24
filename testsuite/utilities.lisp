@@ -14,28 +14,29 @@
 (in-package #:atelier/testsuite)
 
 (defmacro with-fixed-parameter-bindings
-  ((&key (copyright-holder "A. U. Thor")
-	 (copyright-year "2017–2022")
-	 (project-filename  "example")
-         (project-name "Example")
-	 (project-description "Example for Atelier testsuite")
-         (project-long-description
-	  #.(concatenate
-	     'string
-	     "The Example for the Atelier testsuite is useful to prepare tests"
-	     " for various tools such as project templates and the linter."))
-         (homepage "https://github.com/acme/example")
-         (license :cecill-b))
-   &body body-forms)
+    ((&key (copyright-holder "A. U. Thor")
+	   (copyright-year "2017–2022")
+	   (project-filename  "example")
+           (project-name "Example")
+	   (project-description "Example for Atelier testsuite")
+           (project-long-description
+	    #.(concatenate
+	       'string
+	       "The Example for the Atelier testsuite is useful to prepare tests"
+	       " for various tools such as project templates and the linter."))
+           (homepage "https://github.com/acme/example")
+           (license :cecill-b))
+     &body body-forms)
   `(let ((atelier:*parameter-bindings*
-	   '((:copyright-holder . ,copyright-holder)
-             (:copyright-year . ,copyright-year)
-	     (:project-filename . ,project-filename)
-             (:project-name . ,project-name)
-	     (:project-description . ,project-description)
-             (:project-long-description . ,project-long-description)
-             (:homepage . ,homepage)
-             (:license . ,license))))
+	   (list
+	    (cons :copyright-holder ,copyright-holder)
+            (cons :copyright-year ,copyright-year)
+	    (cons :project-filename ,project-filename)
+            (cons :project-name ,project-name)
+	    (cons :project-description ,project-description)
+            (cons :project-long-description ,project-long-description)
+            (cons :homepage ,homepage)
+            (cons :license ,license))))
      ,@body-forms))
   
 

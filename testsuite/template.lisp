@@ -71,10 +71,6 @@
   (ensure-development-script-satisfy-formal-requirements
    (merge-pathnames #p"development/testsuite" pathname))
   (assert-t
-   (grep "confidence" (merge-pathnames #p"example.asd" pathname)
-	 :fixed-string t
-	 :ignore-case t))
-  (assert-t
    (sh "development/testsuite" :directory pathname)))
 
 (define-testcase ensure-a-lisp-project-is-created-with-a-valid-documentation (pathname)
@@ -83,15 +79,73 @@
   (assert-t
    (sh "development/makedoc" :directory pathname)))
 
-(define-testcase ensure-a-lisp-project-is-created-fully-functional ()
+(define-testcase ensure-a-lisp-project-is-created-with-a-valid-package-structure
+    (pathname &key project-filename system-name package-name)
+  (loop :for source-file
+	:in (list (make-pathname :name project-filename
+				 :type "asd")
+		  (make-pathname :directory (list :relative "src")
+				 :name "package"
+				 :type "lisp")
+		  (make-pathname :directory (list :relative "testsuite")
+				 :name "package"
+				 :type "lisp")
+		  (make-pathname :directory (list :relative "doc")
+				 :name project-filename
+				 :type "texinfo"))
+	:do (assert-t (file-regular-p (merge-pathnames source-file pathname))))
+  (let ((system-definition
+	  (make-pathname :name project-filename :type "asd")))
+    (assert-t
+     (grep "org.melusina.confidence" (merge-pathnames system-definition pathname)
+	   :fixed-string t
+	   :ignore-case t))
+    (assert-t
+     (grep (concatenate 'string system-name "/testsuite")
+	   (merge-pathnames system-definition pathname)
+	   :fixed-string t
+	   :ignore-case t))
+    (assert-t
+     (grep (concatenate 'string system-name "/development")
+	   (merge-pathnames system-definition pathname)
+	   :fixed-string t
+	   :ignore-case t))
+    (assert-t
+     (grep (concatenate 'string "(defpackage #:" package-name)
+	   (merge-pathnames (make-pathname :directory (list :relative "src")
+					   :name "package"
+					   :type "lisp" )
+			    pathname)
+	   :fixed-string t))
+    (assert-t
+     (grep (concatenate 'string "(defpackage #:" package-name "/testsuite")
+	   (merge-pathnames (make-pathname :directory (list :relative "testsuite")
+					   :name "package"
+					   :type "lisp" )
+			    pathname)
+	   :fixed-string t))))
+
+(define-testcase ensure-a-lisp-project-is-created-fully-functional (&key project-filename package-name system-name)
   (with-temporary-directory (pathname)
-    (with-fixed-parameter-bindings ()
+    (with-fixed-parameter-bindings (:project-filename project-filename)
       (git-init :directory pathname)
       (atelier:new-lisp-project pathname))
     (ensure-a-lisp-project-is-created-with-a-valid-testsuite pathname)
-    (ensure-a-lisp-project-is-created-with-a-valid-documentation pathname)))
+    (ensure-a-lisp-project-is-created-with-a-valid-documentation pathname)
+    (ensure-a-lisp-project-is-created-with-a-valid-package-structure
+     pathname
+     :project-filename project-filename
+     :system-name system-name
+     :package-name package-name)))
 
 (define-testcase testsuite-template ()
-  (ensure-a-lisp-project-is-created-fully-functional))
+  (ensure-a-lisp-project-is-created-fully-functional
+   :project-filename "example"
+   :system-name "example"
+   :package-name "example")
+  (ensure-a-lisp-project-is-created-fully-functional
+   :project-filename "org.acme.example"
+   :system-name "org.acme.example"
+   :package-name "example"))
 
 ;;;; End of file `template.lisp'
