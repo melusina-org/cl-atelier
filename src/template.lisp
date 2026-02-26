@@ -24,16 +24,19 @@
   (zerop (hash-table-count *template-repository*)))
 
 (defclass template nil
-  ((template-name
-    :initarg :template-name
+  ((name
+    :initarg :name
+    :reader template-name
     :initform nil
     :documentation "The full name of the template.")
-   (template-id
-    :initarg :template-id
+   (identifier
+    :initarg :identifier
+    :reader template-identifier
     :initform nil
     :documentation "The ID of the template.")
-   (template-description
-    :initarg :template-description
+   (description
+    :initarg :description
+    :reader template-description
     :initform nil
     :documentation "The long description of the template."))
   (:documentation
@@ -76,11 +79,11 @@ The prepared template environment features license information and *PARAMETER-BI
 			(assoc-value *parameter-bindings* :license
 				     :test #'parameter-name-equal)))))
 	     (when license
-	       (with-slots (license-name license-text license-header license-id) license
-		 (list (cons :license-name license-name)
-		       (cons :license-text license-text)
-		       (cons :license-header license-header)
-		       (cons :license-id license-id))))))
+	       (with-slots (name text header identifier) license
+		 (list (cons :license-name name)
+		       (cons :license-text text)
+		       (cons :license-header header)
+		       (cons :license-identifier (symbol-name identifier)))))))
 	 (lisp-environment ()
 	   (let* ((project-filename
 		    (or (assoc-value environment :project-filename
@@ -108,7 +111,8 @@ The prepared template environment features license information and *PARAMETER-BI
 	   '((:author . "${COPYRIGHT_HOLDER}"))))
     (reduce #'merge-parameter-bindings
 	    (list environment
-		  *parameter-bindings*
+		  (remove :license *parameter-bindings*
+			  :key #'car)
 		  (license-information)
 		  (lisp-environment)
 		  (authorship)))))
@@ -131,8 +135,8 @@ standard output."
 ;;;
 
 (defclass file-template (template)
-  ((template-text
-    :initarg :template-text
+  ((text
+    :initarg :text
     :reader template-text
     :initform (error "A file template requires a template text.")
     :documentation "The template text for the file template.")
@@ -144,15 +148,15 @@ standard output."
   (:documentation
    "This class represents a file template which creates a file when written."))
 
-(defun make-file-template (&rest initargs &key template-id template-name template-text
+(defun make-file-template (&rest initargs &key identifier name text
 					       template-executable-p)
   "Make a file template."
-  (declare (ignore template-id template-name template-text template-executable-p))
+  (declare (ignore identifier name text template-executable-p))
   (apply #'make-instance 'file-template initargs))
 
 (defmethod list-template-parameters ((template file-template))
-  (with-slots (template-text) template
-    (list-parameter-names template-text)))
+  (with-slots (text) template
+    (list-parameter-names text)))
 
 (defmethod write-template ((template file-template) (pathname (eql t)) &optional environment)
   (write-template template *standard-output* environment))
@@ -166,7 +170,7 @@ standard output."
 			    (:shell-namespace . "filename"))
 			  environment))))
 	 (template-instance
-	   (parameter-replace (slot-value template 'template-text) final-environment)))
+	   (parameter-replace (slot-value template 'text) final-environment)))
     (write-string template-instance pathname)))
 
 (defmethod write-template ((template file-template) (pathname pathname) &optional environment) 
@@ -224,14 +228,23 @@ Each entry of the list is a list of the form
 	   (subtask-pathname (template-designator relative-pathname &optional additional-bindings)
 	     (declare (ignore template-designator additional-bindings))
 	     (merge-pathnames (resolve-pathname relative-pathname) pathname))
+	   (subtask-environment (template-designator relative-pathname &optional additional-bindings)
+	     (declare (ignore template-designator relative-pathname))
+	     (let ((resolved-additional-bindings
+		     (loop :for (key . value) :in additional-bindings
+			   :for resolved-value = (parameter-replace value environment)
+			   :collect (cons key resolved-value))))
+	       (merge-parameter-bindings resolved-additional-bindings environment)))
 	   (write-plan ()
 	     (remove-duplicates
 	      (loop :for template-spec :in (slot-value template 'template-list)
 		    :collect (let ((subtask-pathname
 				     (apply #'subtask-pathname template-spec))
 				   (subtask-template
-				     (find-template (first (ensure-list template-spec)))))
-			       (list subtask-template subtask-pathname environment)))
+				     (find-template (first (ensure-list template-spec))))
+				   (subtask-environment
+				     (apply #'subtask-environment template-spec)))
+			       (list subtask-template subtask-pathname subtask-environment)))
 	      :key #'second
 	      :test #'equal
 	      :from-end t)))
@@ -239,15 +252,15 @@ Each entry of the list is a list of the form
 	  :do (apply #'write-template subtask))))
 
 (defparameter *composite-template-specs*
-  '((:template-name "Atelier Project Files"
-     :template-id :atelier-project-files
-     :template-description "This template provides basic project files."
+  '((:name "Atelier Project Files"
+     :identifier :atelier-project-files
+     :description "This template provides basic project files."
      :template-list
      ((:license #p"LICENSE")
       (:readme #p"README.md")))
-    (:template-name "Atelier Lisp System Scaffolding"
-     :template-id :atelier-lisp-system-scaffolding
-     :template-description "This templates provides scaffolding to develop lisp systems.
+    (:name "Atelier Lisp System Scaffolding"
+     :identifier :atelier-lisp-system-scaffolding
+     :description "This templates provides scaffolding to develop lisp systems.
 The basisc structure of this scaffolding features an ASDF definition for
 the system and a test, as well as common files for the implementation
 and the test: package definition, utilities and entry points."
@@ -270,9 +283,9 @@ and the test: package definition, utilities and entry points."
       (:lisp-source #p"test/utilities.lisp"
        ((:summary . "Utilities for ${PROJECT_NAME} test")
 	(:lisp-package-name . "${LISP_TEST_PACKAGE_NAME}")))))
-    (:template-name "Atelier DevOps Actions"
-     :template-id :atelier-devops-actions
-     :template-description "This template provides scripts for development and operations.
+    (:name "Atelier DevOps Actions"
+     :identifier :atelier-devops-actions
+     :description "This template provides scripts for development and operations.
 These scripts are merely place hodlers."
      :template-list
      ((:shell-stdlib #p"subr/stdlib.sh")
@@ -324,23 +337,23 @@ These scripts are merely place hodlers."
        ((:summary . "Stop a ${PROJECT_NAME} deployment")))
       (:shell-script #p"operation/update"
        ((:summary . "Update a ${PROJECT_NAME} deployment")))))
-    (:template-name "Atelier Lisp Documentation"
-     :template-id :atelier-lisp-documentation
-     :template-description "This template provides scripts to build lisp documentation with texinfo"
+    (:name "Atelier Lisp Documentation"
+     :identifier :atelier-lisp-documentation
+     :description "This template provides scripts to build lisp documentation with texinfo"
      :template-list
      ((:lisp-development-makedoc #p"development/makedoc")
       (:texinfo #p"doc/${PROJECT_FILENAME}.texinfo")))
-    (:template-name "Atelier Lisp DevOps Actions"
-     :template-id :atelier-lisp-devops-actions
-     :template-description "This template provides scripts for development and operations.
+    (:name "Atelier Lisp DevOps Actions"
+     :identifier :atelier-lisp-devops-actions
+     :description "This template provides scripts for development and operations.
 These scripts are specific to Lisp projects."
      :template-list
      ((:lisp-development-lint #p"development/lint")
       (:lisp-development-test #p"development/test")
       (:lisp-development-build #p"development/build")))
-    (:template-name "Atelier Lisp Project"
-     :template-id :atelier-lisp-project
-     :template-description "A complete Lisp project template"
+    (:name "Atelier Lisp Project"
+     :identifier :atelier-lisp-project
+     :description "A complete Lisp project template"
      :template-list (:atelier-project-files
 		     :atelier-lisp-system-scaffolding
 		     :atelier-devops-actions
@@ -360,13 +373,13 @@ These scripts are specific to Lisp projects."
   (multiple-value-bind (front-matter documents) (read-file-documents-with-yaml-front-matter pathname)
     (make-instance
      'file-template
-     :template-name (alexandria:assoc-value front-matter :name)
+     :name (alexandria:assoc-value front-matter :name)
      :template-executable-p (let ((executable-field
 				    (alexandria:assoc-value front-matter :executable)))
 			      (when executable-field
 				(string= executable-field "true")))
-     :template-id (make-keyword (string-upcase (pathname-name pathname)))
-     :template-text (join-lines (first documents)))))
+     :identifier (make-keyword (string-upcase (pathname-name pathname)))
+     :text (join-lines (first documents)))))
 
 (defun template-repository-list-templates (&optional (template-repository-pathname *template-repository-pathname*))
   "List templates held in TEMPLATE-REPOSITORY-PATHNAME."
@@ -395,7 +408,7 @@ These scripts are specific to Lisp projects."
 	  do (setf (gethash designator *template-repository*)
 		   (template-repository-load-definition-file pathname)))
     (loop :for spec :in *composite-template-specs*
-	  :for designator = (getf spec :template-id)
+	  :for designator = (getf spec :identifier)
 	  :do (setf (gethash designator *template-repository*)
 		    (apply #'make-instance 'composite-template (resolve-template-spec spec))))))
 

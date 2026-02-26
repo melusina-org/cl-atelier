@@ -20,23 +20,23 @@
   "A hash-table with all licenses.")
 
 (defclass license nil
-  ((license-name
-    :initarg :license-name
+  ((name
+    :initarg :name
     :reader license-name
     :initform nil
     :documentation "The full name of the license.")
-   (license-text
-    :initarg :license-text
+   (text
+    :initarg :text
     :reader license-text
     :initform nil
     :documentation "The full text of the license.")
-   (license-header
-    :initarg :license-header
+   (header
+    :initarg :header
     :reader license-header
     :initform nil
     :documentation "The header of the license.")
-   (license-id
-    :initarg :license-id
+   (identifier
+    :initarg :identifier
     :reader license-id
     :initform nil
     :documentation "The ID of the license in the SPDX database."))
@@ -57,10 +57,13 @@ The file format is expected to have three documents separated by '---':
   (multiple-value-bind (front-matter documents) (read-file-documents-with-yaml-front-matter pathname)
     (make-instance
      'license
-     :license-name (alexandria:assoc-value front-matter :name)
-     :license-id (alexandria:assoc-value front-matter :id)
-     :license-header (join-lines (first documents))
-     :license-text (join-lines (second documents)))))
+     :name (assoc-value front-matter :name)
+     :identifier (or
+		  (assoc-value front-matter :id)		  
+		  (assoc-value front-matter :identifier)
+		  (make-keyword (string-upcase (pathname-name pathname))))
+     :header (join-lines (first documents))
+     :text (join-lines (second documents)))))
 
 (defun license-repository-list-licenses (&optional (license-repository-pathname *license-repository-pathname*))
   "List licenses held in LICENSE-REPOSITORY-PATHNAME."
@@ -86,7 +89,10 @@ The file format is expected to have three documents separated by '---':
     ((keywordp designator)
      (gethash designator *license-repository*))
     ((stringp designator)
-     (gethash (make-symbol designator) *license-repository*))
+     (loop :for identifier :being :the :hash-keys :of *license-repository*
+	   :using (hash-value license)
+	   :when (string-equal (symbol-name identifier) designator)
+	   :return license))
     ((null designator)
      nil)
     (t

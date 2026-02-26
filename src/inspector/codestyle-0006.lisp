@@ -19,7 +19,7 @@
       ((sloppy-license-header-regex (designator)
 	 (cons
 	  :sequence
-	  (loop :for word :in (string-words (slot-value (find-license designator) 'license-header))
+	  (loop :for word :in (string-words (license-header (find-license designator)))
 		:collect `(:greedy-repetition 0 1 ,(comment-prefix-regex *linter*))
 		:collect '(:greedy-repetition 0 nil :whitespace-char-class)
 		:collect word
@@ -40,10 +40,11 @@
 	 (decorate-block-comment
 	  *linter*
 	  (string-lines
-	   (string-trim '(#\Newline)
-			  (slot-value
-			   (find-license (parameter-replacement-text :license))
-			   'license-header)))))
+	   (string-trim
+	    '(#\Newline)
+	    (license-header
+	     (or (find-license (parameter-replacement-text :license))
+		 (error "Cannot find license ~S." (parameter-replacement-text :license))))))))
        (project-license-regex ()
 	 (list :sequence (project-license-header))))
     (unless (ppcre:scan (project-license-regex) contents)

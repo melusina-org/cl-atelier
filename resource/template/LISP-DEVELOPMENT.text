@@ -35,7 +35,7 @@ name: Lisp development file
     (:project-description . "${PROJECT_DESCRIPTION}")
     (:project-long-description . "${PROJECT_LONG_DESCRIPTION}")
     (:homepage . "${HOMEPAGE}")
-    (:license . :${LICENSE_ID})))
+    (:license . :${LICENSE_IDENTIFIER})))
 
 (defun lint ()
   (let ((atelier:*parameter-bindings* *parameter-bindings*))

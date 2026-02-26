@@ -23,6 +23,13 @@
   (:export
    #:*parameter-bindings*
    #:parameter-keyword
+   
+   ;; Template
+   #:template
+   #:template-name
+   #:template-identifier
+   #:template-description
+   #:template-text
    #:list-templates
    #:find-template
    #:list-template-parameter-names
