@@ -18,7 +18,7 @@
 ;;;
 
 (defparameter *parameter-bindings* nil
-  "An aliast providing text replacement for various parameters.")
+  "An alist providing text replacement for various parameters.")
 
 (defparameter *parameter-block*
   '(:license-text :license-header)

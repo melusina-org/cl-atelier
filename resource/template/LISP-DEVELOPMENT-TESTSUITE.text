@@ -1,0 +1,73 @@
+---
+name: Lisp development shell script running the test
+executable: true
+---
+#!/bin/sh
+
+# test — Test for ${PROJECT_NAME}
+
+# ${PROJECT_NAME} (${HOMEPAGE})
+# This file is part of ${PROJECT_NAME}.
+#
+# Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+# All rights reserved.
+
+# ${LICENSE_HEADER}
+
+: ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
+: ${testsystem:="${LISP_TEST_SYSTEM_NAME}"}
+: ${testpackage:="${LISP_TEST_PACKAGE_NAME}"}
+: ${testclean:='no'}
+: ${testlisp:='sbcl'}
+
+test_lisp()
+{
+    case "${testlisp}" in
+	sbcl)
+	    sbcl --noinform --disable-debugger "$@"
+	    ;;
+	ccl|ccl64)
+	    ccl64 "$@"
+	    ;;
+    esac
+}
+
+test_run()
+{
+    if [ $# -eq 0 ]; then
+	set -- 'run-all-tests'
+    fi
+    test_lisp\
+        --eval "(unless (ql:where-is-system :${testsystem})
+                  (pushnew #p\".\" ql:*local-project-directories*)
+                  (ql:register-local-projects))"\
+	--eval "(ql:quickload \"${testsystem}\" :silent t)"\
+	--eval "(${testpackage}:$1)"\
+	--eval '(confidence:quit)'
+}
+
+test_main()
+{
+    local OPTIND OPTION OPTARG
+    OPTIND=1
+
+    while getopts 'CL:' OPTION; do
+	case "${OPTION}" in
+	    C)	testclean='yes';;
+	    L)	testlisp="${OPTARG}";;
+	esac
+    done
+
+    shift $((OPTIND - 1))
+
+    if [ "${testclean}" = 'yes' ]; then
+	(cd "${TOPLEVELDIR}" && development/clean)
+    fi
+    
+    test_run "$@"
+}
+
+test_main "$@"
+
+# End of file `test'
+...

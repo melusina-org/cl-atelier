@@ -17,7 +17,9 @@
    #:hash-table-keys
    #:lastcar
    #:make-keyword
-   #:read-file-into-string)
+   #:read-file-into-string
+   #:assoc-value
+   #:ensure-list)
   (:export
    #:*parameter-bindings*
    #:parameter-keyword
@@ -29,6 +31,13 @@
    #:initialize
    #:new-lisp-project
    #:new-lisp-file
+   
+   ;; License
+   #:license
+   #:license-id
+   #:license-name
+   #:license-header
+   #:license-text
    
    ;; Lint
    #:*linter-interactive-p*

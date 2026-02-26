@@ -1,0 +1,7 @@
+---
+name: A dot-gitignore file for Lisp projects
+---
+*.fasl
+obj/
+system-index.txt
+...

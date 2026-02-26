@@ -15,14 +15,14 @@
 (define-testcase validate-codestyle-0004-hint-at-file-when-it-lacks-canonical-footer-line ()
   (let ((file-1
 	  (atelier::join-lines
-	   '("; testsuite.lisp -- The testsuite for Example"
+	   '("; test.lisp -- The test for Example"
 	     ""
-	     ";; End of file `testsuite.lsip'")))
+	     ";; End of file `test.lsip'")))
 	(file-2
 	  (atelier::join-lines
-	   '("; testsuite.lisp -- The testsuite for Example"
+	   '("; test.lisp -- The test for Example"
 	     ""
-	     ";;;; End of file `testsuite.lisp'")))
+	     ";;;; End of file `test.lisp'")))
 	(atelier::*linter*
 	  (atelier::find-plain-linter :application/lisp)))
     (assert-string= file-2

@@ -43,9 +43,9 @@
 
 (defun join-lines (lines &optional (separator #\Newline))
   (with-output-to-string (buffer)
-    (loop for line in lines
-	  for first-line = t then nil
-	  do (unless first-line
+    (loop :for line :in lines
+	  :for first-line = t :then nil
+	  :do (unless first-line
 	       (format buffer "~A" separator))
 	  do (write-string line buffer))))
 
@@ -110,7 +110,6 @@ The position is represented as multiple values, the START-POS and END-POS."
       (write-string string buffer :start 0 :end start-pos)
       (write-string last-line buffer)
       (write-string string buffer :start end-pos))))
-
 
 (defun string-list-p (object)
   "Predicate recognising lists of strings."
@@ -198,5 +197,85 @@ such that:
 	   (mapcar #'namestring pathnames)
 	   (find-predicate prune-list))
    :output :lines))))
+
+
+;;;;
+;;;; Read streams with a Front matter
+;;;;
+
+(defun read-stream-documents-with-yaml-front-matter (stream)
+  "Read a YAML front-matter and multiple documents from STREAM.
+A STREAM holding documents with a YAML front-matter.
+
+The STREAM must start with a Document Start Marker \"---\" be followed by a valid YAML
+document, referred to as the “front-matter.” It can then contain mutliple document, every
+new document is introduced by the Document Start Marker. The last document is finished by
+a Document End Marker \"...\" or the end of the file.
+
+Currently only a small subset of YAML is supported, dictionaries of strings presented as a
+block, without using quotes or line folding operators."
+  (let ((document-start-marker
+	  "---")
+	(document-end-marker
+	  "...")
+	(documents
+	  nil)
+        (front-matter-lines
+	  nil))
+    (labels ((marker-p (marker line)
+	       (string-prefix-p marker line))
+	     (start (lines)
+	       (cond ((null lines)
+		      (stop))
+		     ((marker-p document-start-marker (first lines))
+		      (read-front-matter (rest lines)))
+		     (t
+		      (read-front-matter lines))))
+	     (read-front-matter (lines)
+	       (cond ((null lines)
+		      (stop))
+		     ((marker-p document-start-marker (first lines))
+		      (read-document (rest lines)))
+		     ((marker-p document-end-marker (first lines))
+		      (stop))
+		     (t
+		      (push (first lines) front-matter-lines)
+		      (read-front-matter (rest lines)))))
+	     (read-document (lines &optional current-document current-document-last)
+	       (cond ((null lines)
+		      (stop))
+		     ((marker-p document-start-marker (first lines))
+		      (push current-document documents)
+		      (read-document (rest lines)))
+		     ((marker-p document-end-marker (first lines))
+		      (push current-document documents)
+		      (stop))
+		     ((null current-document)
+		      (let ((new-current-document
+			      (list (first lines))))
+			(read-document (rest lines) new-current-document new-current-document)))
+		     (t
+		      (let ((new-current-document-last
+			      (list (first lines))))
+			(rplacd current-document-last new-current-document-last)
+			(read-document (rest lines) current-document
+				       new-current-document-last)))))
+	     (stop ()
+	       (loop :with front-matter = nil
+		     :for line :in front-matter-lines
+		     :for colon-pos = (position #\: line)
+		     :when colon-pos
+		     :do (let ((key
+				 (string-trim '(#\Space #\Tab) (subseq line 0 colon-pos)))
+			       (value
+				 (string-trim '(#\Space #\Tab) (subseq line (1+ colon-pos)))))
+			   (push (cons (make-keyword (string-upcase key)) value) front-matter))
+		     :finally (return-from read-stream-documents-with-yaml-front-matter
+				(values front-matter (reverse documents))))))
+      (start (string-lines (alexandria:read-stream-content-into-string stream))))))
+
+(defun read-file-documents-with-yaml-front-matter (pathname)
+  (alexandria:with-input-from-file (stream pathname)
+    (read-stream-documents-with-yaml-front-matter stream)))
 
 ;;;; End of file `utilities.lisp'

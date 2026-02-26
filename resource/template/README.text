@@ -1,0 +1,16 @@
+---
+name: README file
+---
+# ${PROJECT_NAME} – ${PROJECT_DESCRIPTION}
+
+${PROJECT_LONG_DESCRIPTION}
+
+*This software is Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER} and
+is distributed under the terms described in the LICENSE file.*
+
+# Introduction
+
+# Installation prerequisites
+
+# Installation procedure
+...

@@ -18,12 +18,9 @@
 	   (copyright-year "2017–2022")
 	   (project-filename  "net.cl-user.acme.example")
            (project-name "Example")
-	   (project-description "Example for Atelier testsuite")
+	   (project-description "Example for Atelier test")
            (project-long-description
-	    #.(concatenate
-	       'string
-	       "The Example for the Atelier testsuite is useful to prepare tests"
-	       " for various tools such as project templates and the linter."))
+	    "The Example for the Atelier is used for tests.")
            (homepage "https://cl-user.net/acme/example")
            (license :cecill-b))
      &body body-forms)
@@ -46,15 +43,13 @@
              (:copyright-year . "2017–2022")
 	     (:project-filename . "net.cl-user.acme.example")
              (:project-name . "Example")
-	     (:project-description . "Example for Atelier testsuite")
+	     (:project-description . "Example for Atelier test")
              (:project-long-description .
-	      #.(concatenate 'string
-		 "The Example for the Atelier testsuite is useful to prepare tests"
-		 " for various tools such as project templates and the linter."))
+	      "The Example for the Atelier test.")
              (:homepage . "https://cl-user.net/acme/example")
              (:license . :cecill-b)))
 	 (atelier::*hint-pathname*
-	   "testsuite.lisp"))
+	   "test.lisp"))
      (handler-bind
 	 ((atelier::anomaly
 	    (lambda (c)

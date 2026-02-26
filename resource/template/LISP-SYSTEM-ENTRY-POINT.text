@@ -1,0 +1,22 @@
+---
+name: Lisp program entry point
+---
+;;;; ${FILENAME} — ${SUMMARY}
+
+;;;; ${PROJECT_NAME} (${HOMEPAGE})
+;;;; This file is part of ${PROJECT_NAME}.
+;;;;
+;;;; Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+;;;; All rights reserved.
+
+;;;; ${LICENSE_HEADER}
+
+(in-package #:${LISP_PACKAGE_NAME})
+
+(defun entry-point ()
+  "The entry point of the program."
+  (write-line "Hello, world.~&")
+  (terpri))
+
+;;;; End of file `${FILENAME}'
+...

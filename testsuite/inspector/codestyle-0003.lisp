@@ -16,14 +16,14 @@
 (define-testcase validate-codestyle-0003-hint-at-file-when-it-lacks-canonical-header-line ()
   (let ((file-1
 	  (atelier::join-lines
-	   '("; testsuite.lisp -- The testsuite for Example"
+	   '("; test.lisp -- The test for Example"
 	     ""
-	     ";; End of file `testsuite.lsip'")))
+	     ";; End of file `test.lsip'")))
 	(file-2
 	  (atelier::join-lines
-	   '(";;;; testsuite.lisp — The testsuite for Example"
+	   '(";;;; test.lisp — The test for Example"
 	     ""
-	     ";; End of file `testsuite.lsip'")))
+	     ";; End of file `test.lsip'")))
 	(atelier::*linter*
 	  (atelier::find-plain-linter :application/lisp)))
     (assert-string= file-2

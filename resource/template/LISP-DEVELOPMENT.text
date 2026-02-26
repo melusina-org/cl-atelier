@@ -1,0 +1,66 @@
+---
+name: Lisp development file
+---
+;;;; ${FILENAME} — ${SUMMARY}
+
+;;;; ${PROJECT_NAME} (${HOMEPAGE})
+;;;; This file is part of ${PROJECT_NAME}.
+;;;;
+;;;; Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+;;;; All rights reserved.
+
+;;;; ${LICENSE_HEADER}
+
+(defpackage #:${LISP_PACKAGE_NAME}/development
+  (:use #:common-lisp)
+  (:export
+   #:lint
+   #+quicklisp
+   #:reload))
+
+(in-package #:${LISP_PACKAGE_NAME}/development)
+
+(defun system-relative-pathname (&rest pathnames)
+  (labels ((system-source-directory ()
+	     (asdf:system-source-directory "${LISP_SYSTEM_NAME}"))
+	   (merge-one (pathname)
+	     (merge-pathnames pathname (system-source-directory))))
+    (mapcar #'merge-one pathnames)))
+
+(defparameter *parameter-bindings*
+  '((:copyright-holder . "${COPYRIGHT_HOLDER}")
+    (:copyright-year . "${COPYRIGHT_YEAR}")
+    (:project-filename . "${PROJECT_FILENAME}")
+    (:project-name . "${PROJECT_NAME}")
+    (:project-description . "${PROJECT_DESCRIPTION}")
+    (:project-long-description . "${PROJECT_LONG_DESCRIPTION}")
+    (:homepage . "${HOMEPAGE}")
+    (:license . :${LICENSE_ID})))
+
+(defun lint ()
+  (let ((atelier:*parameter-bindings* *parameter-bindings*))
+    (atelier:lint
+     (system-relative-pathname
+      #p"${PROJECT_FILENAME}.asd"
+      #p"development"
+      #p"doc"
+      #p"src"
+      #p"test"
+      #p"libexec/lisp/development.lisp"))))
+
+#+quicklisp
+(defun reload ()
+  (ql:quickload '("${LISP_SYSTEM_NAME}"
+		  "${LISP_SYSTEM_NAME}/test"
+		  "${LISP_SYSTEM_NAME}/development")))
+
+
+;;;;
+;;;; Command Stock
+;;;;
+
+#+nil
+(${LISP_SYSTEM_NAME}/development:reload)
+
+;;;; End of file `${FILENAME}'
+...

@@ -39,7 +39,7 @@
   (flet ((make-directory-pathname ()
 	  (uiop:ensure-directory-pathname
 	   (merge-pathnames
-	    (format nil "atelier-test-~6X/" (random #xFFFFFF))
+	    (format nil "atelier-test-~6,'0X/" (random #xFFFFFF))
 	    (uiop:temporary-directory))))
 	 (validate-directory-pathname (pathname)
 	   (let ((directory-name
@@ -69,19 +69,19 @@
     (with-fixed-parameter-bindings nil (atelier:new-lisp-project pathname))
     (let ((asdf:*central-registry* (cons pathname asdf:*central-registry*)))
       (asdf:clear-system "net.cl-user.acme.example")
-      (asdf:clear-system "net.cl-user.acme.example/testsuite")
+      (asdf:clear-system "net.cl-user.acme.example/test")
       (asdf:clear-system "net.cl-user.acme.example/development")
-      (asdf:load-system "net.cl-user.acme.example/testsuite")
+      (asdf:load-system "net.cl-user.acme.example/test")
       (asdf:operate 'asdf:test-op "net.cl-user.acme.example")
-      (uiop:symbol-call "EXAMPLE/TESTSUITE" "RUN-ALL-TESTS")
+      (uiop:symbol-call "EXAMPLE/TEST" "RUN-ALL-TESTS")
       (asdf:load-system "net.cl-user.acme.example/development")
       (uiop:symbol-call "EXAMPLE/DEVELOPMENT" "LINT"))))
   
-(define-testcase ensure-a-lisp-project-is-created-with-a-valid-testsuite (pathname)
+(define-testcase ensure-a-lisp-project-is-created-with-a-valid-test (pathname)
   (ensure-development-script-satisfy-formal-requirements
-   (merge-pathnames #p"development/testsuite" pathname))
+   (merge-pathnames #p"development/test" pathname))
   (assert-t
-   (sh "development/testsuite" :directory pathname)))
+   (sh "development/test" :directory pathname)))
 
 (define-testcase ensure-a-lisp-project-is-created-with-a-valid-documentation (pathname)
   (ensure-development-script-satisfy-formal-requirements
@@ -97,7 +97,7 @@
 		  (make-pathname :directory (list :relative "src")
 				 :name "package"
 				 :type "lisp")
-		  (make-pathname :directory (list :relative "testsuite")
+		  (make-pathname :directory (list :relative "test")
 				 :name "package"
 				 :type "lisp")
 		  (make-pathname :directory (list :relative "doc")
@@ -111,7 +111,7 @@
 	   :fixed-string t
 	   :ignore-case t))
     (assert-t
-     (grep (concatenate 'string system-name "/testsuite")
+     (grep (concatenate 'string system-name "/test")
 	   (merge-pathnames system-definition pathname)
 	   :fixed-string t
 	   :ignore-case t))
@@ -128,8 +128,8 @@
 			    pathname)
 	   :fixed-string t))
     (assert-t
-     (grep (concatenate 'string "(defpackage #:" package-name "/testsuite")
-	   (merge-pathnames (make-pathname :directory (list :relative "testsuite")
+     (grep (concatenate 'string "(defpackage #:" package-name "/test")
+	   (merge-pathnames (make-pathname :directory (list :relative "test")
 					   :name "package"
 					   :type "lisp" )
 			    pathname)
@@ -140,7 +140,7 @@
     (with-fixed-parameter-bindings (:project-filename project-filename)
       (git-init :directory pathname)
       (atelier:new-lisp-project pathname))
-    (ensure-a-lisp-project-is-created-with-a-valid-testsuite pathname)
+    (ensure-a-lisp-project-is-created-with-a-valid-test pathname)
     (ensure-a-lisp-project-is-created-with-a-valid-documentation pathname)
     (ensure-a-lisp-project-is-created-with-a-valid-package-structure
      pathname

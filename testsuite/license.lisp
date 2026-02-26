@@ -13,16 +13,30 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase test-license-repository-load-definition-from-text ()
+(define-testcase test-license-repository-load-definition ()
   (uiop:with-temporary-file (:pathname pathname :stream stream :keep t)
-    (format stream "---~%name: Test License~%id: TEST~%---~%Test Header~%Line 2~%---~%Test Text~%More text~%")
+    (write-string
+     (atelier::join-lines
+      (list "---"
+	    "name: Test License"
+	    "id: TEST"
+	    "---"
+	    "Test Header 1"
+	    "Test Header 2"
+	    "---"
+	    "Test Text 1"
+	    "Test Text 2"
+	    "..."))
+     stream)
     (close stream)
-    (let ((license (atelier::license-repository-load-definition-from-text pathname)))
-      (assert-string= "Test License" (slot-value license 'atelier::license-name))
-      (assert-string= "TEST" (slot-value license 'atelier::license-id))
-      (assert-string= (format nil "Test Header~%Line 2") (slot-value license 'atelier::license-header))
-      (assert-string= (format nil "Test Text~%More text") (slot-value license 'atelier::license-text)))
+    (let ((license (atelier::license-repository-load-definition pathname)))
+      (assert-string= "Test License" (atelier:license-name license))
+      (assert-string= "TEST" (atelier:license-id license))
+      (assert-string= (format nil "Test Header 1~%Test Header 2")
+		      (atelier:license-header license))
+      (assert-string= (format nil "Test Text 1~%Test Text 2")
+		      (atelier:license-text license)))
     (uiop:delete-file-if-exists pathname)))
 
 (define-testcase testsuite-license ()
-  (test-license-repository-load-definition-from-text))
+  (test-license-repository-load-definition))

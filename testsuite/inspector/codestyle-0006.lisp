@@ -16,7 +16,7 @@
 (define-testcase validate-codestyle-0006-hint-at-file-when-it-lacks-project-license-information ()
   (let ((file-1
 	  (atelier::join-lines
-	   '("; testsuite.lisp -- The testsuite for Example"
+	   '("; test.lisp -- The testsuite for Example"
 	     ""
 	     ";; Example (https://github.com/acme)"
 	     ";;"
@@ -30,10 +30,10 @@
 	     ";; this distribution.    The terms  are also"
 	     ";; available at https://opensource.org/licenses/MIT"
 	     ""
-	     ";; End of file `testsuite.lsip'")))
+	     ";; End of file `test.lsip'")))
 	(file-2
 	  (atelier::join-lines
-	   '("; testsuite.lisp -- The testsuite for Example"
+	   '("; test.lisp -- The testsuite for Example"
 	     ""
 	     ";; Example (https://github.com/acme)"
 	     ";;"
@@ -46,7 +46,7 @@
 	     ";;;; license as circulated by CEA, CNRS and INRIA at the following URL"
 	     ";;;; \"https://cecill.info/licences/Licence_CeCILL-B_V1-en.txt\""
 	     ""
-	     ";; End of file `testsuite.lsip'")))
+	     ";; End of file `test.lsip'")))
 	(atelier::*linter*
 	  (atelier::find-plain-linter :application/lisp)))
     (assert-string= file-2

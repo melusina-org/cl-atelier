@@ -1,0 +1,30 @@
+---
+name: Lisp Confidence test package definition file
+---
+;;;; ${FILENAME} — ${SUMMARY}
+
+;;;; ${PROJECT_NAME} (${HOMEPAGE})
+;;;; This file is part of ${PROJECT_NAME}.
+;;;;
+;;;; Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+;;;; All rights reserved.
+
+;;;; ${LICENSE_HEADER}
+
+(defpackage #:${LISP_TEST_PACKAGE_NAME}
+  (:use #:common-lisp)
+  (:import-from #:confidence
+   #:define-testcase
+   #:define-assertion
+   #:assert-t
+   #:assert-eq
+   #:assert-set-equal
+   #:assert-string=
+   #:assert-type)
+  (:export
+   #:run-all-tests))
+
+(in-package #:${LISP_TEST_PACKAGE_NAME})
+
+;;;; End of file `${FILENAME}'
+...

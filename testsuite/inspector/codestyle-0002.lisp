@@ -20,16 +20,16 @@
 	    (apply #'concatenate 'string (loop :repeat 50 :collect " abc")))
 	  (very-long-line-without-words
 	    (apply #'concatenate 'string (loop :repeat 50 :collect "abc"))))
-      (assert-eq
-       2
-       (length
-	(loop :for line :in (list short-line short-line short-line
-				  very-long-line-with-words
-				  very-long-line-with-words
-				  very-long-line-without-words)
-	      :for hint = (atelier::hint-at-file-line-when-it-is-very-long line)
-	      :unless (null hint)
-	      :collect hint)))))
-
+      (with-output-to-string (*standard-output*)
+	(assert-eq
+	 2
+	 (length
+	  (loop :for line :in (list short-line short-line short-line
+				    very-long-line-with-words
+				    very-long-line-with-words
+				    very-long-line-without-words)
+		:for hint = (atelier::hint-at-file-line-when-it-is-very-long line)
+		:unless (null hint)
+		:collect hint))))))
 
 ;;;; End of file `codestyle-0002.lisp'

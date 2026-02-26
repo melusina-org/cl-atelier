@@ -1,0 +1,50 @@
+---
+name: Lisp system definition file
+---
+;;;; ${FILENAME} — ${SUMMARY}
+
+;;;; ${PROJECT_NAME} (${HOMEPAGE})
+;;;; This file is part of ${PROJECT_NAME}.
+;;;;
+;;;; Copyright © ${COPYRIGHT_YEAR} ${COPYRIGHT_HOLDER}
+;;;; All rights reserved.
+
+;;;; ${LICENSE_HEADER}
+
+(asdf:defsystem #:${LISP_SYSTEM_NAME}
+  :description "${PROJECT_DESCRIPTION}"
+  :author "${COPYRIGHT_HOLDER}"
+  :license "${LICENSE_NAME}"
+  :depends-on (#:alexandria)
+  :components
+  ((:module "src"
+    :components ((:file "package")
+                 (:file "utilities")
+		 (:file "entry-point")))))
+
+(asdf:defsystem #:${LISP_TEST_SYSTEM_NAME}
+  :description "${PROJECT_DESCRIPTION}"
+  :author "${COPYRIGHT_HOLDER}"
+  :license "${LICENSE_NAME}"
+  :depends-on (#:alexandria
+	       #:org.melusina.confidence
+	       #:${LISP_SYSTEM_NAME})
+  :components
+  ((:module "test"
+    :components ((:file "package")
+		 (:file "utilities")
+		 (:file "entry-point")))))
+
+(asdf:defsystem #:${LISP_DEVELOPMENT_SYSTEM_NAME}
+  :description "Development tools for ${PROJECT_NAME}"
+  :author "${COPYRIGHT_HOLDER}"
+  :license "${LICENSE_NAME}"
+  :depends-on (#:alexandria
+	       #:org.melusina.atelier
+	       #:${LISP_TEST_SYSTEM_NAME})
+  :components
+  ((:module "libexec/lisp"
+    :components ((:file "development")))))
+
+;;;; End of file `${FILENAME}'
+...
