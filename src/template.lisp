@@ -51,10 +51,8 @@
   (cond
     ((typep designator 'template)
      designator)
-    ((keywordp designator)
+    ((symbolp designator)
      (gethash designator *template-repository*))
-    ((stringp designator)
-     (gethash (make-symbol (string-upcase designator)) *template-repository*))
     (t
      (error "~A: This designator is not recognised." designator))))
 
@@ -193,8 +191,9 @@ standard output."
 ;;;
 
 (defclass composite-template (template)
-  ((template-list
-    :initarg :template-list
+  ((components
+    :initarg :components
+    :reader template-components
     :initform nil
     :documentation "List of templates that form the composite.
 Each entry of the list is a list of the form
@@ -206,160 +205,167 @@ Each entry of the list is a list of the form
    "This class represents a composite of other template."))
 
 (defmethod list-template-parameters ((template composite-template))
-  (labels ((template-designator-list ()
-	     (with-slots (template-list) template
-	       (delete-duplicates (mapcar #'first template-list) :test #'string-equal)))
-	   (template-pathname-list ()
-	     (with-slots (template-list) template
-	       (mapcar #'namestring (mapcar #'second template-list))))
-	   (redundant-parameter-name-list ()
-	     (apply #'append
-		    (append
-		     (mapcar #'list-template-parameters (template-designator-list))
-		     (mapcar #'list-parameter-names (template-pathname-list))))))
-    (delete-duplicates (redundant-parameter-name-list) :test #'parameter-name-equal)))
+  (loop :for component :in (template-components template)
+	:for designator = (if (listp component) (first component) component)
+	:for pathname = (when (listp component) (second component))
+	:append (list-template-parameters designator) :into parameters
+	:append (when pathname (list-parameter-names (namestring pathname))) :into parameters
+	:finally (return (delete-duplicates parameters
+					    :test #'parameter-name-equal))))
 
 (defmethod write-template ((template composite-template) (pathname (eql t)) &optional environment)
   (write-template template *standard-output* environment))
 
 (defmethod write-template ((template composite-template) (pathname pathname) &optional environment)
-  (labels ((resolve-pathname (pathname)
-	     (pathname (parameter-replace (namestring pathname) environment)))
-	   (subtask-pathname (template-designator relative-pathname &optional additional-bindings)
-	     (declare (ignore template-designator additional-bindings))
-	     (merge-pathnames (resolve-pathname relative-pathname) pathname))
-	   (subtask-environment (template-designator relative-pathname &optional additional-bindings)
-	     (declare (ignore template-designator relative-pathname))
-	     (let ((resolved-additional-bindings
-		     (loop :for (key . value) :in additional-bindings
-			   :for resolved-value = (parameter-replace value environment)
-			   :collect (cons key resolved-value))))
-	       (merge-parameter-bindings resolved-additional-bindings environment)))
-	   (write-plan ()
+  (labels ((file-component (designator relative-pathname &optional additional-bindings)
+	     (flet ((resolve-pathname (pathname)
+		      (pathname (parameter-replace (namestring pathname) environment)))
+		    (resolve-environment (additional-bindings)
+		      (let ((resolved-additional-bindings
+			      (loop :for (key . value) :in additional-bindings
+				    :for resolved-value = (parameter-replace value environment)
+				    :collect (cons key resolved-value))))
+			(merge-parameter-bindings resolved-additional-bindings environment))))
+	       (list (find-template designator)
+		     (merge-pathnames (resolve-pathname relative-pathname) pathname)
+		     (resolve-environment additional-bindings))))
+	   (composite-component (designator)
+	     (let ((template
+		     (find-template designator)))
+	       (loop :for template-spec :in (template-components template)
+		     :when (symbolp template-spec)
+		     :append (composite-component template-spec)
+		     :when (listp template-spec)
+		     :collect (apply #'file-component template-spec))))
+	   (plan ()
 	     (remove-duplicates
-	      (loop :for template-spec :in (slot-value template 'template-list)
-		    :collect (let ((subtask-pathname
-				     (apply #'subtask-pathname template-spec))
-				   (subtask-template
-				     (find-template (first (ensure-list template-spec))))
-				   (subtask-environment
-				     (apply #'subtask-environment template-spec)))
-			       (list subtask-template subtask-pathname subtask-environment)))
+	      (composite-component template)
 	      :key #'second
 	      :test #'equal
 	      :from-end t)))
-    (loop :for subtask :in (write-plan)
+    (loop :for subtask :in (plan)
 	  :do (apply #'write-template subtask))))
 
-(defparameter *composite-template-specs*
-  '((:name "Atelier Project Files"
-     :identifier :atelier-project-files
-     :description "This template provides basic project files."
-     :template-list
-     ((:license #p"LICENSE")
-      (:readme #p"README.md")))
-    (:name "Atelier Lisp System Scaffolding"
-     :identifier :atelier-lisp-system-scaffolding
-     :description "This templates provides scaffolding to develop lisp systems.
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro define-composite-template (identifier &rest initargs &key name description components)
+    (declare (ignore name description components))
+    (check-type identifier symbol)
+    `(setf (gethash ',identifier *template-repository*)
+           (make-instance 'composite-template ,':identifier ',identifier ,@initargs))))
+
+(define-composite-template project-files
+  :name "Atelier Project Files"
+  :description "This template provides basic project files."
+  :components
+  '((license #p"LICENSE")
+    (readme #p"README.md")))
+
+(define-composite-template lisp-system-scaffolding
+  :name "Atelier Lisp System Scaffolding"
+  :description "This templates provides scaffolding to develop lisp systems.
 The basisc structure of this scaffolding features an ASDF definition for
 the system and a test, as well as common files for the implementation
 and the test: package definition, utilities and entry points."
-     :template-list
-     ((:lisp-asdf #p"${PROJECT_FILENAME}.asd"
-       ((:summary . "System definition for ${PROJECT_NAME}")))
-      (:lisp-development #p"libexec/lisp/development.lisp"
-       ((:summary . "Development System for ${PROJECT_NAME}")))
-      (:lisp-docstrings #p"libexec/lisp/docstrings.lisp")
-      (:lisp-system-package #p"src/package.lisp"
-       ((:summary . "Package for ${PROJECT_NAME}")))
-      (:lisp-system-entry-point #p"src/entry-point.lisp"
-       ((:summary . "Entry point for ${PROJECT_NAME}")))
-      (:lisp-source #p"src/utilities.lisp"
-       ((:summary . "Utilities for ${PROJECT_NAME}")))
-      (:lisp-test-package #p"test/package.lisp"
-       ((:summary . "Package for ${PROJECT_NAME} test")))
-      (:lisp-test-entry-point #p"test/entry-point.lisp"
-       ((:summary . "Entry point for ${PROJECT_NAME} test")))
-      (:lisp-source #p"test/utilities.lisp"
-       ((:summary . "Utilities for ${PROJECT_NAME} test")
-	(:lisp-package-name . "${LISP_TEST_PACKAGE_NAME}")))))
-    (:name "Atelier DevOps Actions"
-     :identifier :atelier-devops-actions
-     :description "This template provides scripts for development and operations.
+  :components
+  '((lisp-asdf #p"${PROJECT_FILENAME}.asd"
+     ((:summary . "System definition for ${PROJECT_NAME}")))
+    (lisp-development #p"libexec/lisp/development.lisp"
+     ((:summary . "Development System for ${PROJECT_NAME}")))
+    (lisp-docstrings #p"libexec/lisp/docstrings.lisp")
+    (lisp-system-package #p"src/package.lisp"
+     ((:summary . "Package for ${PROJECT_NAME}")))
+    (lisp-system-entry-point #p"src/entry-point.lisp"
+     ((:summary . "Entry point for ${PROJECT_NAME}")))
+    (lisp-source #p"src/utilities.lisp"
+     ((:summary . "Utilities for ${PROJECT_NAME}")))
+    (lisp-test-package #p"test/package.lisp"
+     ((:summary . "Package for ${PROJECT_NAME} test")))
+    (lisp-test-entry-point #p"test/entry-point.lisp"
+     ((:summary . "Entry point for ${PROJECT_NAME} test")))
+    (lisp-source #p"test/utilities.lisp"
+     ((:summary . "Utilities for ${PROJECT_NAME} test")
+      (:lisp-package-name . "${LISP_TEST_PACKAGE_NAME}")))))
+
+(define-composite-template devops-actions
+  :name "Atelier DevOps Actions"
+  :description "This template provides scripts for development and operations.
 These scripts are merely place hodlers."
-     :template-list
-     ((:shell-stdlib #p"subr/stdlib.sh")
-      (:shell-script #p"development/audit"
-       ((:summary . "Audit ${PROJECT_NAME}")))
-      (:shell-script #p"development/build"
-       ((:summary . "Build ${PROJECT_NAME}")))
-      (:shell-script #p"development/clean"
-       ((:summary . "Clean ${PROJECT_NAME}")))
-      (:shell-script #p"development/configure"
-       ((:summary . "Configure ${PROJECT_NAME}")))
-      (:shell-script #p"development/describe"
-       ((:summary . "Describe ${PROJECT_NAME}")))
-      (:shell-script #p"development/lint"
-       ((:summary . "Lint ${PROJECT_NAME}")))
-      (:shell-script #p"development/publish"
-       ((:summary . "Publish ${PROJECT_NAME}")))
-      (:shell-script #p"development/run"
-       ((:summary . "Run ${PROJECT_NAME}")))
-      (:shell-script #p"development/setup"
-       ((:summary . "Setup workstation for ${PROJECT_NAME} development")))
-      (:shell-script #p"development/test"
-       ((:summary . "Test for ${PROJECT_NAME}")))
-      (:shell-script #p"development/verify"
-       ((:summary . "Verify ${PROJECT_NAME}")))
-      (:shell-script #p"operation/audit"
-       ((:summary . "Audit for ${PROJECT_NAME} deployments")))
-      (:shell-script #p"operation/configure"
-       ((:summary . "Configure ${PROJECT_NAME} deployments")))
-      (:shell-script #p"operation/console"
-       ((:summary . "Operation console for ${PROJECT_NAME} deployments")))
-      (:shell-script #p"operation/create"
-       ((:summary . "Create a ${PROJECT_NAME} deployment")))
-      (:shell-script #p"operation/delete"
-       ((:summary . "Delete a ${PROJECT_NAME} deployment")))
-      (:shell-script #p"operation/describe"
-       ((:summary . "Describe a ${PROJECT_NAME} deployment")))
-      (:shell-script #p"operation/dump"
-       ((:summary . "Dump the state of a ${PROJECT_NAME} deployment")))
-      (:shell-script #p"operation/restore"
-       ((:summary . "Restore the state of a ${PROJECT_NAME} deployment")))
-      (:shell-script #p"operation/setup"
-       ((:summary . "Setup workstation for ${PROJECT_NAME} deployments")))
-      (:shell-script #p"operation/start"
-       ((:summary . "Start a ${PROJECT_NAME} deployment")))
-      (:shell-script #p"operation/status"
-       ((:summary . "Probe the status of a ${PROJECT_NAME} deployment")))
-      (:shell-script #p"operation/stop"
-       ((:summary . "Stop a ${PROJECT_NAME} deployment")))
-      (:shell-script #p"operation/update"
-       ((:summary . "Update a ${PROJECT_NAME} deployment")))))
-    (:name "Atelier Lisp Documentation"
-     :identifier :atelier-lisp-documentation
-     :description "This template provides scripts to build lisp documentation with texinfo"
-     :template-list
-     ((:lisp-development-makedoc #p"development/makedoc")
-      (:texinfo #p"doc/${PROJECT_FILENAME}.texinfo")))
-    (:name "Atelier Lisp DevOps Actions"
-     :identifier :atelier-lisp-devops-actions
-     :description "This template provides scripts for development and operations.
+  :components
+  '((shell-stdlib #p"subr/stdlib.sh")
+    (shell-script #p"development/audit"
+     ((:summary . "Audit ${PROJECT_NAME}")))
+    (shell-script #p"development/build"
+     ((:summary . "Build ${PROJECT_NAME}")))
+    (shell-script #p"development/clean"
+     ((:summary . "Clean ${PROJECT_NAME}")))
+    (shell-script #p"development/configure"
+     ((:summary . "Configure ${PROJECT_NAME}")))
+    (shell-script #p"development/describe"
+     ((:summary . "Describe ${PROJECT_NAME}")))
+    (shell-script #p"development/lint"
+     ((:summary . "Lint ${PROJECT_NAME}")))
+    (shell-script #p"development/publish"
+     ((:summary . "Publish ${PROJECT_NAME}")))
+    (shell-script #p"development/run"
+     ((:summary . "Run ${PROJECT_NAME}")))
+    (shell-script #p"development/setup"
+     ((:summary . "Setup workstation for ${PROJECT_NAME} development")))
+    (shell-script #p"development/test"
+     ((:summary . "Test for ${PROJECT_NAME}")))
+    (shell-script #p"development/verify"
+     ((:summary . "Verify ${PROJECT_NAME}")))
+    (shell-script #p"operation/audit"
+     ((:summary . "Audit for ${PROJECT_NAME} deployments")))
+    (shell-script #p"operation/configure"
+     ((:summary . "Configure ${PROJECT_NAME} deployments")))
+    (shell-script #p"operation/console"
+     ((:summary . "Operation console for ${PROJECT_NAME} deployments")))
+    (shell-script #p"operation/create"
+     ((:summary . "Create a ${PROJECT_NAME} deployment")))
+    (shell-script #p"operation/delete"
+     ((:summary . "Delete a ${PROJECT_NAME} deployment")))
+    (shell-script #p"operation/describe"
+     ((:summary . "Describe a ${PROJECT_NAME} deployment")))
+    (shell-script #p"operation/dump"
+     ((:summary . "Dump the state of a ${PROJECT_NAME} deployment")))
+    (shell-script #p"operation/restore"
+     ((:summary . "Restore the state of a ${PROJECT_NAME} deployment")))
+    (shell-script #p"operation/setup"
+     ((:summary . "Setup workstation for ${PROJECT_NAME} deployments")))
+    (shell-script #p"operation/start"
+     ((:summary . "Start a ${PROJECT_NAME} deployment")))
+    (shell-script #p"operation/status"
+     ((:summary . "Probe the status of a ${PROJECT_NAME} deployment")))
+    (shell-script #p"operation/stop"
+     ((:summary . "Stop a ${PROJECT_NAME} deployment")))
+    (shell-script #p"operation/update"
+     ((:summary . "Update a ${PROJECT_NAME} deployment")))))
+
+(define-composite-template lisp-documentation
+  :name "Atelier Lisp Documentation"
+  :description "This template provides scripts to build lisp documentation with texinfo"
+  :components
+  '((lisp-development-makedoc #p"development/makedoc")
+    (texinfo #p"doc/${PROJECT_FILENAME}.texinfo")))
+
+(define-composite-template lisp-devops-actions
+  :name "Atelier Lisp DevOps Actions"
+  :description "This template provides scripts for development and operations.
 These scripts are specific to Lisp projects."
-     :template-list
-     ((:lisp-development-lint #p"development/lint")
-      (:lisp-development-test #p"development/test")
-      (:lisp-development-build #p"development/build")))
-    (:name "Atelier Lisp Project"
-     :identifier :atelier-lisp-project
-     :description "A complete Lisp project template"
-     :template-list (:atelier-project-files
-		     :atelier-lisp-system-scaffolding
-		     :atelier-devops-actions
-		     :atelier-lisp-devops-actions
-		     :atelier-lisp-documentation
-		     (:lisp-git-ignore #p".gitignore")))))
+  :components
+  '((lisp-development-lint #p"development/lint")
+    (lisp-development-test #p"development/test")
+    (lisp-development-build #p"development/build")))
+
+(define-composite-template lisp-project
+  :name "Atelier Lisp Project"
+  :description "A complete Lisp project template"
+  :components '(project-files
+		lisp-system-scaffolding
+		devops-actions
+		lisp-devops-actions
+		lisp-documentation
+		(lisp-git-ignore #p".gitignore")))
 
 
 ;;;
@@ -385,43 +391,26 @@ These scripts are specific to Lisp projects."
   "List templates held in TEMPLATE-REPOSITORY-PATHNAME."
   (mapcar #'pathname-name (uiop:directory-files template-repository-pathname "*.text")))
 
-(defun template-repository-load (&optional (template-repository-pathname *template-repository-pathname*))
+(defun template-repository-load (&key pathname package)
   "Load all templates on TEMPLATE-REPOSITORY-PATHNAME."
-  (labels ((resolve-file (designator)
-	     (typecase designator
-	       (keyword
-		(resolve-template-list
-		 (slot-value (gethash designator *template-repository*) 'template-list)))
-	       (t
-		(list designator))))
-	   (resolve-template-list (designators)
-	     (loop :for designator :in designators
-		   :append (resolve-file designator)))
-	   (resolve-template-spec (spec)
-	     (let ((spec-copy
-		     (copy-list spec)))
-	       (setf (getf spec-copy :template-list)
-		     (resolve-template-list (getf spec-copy :template-list)))
-	       spec-copy)))
-    (loop :for pathname :in (uiop:directory-files template-repository-pathname "*.text")
-	  :for designator = (make-keyword (string-upcase (pathname-name pathname)))
-	  do (setf (gethash designator *template-repository*)
-		   (template-repository-load-definition-file pathname)))
-    (loop :for spec :in *composite-template-specs*
-	  :for designator = (getf spec :identifier)
-	  :do (setf (gethash designator *template-repository*)
-		    (apply #'make-instance 'composite-template (resolve-template-spec spec))))))
+  (unless pathname
+    (setf pathname *template-repository-pathname*))
+  (unless package
+    (setf package (symbol-package '*template-repository-pathname*)))
+  (loop :for pathname :in (uiop:directory-files pathname "*.text")
+	:for designator = (intern (string-upcase (pathname-name pathname)) package)
+	:do (setf (gethash designator *template-repository*)
+		  (template-repository-load-definition-file pathname))))
 
 
 ;;;;
 ;;;; Lisp Projects
 ;;;;
 
-(defun new-lisp-project (pathname
-			 &key environment
-			      copyright-holder copyright-year project-filename project-name
-			      project-description project-long-description
-			      homepage license)
+(defun new-lisp-project (pathname &key environment
+				       copyright-holder copyright-year project-filename project-name
+				       project-description project-long-description
+				       homepage license)
   "Create a new lisp project in PATHNAME."
   (let* ((argv-parameter-bindings
 	   `((:copyright-holder . ,copyright-holder)
@@ -435,7 +424,7 @@ These scripts are specific to Lisp projects."
 	 (merged-parameter-bindings
 	   (merge-parameter-bindings *parameter-bindings* argv-parameter-bindings)))
     (let ((*parameter-bindings* merged-parameter-bindings))
-      (write-template :atelier-lisp-project pathname environment))))
+      (write-template 'lisp-project pathname environment))))
 
 (defun new-lisp-file (name summary)
   "Create a new file NAME with SUMMARY."
@@ -449,7 +438,7 @@ These scripts are specific to Lisp projects."
 	(test-environment
 	  `((:summary . ,summary)
 	    (:lisp-package-name . "#:${PROJECT_FILENAME}/test"))))
-    (write-template :lisp-source source-pathname source-environment)
-    (write-template :lisp-source test-pathname test-environment)))
+    (write-template 'lisp-source source-pathname source-environment)
+    (write-template 'lisp-source test-pathname test-environment)))
 
 ;;;; End of file `template.lisp'

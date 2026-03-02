@@ -39,6 +39,31 @@
    #:new-lisp-project
    #:new-lisp-file
    
+   ;; Templates
+   #:license
+   #:readme
+   #:lisp-asdf
+   #:lisp-development
+   #:lisp-docstrings
+   #:lisp-system-package
+   #:lisp-system-entrypoint
+   #:lisp-test-package
+   #:lisp-test-entrypoint
+   #:lisp-source
+   #:shell-stdlib
+   #:shell-script
+   #:lisp-development-makedoc
+   #:texinfo
+   #:lisp-development-lint
+   #:lisp-development-build
+   #:lisp-development-test
+   #:project-files
+   #:lisp-system-scaffolding
+   #:devops-actions
+   #:lisp-devops-actions
+   #:lisp-documentation
+   #:lisp-git-ignore
+   #:lisp-project
    ;; License
    #:license
    #:license-id
