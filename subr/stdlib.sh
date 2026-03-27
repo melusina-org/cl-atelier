@@ -3,7 +3,7 @@
 # Atelier (https://github.com/melusina-org/cl-atelier)
 # This file is part of Atelier.
 #
-# Copyright © 2017–2023 Michaël Le Barbier
+# Copyright © 2017–2026 Michaël Le Barbier
 # All rights reserved.
 
 # This file must be used under the terms of the MIT License.
@@ -115,7 +115,6 @@ confirm()
             ;;
     esac
 }
-
 
 
 # wlog LEVEL PRINTF-LIKE-ARGV
@@ -257,6 +256,50 @@ fold_lines()
 first_line()
 {
     sed -n '1{p;q;}'
+}
+
+#
+# Run Lisp
+#
+
+# cl [-Q quit-symbol] [-L SYSTEM] entrypoint ARGUMENTS
+#  Run Common Lisp entrypoint.
+
+cl()
+{
+    local OPTIND OPTION OPTARG quit
+
+    OPTIND=1
+
+    set -- "$@" '--noinform' '--noprint' '--disable-debugger'
+    set -- "$@" '--eval' '(declaim (optimize (debug 3) (safety 3)))'
+
+    set -- "$@" '--eval' '(defun safely-load-system (system)
+(unless (ql:where-is-system system)
+  (pushnew #p"." ql:*local-project-directories*)
+  (ql:register-local-projects))
+(let ((*standard-output* *error-output*))
+  (ql:quickload system :silent t)))'
+        
+    while getopts 'Q:L:' OPTION; do
+        case ${OPTION} in
+            L)	set -- "$@" '--eval' "(safely-load-system \"${OPTARG}\")";;
+	    Q)  quit="${OPTARG}";;
+            *)	failwith 'cl: %s: Unsupported option.\n' "${OPTION}";;
+        esac
+    done
+
+    shift $(expr ${OPTIND} - 1)
+
+    set -- "$@" '--eval' "($1)" '--eval' "(${quit})"
+    shift 1
+    
+    while [ "$1" != '--noinform' ]; do
+	set -- "$@" "$1"
+	shift 1
+    done
+
+    sbcl "$@"
 }
 
 # End of file `stdlib.sh'

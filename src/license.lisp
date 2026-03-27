@@ -3,7 +3,7 @@
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
 ;;;;
-;;;; Copyright © 2017–2023 Michaël Le Barbier
+;;;; Copyright © 2017–2026 Michaël Le Barbier
 ;;;; All rights reserved.
 
 ;;;; This file must be used under the terms of the MIT License.
@@ -54,7 +54,8 @@ The file format is expected to have three documents separated by '---':
 1. Front Matter (YAML-like key-value pairs)
 2. License Header
 3. License Text"
-  (multiple-value-bind (front-matter documents) (read-file-documents-with-yaml-front-matter pathname)
+  (multiple-value-bind (front-matter documents) 
+      (read-file-documents-with-yaml-front-matter pathname)
     (make-instance
      'license
      :name (assoc-value front-matter :name)

@@ -5,7 +5,7 @@
 # Atelier (https://github.com/melusina-org/cl-atelier)
 # This file is part of Atelier.
 #
-# Copyright © 2017–2023 Michaël Le Barbier
+# Copyright © 2017–2026 Michaël Le Barbier
 # All rights reserved.
 
 # This file must be used under the terms of the MIT License.
@@ -19,31 +19,21 @@
 : ${testsuiteclean:='no'}
 : ${testsuitelisp:='sbcl'}
 
-testsuite_lisp()
-{
-    case "${testsuitelisp}" in
-	sbcl)
-	    sbcl --noinform --disable-debugger "$@"
-	    ;;
-	ccl|ccl64)
-	    ccl64 "$@"
-	    ;;
-    esac
-}
+: ${subrdir:=${TOPLEVELDIR}/subr}
+
+. "${subrdir}/stdlib.sh"
+
 
 testsuite_run()
 {
+    local test_entry_point
+
     if [ $# -eq 0 ]; then
 	set -- 'run-all-tests'
     fi
-    testsuite_lisp\
-	--eval "(declaim (optimize safety) (optimize debug))"\
-        --eval "(unless (ql:where-is-system :${testsuitesystem})
-                  (pushnew #p\".\" ql:*local-project-directories*)
-                  (ql:register-local-projects))"\
-	--eval "(ql:quickload \"${testsuitesystem}\" :silent t)"\
-	--eval "(${testsuitepackage}:$1)"\
-	--eval "(org.melusina.confidence:quit)"
+
+    cl -Q 'confidence:quit' -L "${testsuitesystem}" "${testsuitepackage}:$1"
+    
 }
 
 testsuite_main()

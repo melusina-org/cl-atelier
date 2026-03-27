@@ -3,7 +3,7 @@
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
 ;;;;
-;;;; Copyright © 2017–2023 Michaël Le Barbier
+;;;; Copyright © 2017–2026 Michaël Le Barbier
 ;;;; All rights reserved.
 
 ;;;; This file must be used under the terms of the MIT License.
@@ -22,7 +22,7 @@
 
 (defun system-relative-pathname (pathname)
   (flet ((system-source-directory ()
-	   (asdf:system-source-directory #.(string-downcase (package-name *package*)))))
+	   (asdf:system-source-directory "org.melusina.atelier")))
     (merge-pathnames pathname (system-source-directory))))
 
 (defun system-relative-pathnames (&rest pathnames)
@@ -30,7 +30,7 @@
 
 (defparameter *parameter-bindings*
       '((:copyright-holder . "Michaël Le Barbier")
-        (:copyright-year . "2017–2023")
+        (:copyright-year . "2017–2026")
 	(:project-filename . "atelier")
         (:project-name . "Atelier")
 	(:project-description . "Atelier for Lisp developers")
@@ -48,16 +48,10 @@
       #p"org.melusina.atelier.asd"
       #p"development"
       #p"doc"
-      #p"docker"
-      #p"docker/compose/cid.yml"
-      #p"docker/image/linux/users.conf"
       #p"src"
       #p"subr"
-      #p"support"
       #p"testsuite"
-      #p"libexec/lisp/development.lisp"
-      #p"libexec/setup"
-      #p"libexec/testimage"))))
+      #p"libexec/lisp/development.lisp"))))
 
 #+quicklisp
 (defun reload ()
