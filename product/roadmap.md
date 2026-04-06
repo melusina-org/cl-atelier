@@ -3,15 +3,14 @@
 
 ## Now (in progress)
 
-| Slice | Type | Goal addressed | Description |
-|-------|------|----------------|-------------|
-| [002-asdf-integration-and-file-inspectors](slice/002-asdf-integration-and-file-inspectors/slice.md) | Bet | G2 | First end-to-end path: `linter-op` ASDF operation, `project-configuration` and `linter-configuration` components, file encoding and SPDX license header inspectors. |
+*None — selecting next slice.*
 
 ## Completed
 
 | Slice | Type | Goal addressed | Verdict |
 |-------|------|----------------|:-------:|
 | [001-finding-resolution-schema](slice/001-finding-resolution-schema/slice.md) | Bet | G7 | ✅ |
+| [002-asdf-integration-and-file-inspectors](slice/002-asdf-integration-and-file-inspectors/slice.md) | Bet | G2 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
@@ -64,3 +63,4 @@
 | 2026-04-06 | Slice 001 (finding/resolution schema + registry) moved from Next to Now |
 | 2026-04-06 | Slice 001 completed — verdict ✅ Supported. Moved to Completed |
 | 2026-04-06 | Slice 002 (ASDF integration + file inspectors) moved from Next to Now |
+| 2026-04-06 | Slice 002 completed — verdict ✅ Supported. Moved to Completed |
