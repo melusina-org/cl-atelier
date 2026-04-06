@@ -18,22 +18,41 @@
 ;;;; Inspection Protocol
 ;;;;
 
-(defgeneric inspect-file (inspector pathname)
-  (:documentation "Run INSPECTOR on the file at PATHNAME and return a list of findings or NIL.
-Used by file-level inspectors. Configuration is available via
+(defgeneric inspect-file (inspector source)
+  (:documentation "Run INSPECTOR on SOURCE and return a list of findings or NIL.
+SOURCE is a PATHNAME for file-level inspectors, or a VECTOR of line
+strings for line-level inspectors. Configuration is available via
 *CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION*.")
-  (:method ((inspector inspector) (pathname pathname))
+  (:method ((inspector inspector) source)
     "Default method returns NIL — no findings."
+    (declare (ignore source))
     nil))
 
-(defgeneric inspect-lines (inspector pathname lines)
-  (:documentation "Run INSPECTOR on LINES read from PATHNAME.
-Return a list of findings or NIL. LINES is a vector of strings,
-one per line. Used by line-level inspectors. The runner reads the
-file into LINES once and passes it to all line inspectors.")
-  (:method ((inspector inspector) (pathname pathname) (lines vector))
+(defgeneric inspect-line (inspector line line-number)
+  (:documentation "Run INSPECTOR on a single LINE at LINE-NUMBER.
+Return a list of findings for this line, or NIL. LINE is a string.
+*CURRENT-PATHNAME* is bound to the file being inspected.")
+  (:method ((inspector inspector) (line string) (line-number integer))
     "Default method returns NIL — no findings."
+    (declare (ignore line line-number))
     nil))
+
+(defvar *current-pathname* nil
+  "The pathname of the file currently being inspected.")
+
+(defmethod inspect-file ((inspector line-inspector) (pathname pathname))
+  "Read PATHNAME into lines and delegate to the VECTOR method.
+Bind *CURRENT-PATHNAME* so inspectors can reference the file."
+  (let ((*current-pathname* pathname))
+    (inspect-file inspector (read-file-into-line-vector pathname))))
+
+(defmethod inspect-file ((inspector line-inspector) (lines vector))
+  "Iterate over LINES, calling INSPECT-LINE on each, and collect findings."
+  (loop :for line :across lines
+        :for line-number :from 1
+        :for line-findings = (inspect-line inspector line line-number)
+        :when line-findings
+        :nconc line-findings))
 
 
 ;;;;
@@ -99,7 +118,8 @@ Return FINDING unchanged if no override applies."
 (defun run-file-inspectors (pathname project-configuration linter-configuration)
   "Run all registered inspectors on PATHNAME in pipeline order.
 Stage 1: run file-inspector instances on the pathname.
-Stage 2: read the file into lines once, run line-inspector instances on the lines.
+Stage 2: read the file into lines once, run line-inspector instances
+on the line vector via INSPECT-FILE.
 Bind *CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION*
 for inspectors to access. Return a list of findings."
   (declare (type pathname pathname)
@@ -122,10 +142,10 @@ for inspectors to access. Return a list of findings."
     (let ((line-inspectors
             (collect-inspectors-by-level 'line-inspector linter-configuration)))
       (when line-inspectors
-        (let ((lines (read-file-into-line-vector pathname)))
+        (let ((lines (read-file-into-line-vector pathname))
+              (*current-pathname* pathname))
           (loop :for inspector-instance :in line-inspectors
-                :for inspector-findings =
-                  (inspect-lines inspector-instance pathname lines)
+                :for inspector-findings = (inspect-file inspector-instance lines)
                 :when inspector-findings
                 :do (setf findings
                           (nconc findings

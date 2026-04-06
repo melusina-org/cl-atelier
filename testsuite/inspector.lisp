@@ -48,8 +48,9 @@
       "Version 1."
       nil)
     (atelier:define-line-inspector test-redefined-inspector
-        ((pathname pathname) (lines vector))
+        ((line string) (line-number integer))
       "Version 2."
+      (declare (ignore line line-number))
       nil)
     (let ((instance (atelier:find-inspector 'test-redefined-inspector)))
       (assert-eq :line (atelier:inspector-level instance))

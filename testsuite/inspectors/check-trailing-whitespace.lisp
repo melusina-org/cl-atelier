@@ -20,17 +20,15 @@
 
 (define-testcase validate-check-trailing-whitespace-clean ()
   "Verify that a file without trailing whitespace produces no findings."
-  (let ((atelier:*current-project-configuration* nil)
-        (atelier:*current-linter-configuration*
-          (atelier:make-linter-configuration)))
-    (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
-                                          (testsuite-fixtures-directory)))
-           (inspector-instance
-             (atelier:find-inspector 'atelier:check-trailing-whitespace))
-           (lines (atelier:read-file-into-line-vector fixture-path))
-           (findings (atelier:inspect-lines inspector-instance
-                                           fixture-path lines)))
-      (assert-t (null findings)))))
+  (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
+                                        (testsuite-fixtures-directory)))
+         (atelier:*current-project-configuration* nil)
+         (atelier:*current-linter-configuration*
+           (atelier:make-linter-configuration))
+         (inspector-instance
+           (atelier:find-inspector 'atelier:check-trailing-whitespace))
+         (findings (atelier:inspect-file inspector-instance fixture-path)))
+    (assert-t (null findings))))
 
 (define-testcase validate-check-trailing-whitespace-dirty ()
   "Verify that a file with trailing spaces produces findings."
@@ -47,19 +45,17 @@
             (write-char #\Newline stream)
             (write-string "also clean" stream)
             (write-char #\Newline stream))
-          (let ((atelier:*current-project-configuration* nil)
-                (atelier:*current-linter-configuration*
-                  (atelier:make-linter-configuration)))
-            (let* ((inspector-instance
-                     (atelier:find-inspector 'atelier:check-trailing-whitespace))
-                   (lines (atelier:read-file-into-line-vector temporary-path))
-                   (findings
-                     (atelier:inspect-lines inspector-instance
-                                           temporary-path lines)))
-              (assert-eq 1 (length findings))
-              (assert-t (typep (first findings)
-                               'atelier:trailing-whitespace-finding))
-              (assert-eq 2 (atelier:finding-line (first findings))))))
+          (let* ((atelier:*current-project-configuration* nil)
+                 (atelier:*current-linter-configuration*
+                   (atelier:make-linter-configuration))
+                 (inspector-instance
+                   (atelier:find-inspector 'atelier:check-trailing-whitespace))
+                 (findings
+                   (atelier:inspect-file inspector-instance temporary-path)))
+            (assert-eq 1 (length findings))
+            (assert-t (typep (first findings)
+                             'atelier:trailing-whitespace-finding))
+            (assert-eq 2 (atelier:finding-line (first findings)))))
       (when (probe-file temporary-path)
         (delete-file temporary-path)))))
 

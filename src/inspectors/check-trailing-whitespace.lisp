@@ -14,24 +14,23 @@
 (in-package #:atelier)
 
 (define-line-inspector check-trailing-whitespace
-    ((pathname pathname) (lines vector))
-  "Check for trailing whitespace on source lines.
-Return a list of TRAILING-WHITESPACE-FINDING for each line with trailing spaces or tabs."
-  (loop :for line :across lines
-        :for line-number :from 1
-        :for trimmed-length = (length (string-right-trim '(#\Space #\Tab) line))
-        :when (< trimmed-length (length line))
-        :collect (make-instance 'trailing-whitespace-finding
-                   :inspector 'check-trailing-whitespace
-                   :severity :style
-                   :observation (format nil "Line ~D has ~D trailing whitespace character~:P."
-                                       line-number (- (length line) trimmed-length))
-                   :rationale "Trailing whitespace creates noisy diffs and wastes bytes."
-                   :file pathname
-                   :line line-number
-                   :column trimmed-length
-                   :end-line line-number
-                   :end-column (length line)
-                   :source-text line)))
+    ((line string) (line-number integer))
+  "Check a single line for trailing whitespace.
+Return a list containing a TRAILING-WHITESPACE-FINDING if LINE has
+trailing spaces or tabs, or NIL."
+  (let ((trimmed-length (length (string-right-trim '(#\Space #\Tab) line))))
+    (when (< trimmed-length (length line))
+      (list (make-instance 'trailing-whitespace-finding
+              :inspector 'check-trailing-whitespace
+              :severity :style
+              :observation (format nil "Line ~D has ~D trailing whitespace character~:P."
+                                  line-number (- (length line) trimmed-length))
+              :rationale "Trailing whitespace creates noisy diffs and wastes bytes."
+              :file *current-pathname*
+              :line line-number
+              :column trimmed-length
+              :end-line line-number
+              :end-column (length line)
+              :source-text line)))))
 
 ;;;; End of file `check-trailing-whitespace.lisp'

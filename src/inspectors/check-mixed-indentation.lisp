@@ -14,10 +14,10 @@
 (in-package #:atelier)
 
 (define-line-inspector check-mixed-indentation
-    ((pathname pathname) (lines vector))
-  "Check for mixed tabs and spaces in indentation.
-Return a list of MIXED-INDENTATION-FINDING for lines using the wrong
-indentation character. The expected style is read from
+    ((line string) (line-number integer))
+  "Check a single line for wrong indentation characters.
+Return a list containing a MIXED-INDENTATION-FINDING if LINE uses the
+wrong indentation character, or NIL. The expected style is read from
 *CURRENT-LINTER-CONFIGURATION* and defaults to :SPACES."
   (let ((style (if *current-linter-configuration*
                    (linter-configuration-indentation-style
@@ -33,23 +33,21 @@ indentation character. The expected style is read from
                (case style
                  (:spaces (position #\Tab leading-whitespace))
                  (:tabs (position #\Space leading-whitespace))))))
-      (loop :for line :across lines
-            :for line-number :from 1
-            :for wrong-position = (wrong-indentation-p line)
-            :when wrong-position
-            :collect (make-instance 'mixed-indentation-finding
-                       :inspector 'check-mixed-indentation
-                       :severity :style
-                       :observation (format nil "Line ~D uses ~A for indentation (expected ~A)."
-                                           line-number
-                                           (if (eq style :spaces) "tabs" "spaces")
-                                           (string-downcase (symbol-name style)))
-                       :rationale "Consistent indentation prevents alignment issues across editors."
-                       :file pathname
-                       :line line-number
-                       :column wrong-position
-                       :end-line line-number
-                       :end-column (1+ wrong-position)
-                       :source-text line)))))
+      (let ((wrong-position (wrong-indentation-p line)))
+        (when wrong-position
+          (list (make-instance 'mixed-indentation-finding
+                  :inspector 'check-mixed-indentation
+                  :severity :style
+                  :observation (format nil "Line ~D uses ~A for indentation (expected ~A)."
+                                      line-number
+                                      (if (eq style :spaces) "tabs" "spaces")
+                                      (string-downcase (symbol-name style)))
+                  :rationale "Consistent indentation prevents alignment issues across editors."
+                  :file *current-pathname*
+                  :line line-number
+                  :column wrong-position
+                  :end-line line-number
+                  :end-column (1+ wrong-position)
+                  :source-text line)))))))
 
 ;;;; End of file `check-mixed-indentation.lisp'

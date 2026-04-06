@@ -20,34 +20,30 @@
 
 (define-testcase validate-check-line-length-short ()
   "Verify that a file with short lines produces no findings."
-  (let ((atelier:*current-project-configuration* nil)
-        (atelier:*current-linter-configuration*
-          (atelier:make-linter-configuration)))
-    (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
-                                          (testsuite-fixtures-directory)))
-           (inspector-instance
-             (atelier:find-inspector 'atelier:check-line-length))
-           (lines (atelier:read-file-into-line-vector fixture-path))
-           (findings (atelier:inspect-lines inspector-instance
-                                           fixture-path lines)))
-      (assert-t (null findings)))))
+  (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
+                                        (testsuite-fixtures-directory)))
+         (atelier:*current-project-configuration* nil)
+         (atelier:*current-linter-configuration*
+           (atelier:make-linter-configuration))
+         (inspector-instance
+           (atelier:find-inspector 'atelier:check-line-length))
+         (findings (atelier:inspect-file inspector-instance fixture-path)))
+    (assert-t (null findings))))
 
 (define-testcase validate-check-line-length-long ()
-  "Verify that a file with a long line produces findings."
-  (let ((atelier:*current-project-configuration* nil)
-        (atelier:*current-linter-configuration*
-          (atelier:make-linter-configuration)))
-    (let* ((fixture-path (merge-pathnames "long-lines.lisp"
-                                          (testsuite-fixtures-directory)))
-           (inspector-instance
-             (atelier:find-inspector 'atelier:check-line-length))
-           (lines (atelier:read-file-into-line-vector fixture-path))
-           (findings (atelier:inspect-lines inspector-instance
-                                           fixture-path lines)))
-      ;; Should find the long comment and the long comment-prefixed word,
-      ;; but not the definition line
-      (assert-eq 2 (length findings))
-      (assert-t (typep (first findings) 'atelier:line-too-long-finding)))))
+  "Verify that a file with long lines produces findings."
+  (let* ((fixture-path (merge-pathnames "long-lines.lisp"
+                                        (testsuite-fixtures-directory)))
+         (atelier:*current-project-configuration* nil)
+         (atelier:*current-linter-configuration*
+           (atelier:make-linter-configuration))
+         (inspector-instance
+           (atelier:find-inspector 'atelier:check-line-length))
+         (findings (atelier:inspect-file inspector-instance fixture-path)))
+    ;; Should find the long comment and the long comment-prefixed word,
+    ;; but not the definition line
+    (assert-eq 2 (length findings))
+    (assert-t (typep (first findings) 'atelier:line-too-long-finding))))
 
 (define-testcase validate-check-line-length-skips-definitions ()
   "Verify that definition lines are skipped regardless of length."
@@ -60,16 +56,14 @@
                                   :if-exists :supersede)
             (format stream "(defun ~A ()~%  nil)~%"
                     (make-string 120 :initial-element #\x)))
-          (let ((atelier:*current-project-configuration* nil)
-                (atelier:*current-linter-configuration*
-                  (atelier:make-linter-configuration)))
-            (let* ((inspector-instance
-                     (atelier:find-inspector 'atelier:check-line-length))
-                   (lines (atelier:read-file-into-line-vector temporary-path))
-                   (findings
-                     (atelier:inspect-lines inspector-instance
-                                           temporary-path lines)))
-              (assert-t (null findings)))))
+          (let* ((atelier:*current-project-configuration* nil)
+                 (atelier:*current-linter-configuration*
+                   (atelier:make-linter-configuration))
+                 (inspector-instance
+                   (atelier:find-inspector 'atelier:check-line-length))
+                 (findings
+                   (atelier:inspect-file inspector-instance temporary-path)))
+            (assert-t (null findings))))
       (when (probe-file temporary-path)
         (delete-file temporary-path)))))
 

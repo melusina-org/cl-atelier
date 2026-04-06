@@ -178,9 +178,10 @@ Example:
 
 (defmacro define-line-inspector (name lambda-list &body body)
   "Define a line-level inspector.
-LAMBDA-LIST should be ((PATHNAME PATHNAME) (LINES VECTOR)).
-The generated method is on INSPECT-LINES, not INSPECT-FILE.
-LINES is a vector of strings read by the runner."
+LAMBDA-LIST should be ((LINE STRING) (LINE-NUMBER INTEGER)).
+The generated method is on INSPECT-LINE. The base INSPECT-FILE
+method on LINE-INSPECTOR iterates lines and calls INSPECT-LINE
+on each. Return a list of findings for the line, or NIL."
   (check-type name symbol)
   (multiple-value-bind (docstring options body-forms)
       (parse-define-body body)
@@ -195,7 +196,7 @@ LINES is a vector of strings read by the runner."
                :name ',name
                :description ,docstring))
        ,@(when body-forms
-           `((defmethod inspect-lines ((inspector ,name) ,@lambda-list)
+           `((defmethod inspect-line ((inspector ,name) ,@lambda-list)
                ,@(when docstring (list docstring))
                (declare (ignorable inspector))
                ,@body-forms)))

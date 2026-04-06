@@ -158,7 +158,8 @@
    #:prepare-resolution
    #:resolve-finding
    #:inspect-file
-   #:inspect-lines
+   #:inspect-line
+   #:*current-pathname*
    #:run-file-inspectors
    #:read-file-into-line-vector
 
