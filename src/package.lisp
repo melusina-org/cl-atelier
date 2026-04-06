@@ -157,6 +157,34 @@
    ;; Protocol
    #:prepare-resolution
    #:resolve-finding
+   #:inspect-file
+   #:run-file-inspectors
+
+   ;; Concrete finding subclasses
+   #:encoding-finding
+   #:spdx-license-header-finding
+
+   ;; Concrete inspectors
+   #:check-file-encoding
+   #:check-spdx-license-header
+   #:read-file-header
+
+   ;; ASDF integration
+   #:project-configuration
+   #:make-project-configuration
+   #:project-configuration-copyright-holder
+   #:project-configuration-license
+   #:project-configuration-homepage
+   #:read-project-configuration
+   #:linter-configuration
+   #:make-linter-configuration
+   #:linter-configuration-disabled-inspectors
+   #:linter-configuration-severity-overrides
+   #:read-linter-configuration
+   #:asdf-project-configuration
+   #:asdf-linter-configuration
+   #:linter-op
+   #:lint-system
 
    ;; Utilities (used by legacy bridge)
    #:string-match

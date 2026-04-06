@@ -23,6 +23,10 @@
   (testsuite-inspector)
   (testsuite-maintainer)
   (testsuite-bridge)
+  (testsuite-runner)
+  (testsuite-asdf)
+  (testsuite-check-file-encoding)
+  (testsuite-check-spdx-license-header)
   (testsuite-linter)
   (testsuite-template))
 

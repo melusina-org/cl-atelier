@@ -31,6 +31,12 @@
 		 (:file "resolution")
 		 (:file "inspector")
 		 (:file "maintainer")
+		 (:file "asdf")
+		 (:file "runner")
+		 (:module "inspectors"
+		  :components
+		  ((:file "check-file-encoding")
+		   (:file "check-spdx-license-header")))
 		 (:file "main")))))
 
 (asdf:defsystem #:org.melusina.atelier/legacy
@@ -43,12 +49,10 @@
                  (:file "lint")
 		 (:module "inspector"
 		  :components
-		  ((:file "codestyle-0001")
-		   (:file "codestyle-0002")
+		  ((:file "codestyle-0002")
 		   (:file "codestyle-0003")
 		   (:file "codestyle-0004")
-		   (:file "codestyle-0005")
-		   (:file "codestyle-0006")))
+		   (:file "codestyle-0005")))
 		 (:file "bridge")))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
@@ -70,15 +74,19 @@
 		 (:file "inspector")
 		 (:file "maintainer")
 		 (:file "bridge")
+		 (:file "runner")
+		 (:file "asdf")
+		 (:module "inspectors"
+		  :components
+		  ((:file "check-file-encoding")
+		   (:file "check-spdx-license-header")))
 		 (:module "legacy-inspector"
 		  :pathname "inspector"
 		  :components
-		  ((:file "codestyle-0001")
-		   (:file "codestyle-0002")
+		  ((:file "codestyle-0002")
 		   (:file "codestyle-0003")
 		   (:file "codestyle-0004")
-		   (:file "codestyle-0005")
-		   (:file "codestyle-0006")))
+		   (:file "codestyle-0005")))
 		 (:file "lint")
 		 (:file "entrypoint")))))
 

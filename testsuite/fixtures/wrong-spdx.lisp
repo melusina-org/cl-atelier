@@ -1,4 +1,4 @@
-;;;; codestyle-0001.lisp — Hint at files when they are not valid UTF8
+;;;; wrong-spdx.lisp — Fixture file with wrong SPDX header
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -11,6 +11,8 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(in-package #:atelier/testsuite)
+;;;; SPDX-License-Identifier: GPL-3.0-only
 
-;;;; End of file `codestyle-0001.lisp'
+(in-package #:cl-user)
+
+;;;; End of file `wrong-spdx.lisp'

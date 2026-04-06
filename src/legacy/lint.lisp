@@ -330,13 +330,12 @@ A BLOCK-COMMENT can either be a string or a list of strings.")
    "A SOURCE-LINTER verrifies that a file follows canonical project rules."))
 
 (defmethod file-inspectors append ((instance canonical-source-linter))
-  '(hint-at-file-when-character-encoding-is-not-utf8))
+  nil)
 
 (defmethod content-inspectors append ((instance canonical-source-linter))
   '(hint-at-file-when-it-lacks-canonical-header-line
     hint-at-file-when-it-lacks-canonical-footer-line
-    hint-at-file-when-it-lacks-canonical-project-identification
-    hint-at-file-when-it-lacks-project-license-information))
+    hint-at-file-when-it-lacks-canonical-project-identification))
 
 
 ;;;;

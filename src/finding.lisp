@@ -237,4 +237,17 @@ diagnostics spanning multiple lines without precise column information."))
   (format stream "~&  Rationale:   ~A~%" (finding-rationale instance))
   (terpri stream))
 
+
+;;;;
+;;;; Concrete Finding Subclasses
+;;;;
+
+(defclass encoding-finding (file-finding)
+  ()
+  (:documentation "A file is not valid UTF-8."))
+
+(defclass spdx-license-header-finding (file-finding)
+  ()
+  (:documentation "A file has a missing or incorrect SPDX license identifier."))
+
 ;;;; End of file `finding.lisp'
