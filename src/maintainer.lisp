@@ -41,23 +41,19 @@
     :type (or null string)
     :initform nil
     :documentation "A human-readable description of the maintainer."))
-  (:documentation "A registered maintainer that can resolve findings.
-Maintainers participate in a superseding partial order. When two
-maintainers can both handle a finding, only the maximal elements
-of the superseding order run."))
-
-(defun make-maintainer (&rest initargs &key name supersedes kind description)
-  "Create and return a MAINTAINER."
-  (declare (ignore name supersedes kind description))
-  (apply #'make-instance 'maintainer initargs))
+  (:documentation "Base class for all maintainers.
+Each concrete maintainer is a subclass with a singleton instance in
+the registry. Maintainers participate in a superseding partial order."))
 
 (defmethod print-object ((instance maintainer) stream)
+  "Print an unreadable representation of INSTANCE to STREAM."
   (print-unreadable-object (instance stream :type t :identity t)
     (format stream "~S ~S"
             (maintainer-kind instance)
             (maintainer-name instance))))
 
 (defmethod describe-object ((instance maintainer) stream)
+  "Describe INSTANCE to STREAM."
   (format stream "~&~A is a MAINTAINER.~%" instance)
   (format stream "~&  Name:        ~S~%" (maintainer-name instance))
   (format stream "~&  Kind:        ~S~%" (maintainer-kind instance))
@@ -67,23 +63,39 @@ of the superseding order run."))
 
 
 ;;;;
+;;;; Kind Subclasses
+;;;;
+
+(defclass automatic-maintainer (maintainer)
+  ()
+  (:default-initargs :kind :automatic)
+  (:documentation "A maintainer that can apply fixes automatically."))
+
+(defclass agent-maintainer (maintainer)
+  ()
+  (:default-initargs :kind :agent)
+  (:documentation "A maintainer that produces prompts for an LLM or coding agent."))
+
+
+;;;;
 ;;;; Registry
 ;;;;
 
 (defvar *maintainers* (make-hash-table :test 'eq)
-  "Hash table mapping maintainer names to maintainer instances.")
+  "Hash table mapping maintainer names to maintainer singleton instances.")
 
 (defun find-maintainer (designator)
   "Find the maintainer designated by DESIGNATOR.
 DESIGNATOR is either a MAINTAINER instance (returned as-is) or a symbol
-used to look up the registry."
+used to look up the registry. Return NIL when no maintainer is found."
+  (declare (type (or maintainer symbol) designator))
   (etypecase designator
     (maintainer designator)
     (symbol (gethash designator *maintainers*))))
 
 (defun symbol-maintainer (symbol)
   "Return the maintainer registered under SYMBOL.
-Signals an error if no maintainer is registered under SYMBOL."
+Signal an error if no maintainer is registered under SYMBOL."
   (declare (type symbol symbol))
   (multiple-value-bind (instance present-p) (gethash symbol *maintainers*)
     (if present-p instance (error "UNBOUND-MAINTAINER ~S" symbol))))
@@ -102,13 +114,12 @@ Signals an error if no maintainer is registered under SYMBOL."
 ;;;; Resolution Protocol
 ;;;;
 
-(defgeneric prepare-resolution (maintainer-name finding)
+(defgeneric prepare-resolution (maintainer finding)
   (:documentation
-   "Return a RESOLUTION if MAINTAINER-NAME can handle FINDING, or NIL.
-MAINTAINER-NAME is a symbol identifying the maintainer. The default
-method returns NIL. DEFINE-MAINTAINER generates methods specialised
-on both the maintainer name (via EQL) and the finding type.")
-  (:method ((maintainer-name symbol) (finding finding))
+   "Return a RESOLUTION if MAINTAINER can handle FINDING, or NIL.
+The default method returns NIL. DEFINE-MAINTAINER generates methods
+specialised on both the maintainer subclass and the finding type.")
+  (:method ((maintainer maintainer) (finding finding))
     nil))
 
 
@@ -116,58 +127,49 @@ on both the maintainer name (via EQL) and the finding type.")
 ;;;; DEFINE-MAINTAINER Macro
 ;;;;
 
-(defun parse-maintainer-body (body)
-  "Parse the body of DEFINE-MAINTAINER into docstring, options, and body forms.
-Returns three values: the docstring (or NIL), an alist of keyword options,
-and the remaining body forms."
-  (declare (type list body))
-  (let ((docstring nil)
-        (options nil)
-        (remaining body))
-    (when (stringp (first remaining))
-      (setf docstring (first remaining))
-      (setf remaining (rest remaining)))
-    (loop :while (and remaining
-                      (consp (first remaining))
-                      (keywordp (car (first remaining))))
-          :do (push (first remaining) options)
-              (setf remaining (rest remaining)))
-    (values docstring (nreverse options) remaining)))
-
-(defmacro define-maintainer (name lambda-list &body body)
-  "Define and register a maintainer named NAME that resolves findings.
-LAMBDA-LIST is a single-element specialised list ((FINDING-VAR FINDING-TYPE)).
-BODY begins with an optional docstring, followed by keyword options, followed
-by body forms that return a RESOLUTION or NIL.
+(defmacro define-maintainer (name direct-superclasses lambda-list &body body)
+  "Define and register a maintainer named NAME.
+DIRECT-SUPERCLASSES is a list of superclasses (must include a kind
+class such as AUTOMATIC-MAINTAINER). LAMBDA-LIST is the method
+parameter list for PREPARE-RESOLUTION. BODY begins with an optional
+docstring, followed by keyword options, then body forms.
 
 Keyword options:
   (:supersedes LIST-OF-NAMES) — maintainer names this one supersedes.
-  (:kind :AUTOMATIC|:AGENT)  — defaults to :AUTOMATIC.
 
 Example:
-  (define-maintainer fix-trailing-whitespace ((finding line-finding))
-    \"Remove trailing whitespace from source lines.\"
-    (:supersedes '(basic-whitespace-fixer))
+  (define-maintainer fix-spdx-license-header (automatic-maintainer)
+      ((finding spdx-license-header-finding))
+    \"Insert the correct SPDX-License-Identifier header.\"
+    (:supersedes '(basic-license-fixer))
     (make-text-resolution ...))"
   (check-type name symbol)
-  (destructuring-bind ((finding-variable finding-type)) lambda-list
-    (multiple-value-bind (docstring options body-forms)
-        (parse-maintainer-body body)
-      (let ((supersedes (second (find :supersedes options :key #'first)))
-            (kind (or (second (find :kind options :key #'first))
-                      :automatic)))
-        `(progn
-           (setf (gethash ',name *maintainers*)
-                 (make-maintainer :name ',name
-                                  :supersedes ,supersedes
-                                  :kind ,kind
-                                  :description ,docstring))
-           (defmethod prepare-resolution
-               ((maintainer-name (eql ',name))
-                (,finding-variable ,finding-type))
-             ,@(when docstring (list docstring))
-             ,@body-forms)
-           ',name)))))
+  (multiple-value-bind (docstring options body-forms)
+      (parse-define-body body)
+    (let ((supersedes (second (find :supersedes options :key #'first))))
+      `(progn
+         (defclass ,name (,@direct-superclasses)
+           ()
+           ,@(when docstring
+               `((:documentation ,docstring))))
+         (setf (gethash ',name *maintainers*)
+               (make-instance ',name
+                 :name ',name
+                 :supersedes ,supersedes
+                 :description ,docstring))
+         ,@(when body-forms
+             `((defmethod prepare-resolution ((maintainer ,name) ,@lambda-list)
+                 ,@(when docstring (list docstring))
+                 ,@body-forms)))
+         ',name))))
+
+(defmacro define-automatic-maintainer (name lambda-list &body body)
+  "Define an automatic maintainer. Convenience wrapper for DEFINE-MAINTAINER."
+  `(define-maintainer ,name (automatic-maintainer) ,lambda-list ,@body))
+
+(defmacro define-agent-maintainer (name lambda-list &body body)
+  "Define an agent-assisted maintainer. Convenience wrapper for DEFINE-MAINTAINER."
+  `(define-maintainer ,name (agent-maintainer) ,lambda-list ,@body))
 
 
 ;;;;
@@ -203,19 +205,18 @@ A maintainer is maximal if no other candidate supersedes it."
 
 (defun resolve-finding (finding)
   "Collect resolutions from all maximal maintainers for FINDING.
-Walks the maintainer registry, computes the maximal elements of the
-superseding partial order, calls PREPARE-RESOLUTION on each maintainer
-name, and returns the list of non-NIL resolutions. Finding-type
-dispatch is handled by CLOS method specialisation."
+Walk the maintainer registry, compute the maximal elements of the
+superseding partial order, call PREPARE-RESOLUTION on each singleton
+instance, and return the list of non-NIL resolutions. Finding-type
+dispatch is handled by CLOS method specialisation on the maintainer
+and finding classes."
   (declare (type finding finding))
   (let* ((all-maintainers
            (loop :for name :being :the :hash-key :of *maintainers*
                  :collect (gethash name *maintainers*)))
          (maximal (maximal-maintainers all-maintainers)))
     (loop :for current-maintainer :in maximal
-          :for resolution = (prepare-resolution
-                             (maintainer-name current-maintainer)
-                             finding)
+          :for resolution = (prepare-resolution current-maintainer finding)
           :when resolution
           :collect resolution)))
 

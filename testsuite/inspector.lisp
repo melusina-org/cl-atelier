@@ -17,61 +17,96 @@
   `(let ((atelier:*inspectors* (make-hash-table :test 'eq)))
      ,@body))
 
+(define-testcase validate-inspector-individual-class ()
+  "Verify that DEFINE-FILE-INSPECTOR creates a subclass with a singleton instance."
+  (with-clean-inspector-registry
+    (atelier:define-file-inspector test-encoding-inspector
+        ((pathname pathname) project-configuration)
+      "Check encoding for testing purposes."
+      (declare (ignore inspector pathname project-configuration))
+      nil)
+    (let ((instance (atelier:find-inspector 'test-encoding-inspector)))
+      (assert-t (not (null instance)))
+      (assert-t (typep instance 'atelier:file-inspector))
+      (assert-t (typep instance 'atelier:inspector))
+      (assert-eq :file (atelier:inspector-level instance))
+      (assert-eq 'test-encoding-inspector (atelier:inspector-name instance)))))
+
 (define-testcase validate-define-inspector-and-list ()
   "Verify that DEFINE-INSPECTOR registers an inspector visible in LIST-INSPECTORS."
   (with-clean-inspector-registry
-    (atelier:define-inspector test-encoding-inspector
-      :level :file
-      :description "Check that files are valid UTF-8.")
-    (assert-t (not (null (member 'test-encoding-inspector (atelier:list-inspectors)))))))
+    (atelier:define-file-inspector test-list-inspector
+        ((pathname pathname) project-configuration)
+      "Inspector for list test."
+      (declare (ignore inspector pathname project-configuration))
+      nil)
+    (assert-t (not (null (member 'test-list-inspector (atelier:list-inspectors)))))))
 
 (define-testcase validate-inspector-last-load-wins ()
-  "Verify that redefining an inspector replaces the previous definition."
+  "Verify that redefining an inspector replaces the previous registration."
   (with-clean-inspector-registry
-    (atelier:define-inspector test-redefined-inspector
-      :level :file :description "Version 1")
-    (atelier:define-inspector test-redefined-inspector
-      :level :line :description "Version 2")
-    (let ((inspector-instance (atelier:find-inspector 'test-redefined-inspector)))
-      (assert-eq :line (atelier:inspector-level inspector-instance))
-      (assert-string= "Version 2" (atelier:inspector-description inspector-instance)))))
+    (atelier:define-file-inspector test-redefined-inspector
+        ((pathname pathname) project-configuration)
+      "Version 1."
+      (declare (ignore inspector pathname project-configuration))
+      nil)
+    (atelier:define-line-inspector test-redefined-inspector
+        ((pathname pathname) project-configuration)
+      "Version 2."
+      (declare (ignore inspector pathname project-configuration))
+      nil)
+    (let ((instance (atelier:find-inspector 'test-redefined-inspector)))
+      (assert-eq :line (atelier:inspector-level instance))
+      (assert-string= "Version 2." (atelier:inspector-description instance)))))
 
 (define-testcase validate-inspector-metadata ()
-  "Verify that inspector metadata (level, description) is accessible."
+  "Verify that inspector metadata is accessible."
   (with-clean-inspector-registry
-    (atelier:define-inspector test-syntax-inspector
-      :level :syntax
-      :description "Check earmuffs on special variables.")
-    (let ((inspector-instance (atelier:find-inspector 'test-syntax-inspector)))
-      (assert-eq :syntax (atelier:inspector-level inspector-instance))
+    (atelier:define-syntax-inspector test-syntax-inspector
+        ((pathname pathname) project-configuration)
+      "Check earmuffs on special variables."
+      (declare (ignore inspector pathname project-configuration))
+      nil)
+    (let ((instance (atelier:find-inspector 'test-syntax-inspector)))
+      (assert-eq :syntax (atelier:inspector-level instance))
       (assert-string= "Check earmuffs on special variables."
-                      (atelier:inspector-description inspector-instance)))))
+                      (atelier:inspector-description instance)))))
 
 (define-testcase validate-named-instance-identity ()
-  "Verify that an inspector is identified by its symbol and retrievable by it."
+  "Verify that an inspector is identified by its symbol."
   (with-clean-inspector-registry
-    (atelier:define-inspector test-identity-inspector
-      :level :file :description "Identity test inspector.")
-    (let ((inspector-instance (atelier:find-inspector 'test-identity-inspector)))
-      (assert-t (not (null inspector-instance)))
-      (assert-eq 'test-identity-inspector (atelier:inspector-name inspector-instance))
-      (assert-eq inspector-instance (atelier:find-inspector inspector-instance)))))
+    (atelier:define-file-inspector test-identity-inspector
+        ((pathname pathname) project-configuration)
+      "Identity test inspector."
+      (declare (ignore inspector pathname project-configuration))
+      nil)
+    (let ((instance (atelier:find-inspector 'test-identity-inspector)))
+      (assert-t (not (null instance)))
+      (assert-eq 'test-identity-inspector (atelier:inspector-name instance))
+      (assert-eq instance (atelier:find-inspector instance)))))
 
 (define-testcase validate-named-instance-redefine ()
   "Verify that redefining a named instance replaces the old definition."
   (let (original-inspector redefined-inspector)
     (with-clean-inspector-registry
-      (atelier:define-inspector test-redefine-inspector
-        :level :file :description "Original definition.")
+      (atelier:define-file-inspector test-redefine-inspector
+          ((pathname pathname) project-configuration)
+        "Original definition."
+        (declare (ignore inspector pathname project-configuration))
+        nil)
       (setf original-inspector (atelier:find-inspector 'test-redefine-inspector))
-      (atelier:define-inspector test-redefine-inspector
-        :level :line :description "Redefined definition.")
+      (atelier:define-file-inspector test-redefine-inspector
+          ((pathname pathname) project-configuration)
+        "Redefined definition."
+        (declare (ignore inspector pathname project-configuration))
+        nil)
       (setf redefined-inspector (atelier:find-inspector 'test-redefine-inspector))
       (assert-t (not (eq original-inspector redefined-inspector)))
       (assert-string= "Redefined definition."
                       (atelier:inspector-description redefined-inspector)))))
 
 (define-testcase testsuite-inspector ()
+  (validate-inspector-individual-class)
   (validate-define-inspector-and-list)
   (validate-inspector-last-load-wins)
   (validate-inspector-metadata)

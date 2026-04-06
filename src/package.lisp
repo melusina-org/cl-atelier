@@ -120,20 +120,32 @@
 
    ;; Inspector registry
    #:inspector
+   #:file-inspector
+   #:line-inspector
+   #:region-inspector
+   #:syntax-inspector
    #:*inspectors*
    #:define-inspector
+   #:define-file-inspector
+   #:define-line-inspector
+   #:define-region-inspector
+   #:define-syntax-inspector
    #:find-inspector
    #:symbol-inspector
    #:inspector-name
    #:inspector-level
    #:inspector-description
    #:list-inspectors
+   #:inspect-file
 
    ;; Maintainer registry
    #:maintainer
-   #:make-maintainer
+   #:automatic-maintainer
+   #:agent-maintainer
    #:*maintainers*
    #:define-maintainer
+   #:define-automatic-maintainer
+   #:define-agent-maintainer
    #:find-maintainer
    #:symbol-maintainer
    #:maintainer-name
