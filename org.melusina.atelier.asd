@@ -36,7 +36,10 @@
 		 (:module "inspectors"
 		  :components
 		  ((:file "check-file-encoding")
-		   (:file "check-spdx-license-header")))
+		   (:file "check-spdx-license-header")
+		   (:file "check-trailing-whitespace")
+		   (:file "check-line-length")
+		   (:file "check-mixed-indentation")))
 		 (:file "main")))))
 
 (asdf:defsystem #:org.melusina.atelier/legacy
@@ -49,8 +52,7 @@
                  (:file "lint")
 		 (:module "inspector"
 		  :components
-		  ((:file "codestyle-0002")
-		   (:file "codestyle-0003")
+		  ((:file "codestyle-0003")
 		   (:file "codestyle-0004")
 		   (:file "codestyle-0005")))
 		 (:file "bridge")))))
@@ -79,12 +81,14 @@
 		 (:module "inspectors"
 		  :components
 		  ((:file "check-file-encoding")
-		   (:file "check-spdx-license-header")))
+		   (:file "check-spdx-license-header")
+		   (:file "check-trailing-whitespace")
+		   (:file "check-line-length")
+		   (:file "check-mixed-indentation")))
 		 (:module "legacy-inspector"
 		  :pathname "inspector"
 		  :components
-		  ((:file "codestyle-0002")
-		   (:file "codestyle-0003")
+		  ((:file "codestyle-0003")
 		   (:file "codestyle-0004")
 		   (:file "codestyle-0005")))
 		 (:file "lint")

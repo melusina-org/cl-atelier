@@ -21,9 +21,8 @@
   "Verify that DEFINE-FILE-INSPECTOR creates a subclass with a singleton instance."
   (with-clean-inspector-registry
     (atelier:define-file-inspector test-encoding-inspector
-        ((pathname pathname) project-configuration)
+        ((pathname pathname))
       "Check encoding for testing purposes."
-      (declare (ignore inspector pathname project-configuration))
       nil)
     (let ((instance (atelier:find-inspector 'test-encoding-inspector)))
       (assert-t (not (null instance)))
@@ -36,9 +35,8 @@
   "Verify that DEFINE-INSPECTOR registers an inspector visible in LIST-INSPECTORS."
   (with-clean-inspector-registry
     (atelier:define-file-inspector test-list-inspector
-        ((pathname pathname) project-configuration)
+        ((pathname pathname))
       "Inspector for list test."
-      (declare (ignore inspector pathname project-configuration))
       nil)
     (assert-t (not (null (member 'test-list-inspector (atelier:list-inspectors)))))))
 
@@ -46,14 +44,12 @@
   "Verify that redefining an inspector replaces the previous registration."
   (with-clean-inspector-registry
     (atelier:define-file-inspector test-redefined-inspector
-        ((pathname pathname) project-configuration)
+        ((pathname pathname))
       "Version 1."
-      (declare (ignore inspector pathname project-configuration))
       nil)
     (atelier:define-line-inspector test-redefined-inspector
-        ((pathname pathname) project-configuration)
+        ((pathname pathname))
       "Version 2."
-      (declare (ignore inspector pathname project-configuration))
       nil)
     (let ((instance (atelier:find-inspector 'test-redefined-inspector)))
       (assert-eq :line (atelier:inspector-level instance))
@@ -63,9 +59,8 @@
   "Verify that inspector metadata is accessible."
   (with-clean-inspector-registry
     (atelier:define-syntax-inspector test-syntax-inspector
-        ((pathname pathname) project-configuration)
+        ((pathname pathname))
       "Check earmuffs on special variables."
-      (declare (ignore inspector pathname project-configuration))
       nil)
     (let ((instance (atelier:find-inspector 'test-syntax-inspector)))
       (assert-eq :syntax (atelier:inspector-level instance))
@@ -76,9 +71,8 @@
   "Verify that an inspector is identified by its symbol."
   (with-clean-inspector-registry
     (atelier:define-file-inspector test-identity-inspector
-        ((pathname pathname) project-configuration)
+        ((pathname pathname))
       "Identity test inspector."
-      (declare (ignore inspector pathname project-configuration))
       nil)
     (let ((instance (atelier:find-inspector 'test-identity-inspector)))
       (assert-t (not (null instance)))
@@ -90,15 +84,13 @@
   (let (original-inspector redefined-inspector)
     (with-clean-inspector-registry
       (atelier:define-file-inspector test-redefine-inspector
-          ((pathname pathname) project-configuration)
+          ((pathname pathname))
         "Original definition."
-        (declare (ignore inspector pathname project-configuration))
         nil)
       (setf original-inspector (atelier:find-inspector 'test-redefine-inspector))
       (atelier:define-file-inspector test-redefine-inspector
-          ((pathname pathname) project-configuration)
+          ((pathname pathname))
         "Redefined definition."
-        (declare (ignore inspector pathname project-configuration))
         nil)
       (setf redefined-inspector (atelier:find-inspector 'test-redefine-inspector))
       (assert-t (not (eq original-inspector redefined-inspector)))

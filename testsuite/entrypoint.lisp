@@ -27,6 +27,9 @@
   (testsuite-asdf)
   (testsuite-check-file-encoding)
   (testsuite-check-spdx-license-header)
+  (testsuite-check-trailing-whitespace)
+  (testsuite-check-line-length)
+  (testsuite-check-mixed-indentation)
   (testsuite-linter)
   (testsuite-template))
 

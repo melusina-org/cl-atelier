@@ -129,14 +129,21 @@ The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
     :reader linter-configuration-severity-overrides
     :type list
     :initform nil
-    :documentation "Alist of (inspector-name . severity) overrides."))
+    :documentation "Alist of (inspector-name . severity) overrides.")
+   (indentation-style
+    :initarg :indentation-style
+    :reader linter-configuration-indentation-style
+    :type (member :spaces :tabs)
+    :initform :spaces
+    :documentation "The indentation style for the project: :SPACES or :TABS."))
   (:documentation "Linter policy configuration for an ASDF system.
 Read from a .sexp file declared as an ASDF component."))
 
 (defun make-linter-configuration (&rest initargs
-                                  &key disabled-inspectors severity-overrides)
+                                  &key disabled-inspectors severity-overrides
+                                       indentation-style)
   "Create and return a LINTER-CONFIGURATION."
-  (declare (ignore disabled-inspectors severity-overrides))
+  (declare (ignore disabled-inspectors severity-overrides indentation-style))
   (apply #'make-instance 'linter-configuration initargs))
 
 (defmethod print-object ((instance linter-configuration) stream)

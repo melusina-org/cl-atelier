@@ -18,13 +18,13 @@
 ;;;; Inspection Protocol
 ;;;;
 
-(defgeneric inspect-file (inspector pathname project-configuration)
+(defgeneric inspect-file (inspector pathname)
   (:documentation "Run INSPECTOR on the file at PATHNAME and return a list of findings or NIL.
-PROJECT-CONFIGURATION may be NIL when no project configuration is declared.
-Each inspector subclass defines a method on this generic function.")
-  (:method ((inspector inspector) (pathname pathname) project-configuration)
+Configuration is available via *CURRENT-PROJECT-CONFIGURATION* and
+*CURRENT-LINTER-CONFIGURATION*, which are bound by the runner before
+this generic function is called.")
+  (:method ((inspector inspector) (pathname pathname))
     "Default method returns NIL — no findings."
-    (declare (ignore inspector pathname project-configuration))
     nil))
 
 
@@ -53,25 +53,38 @@ Return FINDING unchanged if no override applies."
         (setf (slot-value finding 'severity) (cdr override)))))
   finding)
 
+(defun eligible-inspector-p (inspector-instance linter-configuration)
+  "Return T if INSPECTOR-INSTANCE should run given LINTER-CONFIGURATION.
+An inspector is eligible if it is a file-inspector or line-inspector
+and is not disabled in the linter configuration."
+  (declare (type inspector inspector-instance))
+  (and (or (typep inspector-instance 'file-inspector)
+           (typep inspector-instance 'line-inspector))
+       (not (inspector-disabled-p (inspector-name inspector-instance)
+                                  linter-configuration))))
+
 (defun run-file-inspectors (pathname project-configuration linter-configuration)
-  "Run all registered file-level inspectors on PATHNAME, respecting LINTER-CONFIGURATION.
-Return a list of findings. PROJECT-CONFIGURATION and LINTER-CONFIGURATION may be NIL."
+  "Run all registered file-level and line-level inspectors on PATHNAME.
+Bind *CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION*
+for inspectors to access. Return a list of findings."
   (declare (type pathname pathname)
            (values list))
-  (let ((findings nil))
+  (let ((*current-project-configuration* project-configuration)
+        (*current-linter-configuration* linter-configuration)
+        (findings nil))
     (loop :for inspector-name :being :the :hash-key :of *inspectors*
           :for inspector-instance = (gethash inspector-name *inspectors*)
-          :when (and (typep inspector-instance 'file-inspector)
-                     (not (inspector-disabled-p inspector-name linter-configuration)))
+          :when (eligible-inspector-p inspector-instance linter-configuration)
           :do (let ((inspector-findings
-                      (inspect-file inspector-instance pathname project-configuration)))
+                      (inspect-file inspector-instance pathname)))
                 (when inspector-findings
                   (flet ((apply-override (finding)
                            (apply-severity-override finding inspector-name
                                                     linter-configuration)))
                     (setf findings
                           (nconc findings
-                                 (mapcar #'apply-override inspector-findings)))))))
+                                 (mapcar #'apply-override
+                                         inspector-findings)))))))
     findings))
 
 ;;;; End of file `runner.lisp'

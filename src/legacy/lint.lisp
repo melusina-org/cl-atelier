@@ -484,7 +484,7 @@ care of."
   :comment-prefix-regex '(:sequence
 			  (:greedy-repetition 1 nil #\Semicolon)
 			  (:greedy-repetition 0 nil #\Space))
-  :line-inspectors '(hint-at-file-line-when-it-is-very-long))
+  :line-inspectors nil)
 
 (define-plain-linter
   :file-type :application/shellscript
@@ -503,7 +503,7 @@ care of."
   :comment-prefix-regex '(:sequence
 			  (:greedy-repetition 1 nil #\Number_sign)
 			  (:greedy-repetition 0 nil #\Space))
-  :line-inspectors '(hint-at-file-line-when-it-is-very-long))
+  :line-inspectors nil)
 
 (define-plain-linter
   :file-type :application/makefile
@@ -518,7 +518,7 @@ care of."
   :comment-prefix-regex '(:sequence
 			  (:greedy-repetition 1 nil #\Number_sign)
 			  (:greedy-repetition 0 nil #\Space))
-  :line-inspectors '(hint-at-file-line-when-it-is-very-long))
+  :line-inspectors nil)
 
 (define-plain-linter
   :file-type :application/dockerfile
@@ -530,7 +530,7 @@ care of."
   :comment-prefix-regex '(:sequence
 			  (:greedy-repetition 1 nil #\Number_sign)
 			  (:greedy-repetition 0 nil #\Space))
-  :line-inspectors '(hint-at-file-line-when-it-is-very-long))
+  :line-inspectors nil)
 
 (define-plain-linter
   :file-type :application/tex
@@ -543,7 +543,7 @@ care of."
   :comment-prefix-regex '(:sequence
 			  (:greedy-repetition 1 nil #\Percent_sign)
 			  (:greedy-repetition 0 nil #\Space))
-  :line-inspectors '(hint-at-file-line-when-it-is-very-long))
+  :line-inspectors nil)
 
 (define-plain-linter
   :file-type :application/mpost
@@ -554,7 +554,7 @@ care of."
   :comment-prefix-regex '(:sequence
 			  (:greedy-repetition 1 nil #\Percent_sign)
 			  (:greedy-repetition 0 nil #\Space))
-  :line-inspectors '(hint-at-file-line-when-it-is-very-long))
+  :line-inspectors nil)
 
 
 ;;;;

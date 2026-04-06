@@ -163,10 +163,16 @@
    ;; Concrete finding subclasses
    #:encoding-finding
    #:spdx-license-header-finding
+   #:trailing-whitespace-finding
+   #:line-too-long-finding
+   #:mixed-indentation-finding
 
    ;; Concrete inspectors
    #:check-file-encoding
    #:check-spdx-license-header
+   #:check-trailing-whitespace
+   #:check-line-length
+   #:check-mixed-indentation
    #:read-file-header
 
    ;; ASDF integration
@@ -185,7 +191,10 @@
    #:make-linter-configuration
    #:linter-configuration-disabled-inspectors
    #:linter-configuration-severity-overrides
+   #:linter-configuration-indentation-style
    #:read-linter-configuration
+   #:*current-project-configuration*
+   #:*current-linter-configuration*
    #:asdf-project-configuration
    #:asdf-linter-configuration
    #:linter-op

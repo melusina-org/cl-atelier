@@ -13,11 +13,9 @@
 
 (in-package #:atelier)
 
-(define-file-inspector check-file-encoding
-    ((pathname pathname) project-configuration)
+(define-file-inspector check-file-encoding ((pathname pathname))
   "Check that source files are valid UTF-8.
 Return an ENCODING-FINDING when PATHNAME is not valid UTF-8, or NIL."
-  (declare (ignore inspector project-configuration))
   (handler-case
       (progn
         (read-file-into-string pathname :external-format :utf-8)

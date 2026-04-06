@@ -13,44 +13,51 @@
 
 (in-package #:atelier/testsuite)
 
+(defmacro with-spdx-test-configuration ((&key (license "MIT")) &body body)
+  "Execute BODY with project and linter configuration bound for SPDX tests."
+  `(let ((atelier:*current-project-configuration*
+           (atelier:make-project-configuration :license ,license))
+         (atelier:*current-linter-configuration* nil))
+     ,@body))
+
 (define-testcase validate-check-spdx-header-present ()
   "Verify that a file with the correct SPDX header produces no findings."
-  (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
-                                        (testsuite-fixtures-directory)))
-         (project-config (atelier:make-project-configuration :license "MIT"))
-         (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
-         (findings (atelier:inspect-file inspector-instance fixture-path project-config)))
-    (assert-t (null findings))))
+  (with-spdx-test-configuration ()
+    (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
+                                          (testsuite-fixtures-directory)))
+           (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
+           (findings (atelier:inspect-file inspector-instance fixture-path)))
+      (assert-t (null findings)))))
 
 (define-testcase validate-check-spdx-header-missing ()
   "Verify that a file without an SPDX header produces a finding."
-  (let* ((fixture-path (merge-pathnames "missing-spdx.lisp"
-                                        (testsuite-fixtures-directory)))
-         (project-config (atelier:make-project-configuration :license "MIT"))
-         (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
-         (findings (atelier:inspect-file inspector-instance fixture-path project-config)))
-    (assert-eq 1 (length findings))
-    (assert-t (typep (first findings) 'atelier:spdx-license-header-finding))
-    (assert-eq :warning (atelier:finding-severity (first findings)))))
+  (with-spdx-test-configuration ()
+    (let* ((fixture-path (merge-pathnames "missing-spdx.lisp"
+                                          (testsuite-fixtures-directory)))
+           (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
+           (findings (atelier:inspect-file inspector-instance fixture-path)))
+      (assert-eq 1 (length findings))
+      (assert-t (typep (first findings) 'atelier:spdx-license-header-finding))
+      (assert-eq :warning (atelier:finding-severity (first findings))))))
 
 (define-testcase validate-check-spdx-header-mismatch ()
   "Verify that a file with the wrong SPDX identifier produces a finding."
-  (let* ((fixture-path (merge-pathnames "wrong-spdx.lisp"
-                                        (testsuite-fixtures-directory)))
-         (project-config (atelier:make-project-configuration :license "MIT"))
-         (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
-         (findings (atelier:inspect-file inspector-instance fixture-path project-config)))
-    (assert-eq 1 (length findings))
-    (assert-eq :warning (atelier:finding-severity (first findings)))))
+  (with-spdx-test-configuration ()
+    (let* ((fixture-path (merge-pathnames "wrong-spdx.lisp"
+                                          (testsuite-fixtures-directory)))
+           (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
+           (findings (atelier:inspect-file inspector-instance fixture-path)))
+      (assert-eq 1 (length findings))
+      (assert-eq :warning (atelier:finding-severity (first findings))))))
 
 (define-testcase validate-check-spdx-header-shell-script ()
   "Verify that a shell script with correct SPDX header produces no findings."
-  (let* ((fixture-path (merge-pathnames "valid-shell-spdx.sh"
-                                        (testsuite-fixtures-directory)))
-         (project-config (atelier:make-project-configuration :license "MIT"))
-         (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
-         (findings (atelier:inspect-file inspector-instance fixture-path project-config)))
-    (assert-t (null findings))))
+  (with-spdx-test-configuration ()
+    (let* ((fixture-path (merge-pathnames "valid-shell-spdx.sh"
+                                          (testsuite-fixtures-directory)))
+           (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
+           (findings (atelier:inspect-file inspector-instance fixture-path)))
+      (assert-t (null findings)))))
 
 (define-testcase testsuite-check-spdx-license-header ()
   (validate-check-spdx-header-present)

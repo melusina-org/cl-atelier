@@ -14,21 +14,22 @@
 (in-package #:atelier/testsuite)
 
 (define-testcase validate-run-file-inspectors ()
-  "Verify that the runner calls file-level inspectors and collects findings."
+  "Verify that the runner calls file and line inspectors and collects findings."
   (let* ((fixture-path (merge-pathnames "missing-spdx.lisp"
                                         (testsuite-fixtures-directory)))
          (findings (atelier:run-file-inspectors fixture-path nil nil)))
-    ;; At minimum, the SPDX inspector should produce a finding
     (assert-t (not (null findings)))
-    (assert-t (every (lambda (finding) (typep finding 'atelier:finding)) findings))))
+    (assert-t (every (lambda (finding)
+                       (typep finding 'atelier:finding))
+                     findings))))
 
 (define-testcase validate-run-file-inspectors-respects-policy ()
   "Verify that the runner skips disabled inspectors."
   (let* ((fixture-path (merge-pathnames "missing-spdx.lisp"
                                         (testsuite-fixtures-directory)))
+         (all-inspector-names (atelier:list-inspectors))
          (policy (atelier:make-linter-configuration
-                   :disabled-inspectors '(atelier:check-spdx-license-header
-                                          atelier:check-file-encoding)))
+                   :disabled-inspectors all-inspector-names))
          (findings (atelier:run-file-inspectors fixture-path nil policy)))
     (assert-t (null findings))))
 
@@ -40,13 +41,12 @@
                    :severity-overrides
                    '((atelier:check-spdx-license-header . :error))))
          (findings (atelier:run-file-inspectors fixture-path nil policy)))
-    (let ((spdx-findings
-            (remove-if-not (lambda (finding)
-                             (eq 'atelier:check-spdx-license-header
-                                 (atelier:finding-inspector finding)))
-                           findings)))
-      (assert-t (not (null spdx-findings)))
-      (assert-eq :error (atelier:finding-severity (first spdx-findings))))))
+    (flet ((spdx-finding-p (finding)
+             (eq 'atelier:check-spdx-license-header
+                 (atelier:finding-inspector finding))))
+      (let ((spdx-findings (remove-if-not #'spdx-finding-p findings)))
+        (assert-t (not (null spdx-findings)))
+        (assert-eq :error (atelier:finding-severity (first spdx-findings)))))))
 
 (define-testcase testsuite-runner ()
   (validate-run-file-inspectors)

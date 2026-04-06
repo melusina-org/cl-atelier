@@ -60,7 +60,6 @@
 (define-testcase testsuite-linter ()
   (validate-lint-contents)
   (validate-lint-lines)
-  (validate-codestyle-0002-hint-at-file-line-when-it-is-very-long)
   (validate-codestyle-0003-hint-at-file-when-it-lacks-canonical-header-line)
   (validate-codestyle-0004-hint-at-file-when-it-lacks-canonical-footer-line)
   (validate-codestyle-0005-hint-at-file-when-it-lacks-canonical-project-identification)

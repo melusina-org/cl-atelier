@@ -42,16 +42,14 @@ Return an empty string if the file cannot be read."
 ;;;; Inspector
 ;;;;
 
-(define-file-inspector check-spdx-license-header
-    ((pathname pathname) project-configuration)
+(define-file-inspector check-spdx-license-header ((pathname pathname))
   "Check that source files contain the correct SPDX license identifier.
 Return a SPDX-LICENSE-HEADER-FINDING when the header is missing or mismatched, or NIL.
-When PROJECT-CONFIGURATION is NIL, only check for presence of the SPDX marker."
-  (declare (ignore inspector))
+When *CURRENT-PROJECT-CONFIGURATION* is NIL, only check for presence of the SPDX marker."
   (let ((header (read-file-header pathname))
         (expected-identifier
-          (when project-configuration
-            (project-configuration-license project-configuration))))
+          (when *current-project-configuration*
+            (project-configuration-license *current-project-configuration*))))
     (cond
       ;; No SPDX marker found
       ((null (search *spdx-marker* header))

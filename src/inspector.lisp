@@ -140,12 +140,16 @@ options, and the remaining body forms."
   "Define and register an inspector named NAME.
 DIRECT-SUPERCLASSES is a list of superclasses (must include a level
 class such as FILE-INSPECTOR). LAMBDA-LIST is the method parameter
-list for INSPECT-FILE. BODY begins with an optional docstring,
-followed by keyword options, then body forms for the INSPECT-FILE method.
+list for INSPECT-FILE — typically just ((PATHNAME PATHNAME)). BODY
+begins with an optional docstring, followed by keyword options, then
+body forms for the INSPECT-FILE method.
+
+The generated method declares INSPECTOR as IGNORABLE. Configuration
+is available via *CURRENT-PROJECT-CONFIGURATION* and
+*CURRENT-LINTER-CONFIGURATION*.
 
 Example:
-  (define-inspector check-file-encoding (file-inspector)
-      ((pathname pathname) project-configuration)
+  (define-file-inspector check-file-encoding ((pathname pathname))
     \"Check that source files are valid UTF-8.\"
     ...)"
   (check-type name symbol)
@@ -164,6 +168,7 @@ Example:
        ,@(when body-forms
            `((defmethod inspect-file ((inspector ,name) ,@lambda-list)
                ,@(when docstring (list docstring))
+               (declare (ignorable inspector))
                ,@body-forms)))
        ',name)))
 

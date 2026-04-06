@@ -250,4 +250,16 @@ diagnostics spanning multiple lines without precise column information."))
   ()
   (:documentation "A file has a missing or incorrect SPDX license identifier."))
 
+(defclass trailing-whitespace-finding (line-finding)
+  ()
+  (:documentation "A source line has trailing whitespace."))
+
+(defclass line-too-long-finding (line-finding)
+  ()
+  (:documentation "A source line exceeds the maximum length."))
+
+(defclass mixed-indentation-finding (line-finding)
+  ()
+  (:documentation "A source line uses the wrong indentation character."))
+
 ;;;; End of file `finding.lisp'
