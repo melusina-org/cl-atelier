@@ -3,7 +3,9 @@
 
 ## Now (in progress)
 
-*None — selecting next slice.*
+| Slice | Type | Goal addressed | Description |
+|-------|------|----------------|-------------|
+| [002-asdf-integration-and-file-inspectors](slice/002-asdf-integration-and-file-inspectors/slice.md) | Bet | G2 | First end-to-end path: `linter-op` ASDF operation, `project-configuration` and `linter-configuration` components, file encoding and SPDX license header inspectors. |
 
 ## Completed
 
@@ -15,7 +17,7 @@
 
 | Item | Type | Goal addressed | Notes |
 |------|------|----------------|-------|
-| ASDF components + first file-level inspectors (backlog #3, #4) | New capability | G2, G1 | First end-to-end path: load a system, run linter-op, get structured findings across CL, Elisp, Shell, HCL. Validates schema in practice. |
+| Line-level and CST-level CL inspectors (backlog #16, #17) | New capability | G2 | Validates full write-back pipeline. Pretty-printer decision needed before #17. |
 | MCP server skeleton + REPL evaluation tool (backlog #5, #6) | New capability | G5 | Parallel track once schema is stable. Requires MCP design session to complete first. |
 
 ## Later (probable but not yet scheduled)
@@ -60,4 +62,5 @@
 | 2026-04-05 | Initial roadmap from vision session |
 | 2026-04-05 | Added: LLM-driven maintainer to Later; Elisp language support throughout; editor plugins, CFFI and Terraform ASDF components, MELPA/OCICL publication to Considering; new MCP tools to Later; REGION-FINDING and external tool wrappers to Later |
 | 2026-04-06 | Slice 001 (finding/resolution schema + registry) moved from Next to Now |
-| 2026-04-06 | Slice 001 completed — verdict ✅ Supported. Moved to Completed. |
+| 2026-04-06 | Slice 001 completed — verdict ✅ Supported. Moved to Completed |
+| 2026-04-06 | Slice 002 (ASDF integration + file inspectors) moved from Next to Now |
