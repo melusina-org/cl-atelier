@@ -48,7 +48,7 @@
       "Version 1."
       nil)
     (atelier:define-line-inspector test-redefined-inspector
-        ((pathname pathname))
+        ((pathname pathname) (lines vector))
       "Version 2."
       nil)
     (let ((instance (atelier:find-inspector 'test-redefined-inspector)))

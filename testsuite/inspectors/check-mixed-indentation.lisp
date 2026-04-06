@@ -21,12 +21,15 @@
 (define-testcase validate-check-mixed-indentation-clean ()
   "Verify that a spaces-only file produces no findings with default config."
   (let ((atelier:*current-project-configuration* nil)
-        (atelier:*current-linter-configuration* nil))
+        (atelier:*current-linter-configuration*
+          (atelier:make-linter-configuration)))
     (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
                                           (testsuite-fixtures-directory)))
            (inspector-instance
              (atelier:find-inspector 'atelier:check-mixed-indentation))
-           (findings (atelier:inspect-file inspector-instance fixture-path)))
+           (lines (atelier:read-file-into-line-vector fixture-path))
+           (findings (atelier:inspect-lines inspector-instance
+                                           fixture-path lines)))
       (assert-t (null findings)))))
 
 (define-testcase validate-check-mixed-indentation-tabs ()
@@ -46,11 +49,14 @@
             (write-string "  spaces-again" stream)
             (write-char #\Newline stream))
           (let ((atelier:*current-project-configuration* nil)
-                (atelier:*current-linter-configuration* nil))
+                (atelier:*current-linter-configuration*
+                  (atelier:make-linter-configuration)))
             (let* ((inspector-instance
                      (atelier:find-inspector 'atelier:check-mixed-indentation))
+                   (lines (atelier:read-file-into-line-vector temporary-path))
                    (findings
-                     (atelier:inspect-file inspector-instance temporary-path)))
+                     (atelier:inspect-lines inspector-instance
+                                           temporary-path lines)))
               (assert-eq 1 (length findings))
               (assert-t (typep (first findings)
                                'atelier:mixed-indentation-finding))
@@ -78,8 +84,10 @@
                     :indentation-style :tabs)))
             (let* ((inspector-instance
                      (atelier:find-inspector 'atelier:check-mixed-indentation))
+                   (lines (atelier:read-file-into-line-vector temporary-path))
                    (findings
-                     (atelier:inspect-file inspector-instance temporary-path)))
+                     (atelier:inspect-lines inspector-instance
+                                           temporary-path lines)))
               (assert-eq 1 (length findings))
               (assert-eq 2 (atelier:finding-line (first findings))))))
       (when (probe-file temporary-path)

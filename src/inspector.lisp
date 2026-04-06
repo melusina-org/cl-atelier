@@ -177,8 +177,29 @@ Example:
   `(define-inspector ,name (file-inspector) ,lambda-list ,@body))
 
 (defmacro define-line-inspector (name lambda-list &body body)
-  "Define a line-level inspector. Convenience wrapper for DEFINE-INSPECTOR."
-  `(define-inspector ,name (line-inspector) ,lambda-list ,@body))
+  "Define a line-level inspector.
+LAMBDA-LIST should be ((PATHNAME PATHNAME) (LINES VECTOR)).
+The generated method is on INSPECT-LINES, not INSPECT-FILE.
+LINES is a vector of strings read by the runner."
+  (check-type name symbol)
+  (multiple-value-bind (docstring options body-forms)
+      (parse-define-body body)
+    (declare (ignore options))
+    `(progn
+       (defclass ,name (line-inspector)
+         ()
+         ,@(when docstring
+             `((:documentation ,docstring))))
+       (setf (gethash ',name *inspectors*)
+             (make-instance ',name
+               :name ',name
+               :description ,docstring))
+       ,@(when body-forms
+           `((defmethod inspect-lines ((inspector ,name) ,@lambda-list)
+               ,@(when docstring (list docstring))
+               (declare (ignorable inspector))
+               ,@body-forms)))
+       ',name)))
 
 (defmacro define-region-inspector (name lambda-list &body body)
   "Define a region-level inspector. Convenience wrapper for DEFINE-INSPECTOR."

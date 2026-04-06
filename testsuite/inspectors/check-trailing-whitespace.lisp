@@ -21,12 +21,15 @@
 (define-testcase validate-check-trailing-whitespace-clean ()
   "Verify that a file without trailing whitespace produces no findings."
   (let ((atelier:*current-project-configuration* nil)
-        (atelier:*current-linter-configuration* nil))
+        (atelier:*current-linter-configuration*
+          (atelier:make-linter-configuration)))
     (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
                                           (testsuite-fixtures-directory)))
            (inspector-instance
              (atelier:find-inspector 'atelier:check-trailing-whitespace))
-           (findings (atelier:inspect-file inspector-instance fixture-path)))
+           (lines (atelier:read-file-into-line-vector fixture-path))
+           (findings (atelier:inspect-lines inspector-instance
+                                           fixture-path lines)))
       (assert-t (null findings)))))
 
 (define-testcase validate-check-trailing-whitespace-dirty ()
@@ -45,11 +48,14 @@
             (write-string "also clean" stream)
             (write-char #\Newline stream))
           (let ((atelier:*current-project-configuration* nil)
-                (atelier:*current-linter-configuration* nil))
+                (atelier:*current-linter-configuration*
+                  (atelier:make-linter-configuration)))
             (let* ((inspector-instance
                      (atelier:find-inspector 'atelier:check-trailing-whitespace))
+                   (lines (atelier:read-file-into-line-vector temporary-path))
                    (findings
-                     (atelier:inspect-file inspector-instance temporary-path)))
+                     (atelier:inspect-lines inspector-instance
+                                           temporary-path lines)))
               (assert-eq 1 (length findings))
               (assert-t (typep (first findings)
                                'atelier:trailing-whitespace-finding))

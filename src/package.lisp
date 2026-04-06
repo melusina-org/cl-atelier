@@ -158,7 +158,9 @@
    #:prepare-resolution
    #:resolve-finding
    #:inspect-file
+   #:inspect-lines
    #:run-file-inspectors
+   #:read-file-into-line-vector
 
    ;; Concrete finding subclasses
    #:encoding-finding

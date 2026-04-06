@@ -20,16 +20,24 @@
 
 (defgeneric inspect-file (inspector pathname)
   (:documentation "Run INSPECTOR on the file at PATHNAME and return a list of findings or NIL.
-Configuration is available via *CURRENT-PROJECT-CONFIGURATION* and
-*CURRENT-LINTER-CONFIGURATION*, which are bound by the runner before
-this generic function is called.")
+Used by file-level inspectors. Configuration is available via
+*CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION*.")
   (:method ((inspector inspector) (pathname pathname))
+    "Default method returns NIL — no findings."
+    nil))
+
+(defgeneric inspect-lines (inspector pathname lines)
+  (:documentation "Run INSPECTOR on LINES read from PATHNAME.
+Return a list of findings or NIL. LINES is a vector of strings,
+one per line. Used by line-level inspectors. The runner reads the
+file into LINES once and passes it to all line inspectors.")
+  (:method ((inspector inspector) (pathname pathname) (lines vector))
     "Default method returns NIL — no findings."
     nil))
 
 
 ;;;;
-;;;; Runner
+;;;; Helpers
 ;;;;
 
 (defun inspector-disabled-p (inspector-name linter-configuration)
@@ -53,18 +61,45 @@ Return FINDING unchanged if no override applies."
         (setf (slot-value finding 'severity) (cdr override)))))
   finding)
 
-(defun eligible-inspector-p (inspector-instance linter-configuration)
-  "Return T if INSPECTOR-INSTANCE should run given LINTER-CONFIGURATION.
-An inspector is eligible if it is a file-inspector or line-inspector
-and is not disabled in the linter configuration."
-  (declare (type inspector inspector-instance))
-  (and (or (typep inspector-instance 'file-inspector)
-           (typep inspector-instance 'line-inspector))
-       (not (inspector-disabled-p (inspector-name inspector-instance)
-                                  linter-configuration))))
+(defun collect-inspectors-by-level (level-class linter-configuration)
+  "Return all registered inspectors of LEVEL-CLASS that are not disabled."
+  (declare (type symbol level-class))
+  (loop :for inspector-name :being :the :hash-key :of *inspectors*
+        :for inspector-instance = (gethash inspector-name *inspectors*)
+        :when (and (typep inspector-instance level-class)
+                   (not (inspector-disabled-p inspector-name
+                                              linter-configuration)))
+        :collect inspector-instance))
+
+(defun collect-and-override-findings (inspector-instance findings linter-configuration)
+  "Apply severity overrides to FINDINGS from INSPECTOR-INSTANCE and return them."
+  (declare (type inspector inspector-instance)
+           (type list findings))
+  (let ((inspector-name (inspector-name inspector-instance)))
+    (flet ((apply-override (finding)
+             (apply-severity-override finding inspector-name linter-configuration)))
+      (mapcar #'apply-override findings))))
+
+(defun read-file-into-line-vector (pathname)
+  "Read PATHNAME into a vector of strings, one per line."
+  (declare (type pathname pathname)
+           (values vector))
+  (with-open-file (stream pathname :direction :input :external-format :utf-8)
+    (coerce
+     (loop :for line = (read-line stream nil nil)
+           :while line
+           :collect line)
+     'vector)))
+
+
+;;;;
+;;;; Runner
+;;;;
 
 (defun run-file-inspectors (pathname project-configuration linter-configuration)
-  "Run all registered file-level and line-level inspectors on PATHNAME.
+  "Run all registered inspectors on PATHNAME in pipeline order.
+Stage 1: run file-inspector instances on the pathname.
+Stage 2: read the file into lines once, run line-inspector instances on the lines.
 Bind *CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION*
 for inspectors to access. Return a list of findings."
   (declare (type pathname pathname)
@@ -72,19 +107,31 @@ for inspectors to access. Return a list of findings."
   (let ((*current-project-configuration* project-configuration)
         (*current-linter-configuration* linter-configuration)
         (findings nil))
-    (loop :for inspector-name :being :the :hash-key :of *inspectors*
-          :for inspector-instance = (gethash inspector-name *inspectors*)
-          :when (eligible-inspector-p inspector-instance linter-configuration)
-          :do (let ((inspector-findings
-                      (inspect-file inspector-instance pathname)))
-                (when inspector-findings
-                  (flet ((apply-override (finding)
-                           (apply-severity-override finding inspector-name
-                                                    linter-configuration)))
-                    (setf findings
+    ;; Stage 1: file inspectors
+    (let ((file-inspectors
+            (collect-inspectors-by-level 'file-inspector linter-configuration)))
+      (loop :for inspector-instance :in file-inspectors
+            :for inspector-findings = (inspect-file inspector-instance pathname)
+            :when inspector-findings
+            :do (setf findings
+                      (nconc findings
+                             (collect-and-override-findings
+                              inspector-instance inspector-findings
+                              linter-configuration)))))
+    ;; Stage 2: line inspectors (read file once)
+    (let ((line-inspectors
+            (collect-inspectors-by-level 'line-inspector linter-configuration)))
+      (when line-inspectors
+        (let ((lines (read-file-into-line-vector pathname)))
+          (loop :for inspector-instance :in line-inspectors
+                :for inspector-findings =
+                  (inspect-lines inspector-instance pathname lines)
+                :when inspector-findings
+                :do (setf findings
                           (nconc findings
-                                 (mapcar #'apply-override
-                                         inspector-findings)))))))
+                                 (collect-and-override-findings
+                                  inspector-instance inspector-findings
+                                  linter-configuration)))))))
     findings))
 
 ;;;; End of file `runner.lisp'
