@@ -3,7 +3,9 @@
 
 ## Now (in progress)
 
-*None — selecting next slice.*
+| Slice | Type | Goal addressed | Description |
+|-------|------|----------------|-------------|
+| [003-line-level-inspectors](slice/003-line-level-inspectors/slice.md) | Bet | G2 | Trailing whitespace, line length, mixed indentation inspectors. Supersede legacy codestyle-0002. |
 
 ## Completed
 
@@ -64,3 +66,4 @@
 | 2026-04-06 | Slice 001 completed — verdict ✅ Supported. Moved to Completed |
 | 2026-04-06 | Slice 002 (ASDF integration + file inspectors) moved from Next to Now |
 | 2026-04-06 | Slice 002 completed — verdict ✅ Supported. Moved to Completed |
+| 2026-04-06 | Slice 003 (line-level inspectors) added to Now |
