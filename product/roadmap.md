@@ -1,17 +1,16 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-05
+**Last updated:** 2026-04-06
 
 ## Now (in progress)
 
 | Slice | Type | Goal addressed | Description |
 |-------|------|----------------|-------------|
-| — | Define | G7, G2 | Vision and schema design session. Finding/resolution protocol, inspector/maintainer registry, and superseding mechanism defined. MCP design session open — to complete before slice #5 starts. |
+| [001-finding-resolution-schema](slice/001-finding-resolution-schema/slice.md) | Bet | G7 | Foundation slice. Finding/resolution class hierarchy, inspector/maintainer registry with named-instance pattern and superseding. Named-instance implementation supplied by maintainer. |
 
 ## Next (intended for the following 1–3 slices)
 
 | Item | Type | Goal addressed | Notes |
 |------|------|----------------|-------|
-| Finding/resolution schema + registry (backlog #1, #2) | New capability | G7 | Foundation slice. Named-instance implementation supplied by maintainer. Nothing else can be built without it. |
 | ASDF components + first file-level inspectors (backlog #3, #4) | New capability | G2, G1 | First end-to-end path: load a system, run linter-op, get structured findings across CL, Elisp, Shell, HCL. Validates schema in practice. |
 | MCP server skeleton + REPL evaluation tool (backlog #5, #6) | New capability | G5 | Parallel track once schema is stable. Requires MCP design session to complete first. |
 
@@ -56,3 +55,4 @@
 |------|--------|
 | 2026-04-05 | Initial roadmap from vision session |
 | 2026-04-05 | Added: LLM-driven maintainer to Later; Elisp language support throughout; editor plugins, CFFI and Terraform ASDF components, MELPA/OCICL publication to Considering; new MCP tools to Later; REGION-FINDING and external tool wrappers to Later |
+| 2026-04-06 | Slice 001 (finding/resolution schema + registry) moved from Next to Now |

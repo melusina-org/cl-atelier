@@ -278,4 +278,66 @@ block, without using quotes or line folding operators."
   (alexandria:with-input-from-file (stream pathname)
     (read-stream-documents-with-yaml-front-matter stream)))
 
+
+;;;;
+;;;; Named Class
+;;;;
+
+(defmacro define-named-class (class-name direct-superclasses direct-slots &rest options)
+  (let* ((name-option
+	   (find :name options :key #'car))
+         (name-slot
+	   (if name-option (second name-option) 'name))
+	 (name-initarg
+	   (getf (cdr (assoc name-slot direct-slots)) :initarg))
+         (class-options
+	   (remove :name options :key #'car))
+	 (class-initargs
+	   (loop :for (slot-name . slot-definition) :in direct-slots
+		 :for slot-initarg = (getf slot-definition :initarg)
+		 :when (and slot-initarg (not (eq slot-initarg name-initarg)))
+		 :collect (intern (symbol-name slot-initarg))))
+         (instance-registry
+	   (intern (format nil "*~AS*" class-name)))
+         (define-instance
+	   (intern (format nil "DEFINE-~A" class-name)))
+         (find-instance
+	   (intern (format nil "FIND-~A" class-name)))
+	 (symbol-instance
+	   (intern (format nil "SYMBOL-~A" class-name)))
+         (instance-cell
+	   class-name)
+	 (unbound-instance-control-string
+	   (concatenate 'string "UNBOUND-" (symbol-name class-name) " ~S")))
+    `(progn
+       (define-persistent-class ,class-name ,direct-superclasses
+         ,direct-slots
+         ,@class-options)
+
+       (defvar ,instance-registry (make-hash-table :test 'eq))
+
+       (defun ,find-instance (designator)
+         (etypecase designator
+           (,class-name
+	    designator)
+           (symbol
+	    (gethash designator ,instance-registry))))
+
+       (defun ,symbol-instance (symbol)
+         (multiple-value-bind (instance present-p) (gethash symbol ,instance-registry)
+           (if present-p instance (error ,unbound-instance-control-string symbol))))
+
+       (defun (setf ,symbol-instance) (new-value symbol)
+         (setf (gethash symbol ,instance-registry) new-value))
+
+       (defmacro ,instance-cell (symbol)
+	 `(,',symbol-instance ',symbol))
+
+       (defmacro ,define-instance (,name-slot &rest initargs &key ,@class-initargs)
+	 (declare (ignore ,@(remove 'name class-initargs)))
+         (check-type name symbol)
+         `(setf (gethash ',,name-slot ,',instance-registry)
+                (make-instance ',',class-name ,',name-initarg ',,name-slot ,@initargs)))
+       (find-class ',class-name))))
+
 ;;;; End of file `utilities.lisp'
