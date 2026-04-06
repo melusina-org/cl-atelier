@@ -15,7 +15,7 @@
 
 (define-testcase validate-codestyle-0006-hint-at-file-when-it-lacks-project-license-information ()
   (let ((file-1
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("; test.lisp -- The testsuite for Example"
 	     ""
 	     ";; Example (https://github.com/acme)"
@@ -32,7 +32,7 @@
 	     ""
 	     ";; End of file `test.lsip'")))
 	(file-2
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("; test.lisp -- The testsuite for Example"
 	     ""
 	     ";; Example (https://github.com/acme)"
@@ -47,10 +47,10 @@
 	     ";;;; \"https://cecill.info/licences/Licence_CeCILL-B_V1-en.txt\""
 	     ""
 	     ";; End of file `test.lsip'")))
-	(atelier::*linter*
-	  (atelier::find-plain-linter :application/lisp)))
+	(atelier/legacy::*linter*
+	  (atelier/legacy::find-plain-linter :application/lisp)))
     (assert-string= file-2
 		    (with-fixed-linter-environment
-		      (atelier::hint-at-file-when-it-lacks-project-license-information file-1)))))
+		      (atelier/legacy::hint-at-file-when-it-lacks-project-license-information file-1)))))
 
 ;;;; End of file `codestyle-0006.lisp'

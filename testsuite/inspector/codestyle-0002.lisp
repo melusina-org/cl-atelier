@@ -28,7 +28,7 @@
 				    very-long-line-with-words
 				    very-long-line-with-words
 				    very-long-line-without-words)
-		:for hint = (atelier::hint-at-file-line-when-it-is-very-long line)
+		:for hint = (atelier/legacy::hint-at-file-line-when-it-is-very-long line)
 		:unless (null hint)
 		:collect hint))))))
 

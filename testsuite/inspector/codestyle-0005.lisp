@@ -15,7 +15,7 @@
 
 (define-testcase validate-codestyle-0005-hint-at-file-when-it-lacks-canonical-project-identification ()
   (let ((file-1
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("; testsuite.lisp -- The testsuite for Example"
 	     ""
 	     ";; Example (https://github.com/acme)"
@@ -25,7 +25,7 @@
 	     ""
 	     ";; End of file `testsuite.lisp'")))
 	(file-2
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("; testsuite.lisp -- The testsuite for Example"
 	     ""
 	     ";;;; Example (https://cl-user.net/acme/example)"
@@ -35,15 +35,15 @@
 	     ";;;; All rights reserved."
 	     ""
 	     ";; End of file `testsuite.lisp'")))
-	(atelier::*linter*
-	  (atelier::find-plain-linter :application/lisp)))
+	(atelier/legacy::*linter*
+	  (atelier/legacy::find-plain-linter :application/lisp)))
     (assert-string= file-2
 		    (with-fixed-linter-environment
-			(atelier::hint-at-file-when-it-lacks-canonical-project-identification file-1)))))
+			(atelier/legacy::hint-at-file-when-it-lacks-canonical-project-identification file-1)))))
 
 (define-testcase validate-codestyle-0005-hint-at-script-when-it-lacks-canonical-project-identification ()
   (let ((file-1
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("#!/bin/sh"
 	     ""
 	     "# testsuite.sh — The testsuite for Example"
@@ -61,7 +61,7 @@
 	     ""
 	     ": ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}")))
 	(file-2
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("#!/bin/sh"
 	     ""
 	     "# testsuite.sh — The testsuite for Example"
@@ -78,10 +78,10 @@
 	     "# are also available at https://opensource.org/licenses/MIT"
 	     ""
 	     ": ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}")))
-	(atelier::*linter*
-	  (atelier::find-plain-linter :application/shellscript)))
+	(atelier/legacy::*linter*
+	  (atelier/legacy::find-plain-linter :application/shellscript)))
     (assert-string= file-2
 		    (with-fixed-linter-environment
-		      (atelier::hint-at-file-when-it-lacks-canonical-project-identification file-1)))))
+		      (atelier/legacy::hint-at-file-when-it-lacks-canonical-project-identification file-1)))))
 
 ;;;; End of file `codestyle-0005.lisp'

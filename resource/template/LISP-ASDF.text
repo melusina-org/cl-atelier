@@ -41,6 +41,7 @@ name: Lisp system definition file
   :license "${LICENSE_NAME}"
   :depends-on (#:alexandria
 	       #:org.melusina.atelier
+	       #:org.melusina.atelier/legacy
 	       #:${LISP_TEST_SYSTEM_NAME})
   :components
   ((:module "libexec/lisp"

@@ -43,7 +43,7 @@
 
 (defun lint ()
   (let ((atelier:*parameter-bindings* *parameter-bindings*))
-    (atelier:lint
+    (atelier/legacy:lint
      (system-relative-pathnames
       #p"org.melusina.atelier.asd"
       #p"development"
@@ -57,6 +57,7 @@
 (defun reload ()
   (ql:quickload '("org.melusina.confidence"
 		  "org.melusina.atelier"
+		  "org.melusina.atelier/legacy"
 		  "org.melusina.atelier/development"
 		  "org.melusina.atelier/testsuite")))
 

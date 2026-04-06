@@ -310,7 +310,7 @@ block, without using quotes or line folding operators."
 	 (unbound-instance-control-string
 	   (concatenate 'string "UNBOUND-" (symbol-name class-name) " ~S")))
     `(progn
-       (define-persistent-class ,class-name ,direct-superclasses
+       (defclass ,class-name ,direct-superclasses
          ,direct-slots
          ,@class-options)
 

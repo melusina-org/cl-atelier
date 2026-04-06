@@ -17,7 +17,8 @@
   :depends-on (#:alexandria
 	       #:cl-ppcre
 	       #:trivia
-	       #:uiop)
+	       #:uiop
+	       #:eclector-concrete-syntax-tree)
   :components
   ((:module "src"
     :components ((:file "package")
@@ -26,7 +27,20 @@
 		 (:file "license")
 		 (:file "parameter")
 		 (:file "template")
-		 (:file "lint")
+		 (:file "finding")
+		 (:file "resolution")
+		 (:file "inspector")
+		 (:file "maintainer")
+		 (:file "main")))))
+
+(asdf:defsystem #:org.melusina.atelier/legacy
+  :description "Legacy linter for Atelier"
+  :author "Michaël Le Barbier"
+  :depends-on (#:org.melusina.atelier)
+  :components
+  ((:module "src/legacy"
+    :components ((:file "package")
+                 (:file "lint")
 		 (:module "inspector"
 		  :components
 		  ((:file "codestyle-0001")
@@ -35,13 +49,14 @@
 		   (:file "codestyle-0004")
 		   (:file "codestyle-0005")
 		   (:file "codestyle-0006")))
-		 (:file "main")))))
+		 (:file "bridge")))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"
   :author "Michaël Le Barbier"
   :depends-on (#:alexandria
 	       #:org.melusina.atelier
+	       #:org.melusina.atelier/legacy
 	       #:org.melusina.confidence)
   :components
   ((:module "testsuite"
@@ -50,7 +65,13 @@
 		 (:file "parameter")
 		 (:file "license")
 		 (:file "template")
-		 (:module "inspector"
+		 (:file "finding")
+		 (:file "resolution")
+		 (:file "inspector")
+		 (:file "maintainer")
+		 (:file "bridge")
+		 (:module "legacy-inspector"
+		  :pathname "inspector"
 		  :components
 		  ((:file "codestyle-0001")
 		   (:file "codestyle-0002")
@@ -65,7 +86,8 @@
   :description "Development tools for Atelier"
   :author "Michaël Le Barbier"
   :license "MIT License"
-  :depends-on (#:org.melusina.atelier)
+  :depends-on (#:org.melusina.atelier
+	       #:org.melusina.atelier/legacy)
   :components
   ((:module "libexec/lisp"
     :components ((:file "development")))))

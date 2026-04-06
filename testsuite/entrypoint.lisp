@@ -18,6 +18,11 @@
   (testsuite-utilities)
   (testsuite-parameter)
   (testsuite-license)
+  (testsuite-finding)
+  (testsuite-resolution)
+  (testsuite-inspector)
+  (testsuite-maintainer)
+  (testsuite-bridge)
   (testsuite-linter)
   (testsuite-template))
 

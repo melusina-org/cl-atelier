@@ -15,19 +15,19 @@
 
 (define-testcase validate-codestyle-0003-hint-at-file-when-it-lacks-canonical-header-line ()
   (let ((file-1
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("; test.lisp -- The test for Example"
 	     ""
 	     ";; End of file `test.lsip'")))
 	(file-2
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '(";;;; test.lisp — The test for Example"
 	     ""
 	     ";; End of file `test.lsip'")))
-	(atelier::*linter*
-	  (atelier::find-plain-linter :application/lisp)))
+	(atelier/legacy::*linter*
+	  (atelier/legacy::find-plain-linter :application/lisp)))
     (assert-string= file-2
 		    (with-fixed-linter-environment
-		      (atelier::hint-at-file-when-it-lacks-canonical-header-line file-1)))))
+		      (atelier/legacy::hint-at-file-when-it-lacks-canonical-header-line file-1)))))
 
 ;;;; End of file `codestyle-0003.lisp'

@@ -48,13 +48,13 @@
 	      "The Example for the Atelier test.")
              (:homepage . "https://cl-user.net/acme/example")
              (:license . :cecill-b)))
-	 (atelier::*hint-pathname*
+	 (atelier/legacy::*hint-pathname*
 	   "test.lisp"))
      (handler-bind
-	 ((atelier::anomaly
+	 ((atelier/legacy::anomaly
 	    (lambda (c)
 	      (declare (ignore c))
-	      (invoke-restart 'atelier::autocorrect))))
+	      (invoke-restart 'atelier/legacy::autocorrect))))
        ,@body-forms)))
 
 

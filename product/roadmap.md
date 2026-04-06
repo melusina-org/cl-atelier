@@ -3,9 +3,13 @@
 
 ## Now (in progress)
 
-| Slice | Type | Goal addressed | Description |
-|-------|------|----------------|-------------|
-| [001-finding-resolution-schema](slice/001-finding-resolution-schema/slice.md) | Bet | G7 | Foundation slice. Finding/resolution class hierarchy, inspector/maintainer registry with named-instance pattern and superseding. Named-instance implementation supplied by maintainer. |
+*None — selecting next slice.*
+
+## Completed
+
+| Slice | Type | Goal addressed | Verdict |
+|-------|------|----------------|:-------:|
+| [001-finding-resolution-schema](slice/001-finding-resolution-schema/slice.md) | Bet | G7 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
@@ -56,3 +60,4 @@
 | 2026-04-05 | Initial roadmap from vision session |
 | 2026-04-05 | Added: LLM-driven maintainer to Later; Elisp language support throughout; editor plugins, CFFI and Terraform ASDF components, MELPA/OCICL publication to Considering; new MCP tools to Later; REGION-FINDING and external tool wrappers to Later |
 | 2026-04-06 | Slice 001 (finding/resolution schema + registry) moved from Next to Now |
+| 2026-04-06 | Slice 001 completed — verdict ✅ Supported. Moved to Completed. |

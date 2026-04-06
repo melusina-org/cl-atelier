@@ -14,19 +14,19 @@
 (in-package #:atelier/testsuite)
 (define-testcase validate-codestyle-0004-hint-at-file-when-it-lacks-canonical-footer-line ()
   (let ((file-1
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("; test.lisp -- The test for Example"
 	     ""
 	     ";; End of file `test.lsip'")))
 	(file-2
-	  (atelier::join-lines
+	  (atelier/legacy::join-lines
 	   '("; test.lisp -- The test for Example"
 	     ""
 	     ";;;; End of file `test.lisp'")))
-	(atelier::*linter*
-	  (atelier::find-plain-linter :application/lisp)))
+	(atelier/legacy::*linter*
+	  (atelier/legacy::find-plain-linter :application/lisp)))
     (assert-string= file-2
 		    (with-fixed-linter-environment
-		      (atelier::hint-at-file-when-it-lacks-canonical-footer-line file-1)))))
+		      (atelier/legacy::hint-at-file-when-it-lacks-canonical-footer-line file-1)))))
 
 ;;;; End of file `codestyle-0004.lisp'

@@ -39,7 +39,7 @@ name: Lisp development file
 
 (defun lint ()
   (let ((atelier:*parameter-bindings* *parameter-bindings*))
-    (atelier:lint
+    (atelier/legacy:lint
      (system-relative-pathname
       #p"${PROJECT_FILENAME}.asd"
       #p"development"

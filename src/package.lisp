@@ -23,7 +23,8 @@
   (:export
    #:*parameter-bindings*
    #:parameter-keyword
-   
+   #:parameter-replacement-text
+
    ;; Template
    #:template
    #:template-name
@@ -38,7 +39,7 @@
    #:initialize
    #:new-lisp-project
    #:new-lisp-file
-   
+
    ;; Templates
    #:license
    #:readme
@@ -64,35 +65,106 @@
    #:lisp-documentation
    #:lisp-git-ignore
    #:lisp-project
+
    ;; License
    #:license
    #:license-id
    #:license-name
    #:license-header
    #:license-text
-   
-   ;; Lint
-   #:*linter-interactive-p*
-   #:hint-at-file
-   #:hint-at-file-line
-   #:lint-file
-   #:lint
-   #:linter
-   #:extensive-linter
-   #:canonical-source-linter
-   #:inline-comment-linter
-   #:block-comment-linter
-   #:plain-line-comment-linter
-   #:plain-block-comment-linter
-   #:file-inspectors
-   #:content-inspectors
-   #:line-inspectors
-   #:define-linter
-   #:decorate-line
-   #:decorate-block
-   ;; Inspectors
+   #:find-license
+   #:template-repository-empty-p
+
+   ;; Finding hierarchy
+   #:finding
+   #:file-finding
+   #:line-finding
+   #:region-finding
+   #:syntax-finding
+   #:make-file-finding
+   #:make-line-finding
+   #:make-region-finding
+   #:make-syntax-finding
+   #:finding-inspector
+   #:finding-severity
+   #:finding-observation
+   #:finding-rationale
+   #:finding-file
+   #:finding-line
+   #:finding-column
+   #:finding-end-line
+   #:finding-end-column
+   #:finding-source-text
+   #:finding-start-line
+   #:finding-cst-node
+   #:finding-cst-root
+
+   ;; Resolution hierarchy
+   #:resolution
+   #:text-resolution
+   #:syntax-resolution
+   #:agent-resolution
+   #:composite-resolution
+   #:make-text-resolution
+   #:make-syntax-resolution
+   #:make-agent-resolution
+   #:make-composite-resolution
+   #:resolution-maintainer
+   #:resolution-finding
+   #:resolution-kind
+   #:resolution-description
+   #:resolution-replacement
+   #:resolution-transform
+   #:resolution-prompt
+   #:resolution-transforms
+
+   ;; Inspector registry
+   #:inspector
+   #:*inspectors*
    #:define-inspector
+   #:find-inspector
+   #:symbol-inspector
+   #:inspector-name
+   #:inspector-level
+   #:inspector-description
    #:list-inspectors
+
+   ;; Maintainer registry
+   #:maintainer
+   #:make-maintainer
+   #:*maintainers*
+   #:define-maintainer
+   #:find-maintainer
+   #:symbol-maintainer
+   #:maintainer-name
+   #:maintainer-supersedes
+   #:maintainer-kind
+   #:maintainer-description
+   #:list-maintainers
+
+   ;; Protocol
+   #:prepare-resolution
+   #:resolve-finding
+
+   ;; Utilities (used by legacy bridge)
+   #:string-match
+   #:string-suffix-p
+   #:string-prefix-p
+   #:string-lines
+   #:join-lines
+   #:first-line
+   #:last-line
+   #:read-file-into-list
+   #:find-regular-files
+   #:break-down
+   #:edit-first-line
+   #:edit-last-line
+   #:string-words
+   #:count-string-words
+   #:indent
+   #:read-file-documents-with-yaml-front-matter
+   #:read-stream-documents-with-yaml-front-matter
+   #:define-named-class
    ))
 
 (in-package #:atelier)

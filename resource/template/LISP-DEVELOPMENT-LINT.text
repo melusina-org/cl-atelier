@@ -24,7 +24,7 @@ lint_sbcl()
 lint_main()
 {
     lint_sbcl --load "${TOPLEVELDIR}/libexec/lisp/setup.lisp"\
-	      --eval '(atelier:lint
+	      --eval '(atelier/legacy:lint
  #p"src"
  #p"test"
  #p"libexec/lisp/setup.lisp"
