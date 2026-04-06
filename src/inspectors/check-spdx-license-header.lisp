@@ -55,7 +55,7 @@ When PROJECT-CONFIGURATION is NIL, only check for presence of the SPDX marker."
     (cond
       ;; No SPDX marker found
       ((null (search *spdx-marker* header))
-       (list (make-file-finding
+       (list (make-instance 'spdx-license-header-finding
                :inspector 'check-spdx-license-header
                :severity :warning
                :observation (format nil "File ~A has no SPDX-License-Identifier header."
@@ -66,7 +66,7 @@ When PROJECT-CONFIGURATION is NIL, only check for presence of the SPDX marker."
       ((and expected-identifier
             (null (search (concatenate 'string *spdx-marker* " " expected-identifier)
                           header)))
-       (list (make-file-finding
+       (list (make-instance 'spdx-license-header-finding
                :inspector 'check-spdx-license-header
                :severity :warning
                :observation (format nil "File ~A declares a license other than ~A."

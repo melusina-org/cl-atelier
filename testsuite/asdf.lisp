@@ -22,8 +22,13 @@
   "Verify that a project configuration with no arguments has NIL defaults."
   (let ((project-configuration (atelier:make-project-configuration)))
     (assert-t (null (atelier:project-configuration-copyright-holder project-configuration)))
-    (assert-t (null (atelier:project-configuration-license project-configuration)))
-    (assert-t (null (atelier:project-configuration-homepage project-configuration)))))
+    (assert-t (null (atelier:project-configuration-copyright-year project-configuration)))
+    (assert-t (null (atelier:project-configuration-project-filename project-configuration)))
+    (assert-t (null (atelier:project-configuration-project-name project-configuration)))
+    (assert-t (null (atelier:project-configuration-project-description project-configuration)))
+    (assert-t (null (atelier:project-configuration-project-long-description project-configuration)))
+    (assert-t (null (atelier:project-configuration-homepage project-configuration)))
+    (assert-t (null (atelier:project-configuration-license project-configuration)))))
 
 (define-testcase validate-read-project-configuration ()
   "Verify that READ-PROJECT-CONFIGURATION reads a .sexp file correctly."
@@ -34,15 +39,40 @@
           (with-open-file (stream temporary-path
                                   :direction :output
                                   :if-exists :supersede)
-            (write-string "(:copyright-holder \"A. U. Thor\" :license \"MIT\" :homepage \"https://example.com\")"
+            (write-string (concatenate
+                           'string
+                           "(:copyright-holder \"A. U. Thor\""
+                           " :copyright-year \"2017-2026\""
+                           " :project-filename \"example\""
+                           " :project-name \"Example\""
+                           " :project-description \"An example project\""
+                           " :project-long-description \"A longer description.\""
+                           " :homepage \"https://example.com\""
+                           " :license \"MIT\")")
                           stream))
-          (let ((project-configuration (atelier:read-project-configuration temporary-path)))
+          (let ((project-configuration
+                  (atelier:read-project-configuration temporary-path)))
             (assert-string= "A. U. Thor"
-                            (atelier:project-configuration-copyright-holder project-configuration))
-            (assert-string= "MIT"
-                            (atelier:project-configuration-license project-configuration))
+                            (atelier:project-configuration-copyright-holder
+                             project-configuration))
+            (assert-string= "2017-2026"
+                            (atelier:project-configuration-copyright-year
+                             project-configuration))
+            (assert-string= "example"
+                            (atelier:project-configuration-project-filename
+                             project-configuration))
+            (assert-string= "Example"
+                            (atelier:project-configuration-project-name
+                             project-configuration))
+            (assert-string= "An example project"
+                            (atelier:project-configuration-project-description
+                             project-configuration))
             (assert-string= "https://example.com"
-                            (atelier:project-configuration-homepage project-configuration))))
+                            (atelier:project-configuration-homepage
+                             project-configuration))
+            (assert-string= "MIT"
+                            (atelier:project-configuration-license
+                             project-configuration))))
       (when (probe-file temporary-path)
         (delete-file temporary-path)))))
 

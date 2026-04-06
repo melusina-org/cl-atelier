@@ -30,7 +30,7 @@
          (inspector-instance (atelier:find-inspector 'atelier:check-spdx-license-header))
          (findings (atelier:inspect-file inspector-instance fixture-path project-config)))
     (assert-eq 1 (length findings))
-    (assert-t (typep (first findings) 'atelier:file-finding))
+    (assert-t (typep (first findings) 'atelier:spdx-license-header-finding))
     (assert-eq :warning (atelier:finding-severity (first findings)))))
 
 (define-testcase validate-check-spdx-header-mismatch ()

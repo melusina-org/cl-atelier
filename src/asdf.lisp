@@ -25,40 +25,81 @@
     :type (or null string)
     :initform nil
     :documentation "The copyright holder name.")
-   (license
-    :initarg :license
-    :reader project-configuration-license
+   (copyright-year
+    :initarg :copyright-year
+    :reader project-configuration-copyright-year
     :type (or null string)
     :initform nil
-    :documentation "The SPDX license identifier.")
+    :documentation "The copyright year or year range.")
+   (project-filename
+    :initarg :project-filename
+    :reader project-configuration-project-filename
+    :type (or null string)
+    :initform nil
+    :documentation "The project filename stem used in .asd and directory names.")
+   (project-name
+    :initarg :project-name
+    :reader project-configuration-project-name
+    :type (or null string)
+    :initform nil
+    :documentation "The human-readable project name.")
+   (project-description
+    :initarg :project-description
+    :reader project-configuration-project-description
+    :type (or null string)
+    :initform nil
+    :documentation "A short one-line project description.")
+   (project-long-description
+    :initarg :project-long-description
+    :reader project-configuration-project-long-description
+    :type (or null string)
+    :initform nil
+    :documentation "A longer project description.")
    (homepage
     :initarg :homepage
     :reader project-configuration-homepage
     :type (or null string)
     :initform nil
-    :documentation "The project homepage URL."))
+    :documentation "The project homepage URL.")
+   (license
+    :initarg :license
+    :reader project-configuration-license
+    :type (or null string)
+    :initform nil
+    :documentation "The SPDX license identifier."))
   (:documentation "Project-level configuration for Atelier tools.
-Read from a .sexp file declared as an ASDF component."))
+Read from a .sexp file declared as an ASDF component. Carries the same
+properties as *PARAMETER-BINDINGS* in development.lisp."))
 
 (defun make-project-configuration (&rest initargs
-                                   &key copyright-holder license homepage)
+                                   &key copyright-holder copyright-year
+                                        project-filename project-name
+                                        project-description project-long-description
+                                        homepage license)
   "Create and return a PROJECT-CONFIGURATION."
-  (declare (ignore copyright-holder license homepage))
+  (declare (ignore copyright-holder copyright-year
+                   project-filename project-name
+                   project-description project-long-description
+                   homepage license))
   (apply #'make-instance 'project-configuration initargs))
 
 (defmethod print-object ((instance project-configuration) stream)
   "Print an unreadable representation of INSTANCE to STREAM."
   (print-unreadable-object (instance stream :type t :identity t)
     (format stream "~A ~A"
-            (or (project-configuration-license instance) "no-license")
-            (or (project-configuration-copyright-holder instance) "no-holder"))))
+            (or (project-configuration-project-name instance) "no-name")
+            (or (project-configuration-license instance) "no-license"))))
 
 (defmethod describe-object ((instance project-configuration) stream)
   "Describe INSTANCE to STREAM."
   (format stream "~&~A is a PROJECT-CONFIGURATION.~%" instance)
   (format stream "~&  Copyright holder: ~A~%" (project-configuration-copyright-holder instance))
-  (format stream "~&  License:          ~A~%" (project-configuration-license instance))
+  (format stream "~&  Copyright year:   ~A~%" (project-configuration-copyright-year instance))
+  (format stream "~&  Project filename: ~A~%" (project-configuration-project-filename instance))
+  (format stream "~&  Project name:     ~A~%" (project-configuration-project-name instance))
+  (format stream "~&  Description:      ~A~%" (project-configuration-project-description instance))
   (format stream "~&  Homepage:         ~A~%" (project-configuration-homepage instance))
+  (format stream "~&  License:          ~A~%" (project-configuration-license instance))
   (terpri stream))
 
 (defun read-project-configuration (pathname)

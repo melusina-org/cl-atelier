@@ -13,11 +13,6 @@
 
 (in-package #:atelier/testsuite)
 
-(defun testsuite-fixtures-directory ()
-  "Return the pathname to the testsuite fixtures directory."
-  (merge-pathnames #p"testsuite/fixtures/"
-                   (asdf:system-source-directory "org.melusina.atelier")))
-
 (define-testcase validate-check-file-encoding-registered ()
   "Verify that CHECK-FILE-ENCODING is registered in the inspector registry."
   (assert-t (not (null (member 'atelier:check-file-encoding
@@ -48,7 +43,7 @@
           (let* ((inspector-instance (atelier:find-inspector 'atelier:check-file-encoding))
                  (findings (atelier:inspect-file inspector-instance temporary-path nil)))
             (assert-eq 1 (length findings))
-            (assert-t (typep (first findings) 'atelier:file-finding))
+            (assert-t (typep (first findings) 'atelier:encoding-finding))
             (assert-eq :error (atelier:finding-severity (first findings)))))
       (when (probe-file temporary-path)
         (delete-file temporary-path)))))

@@ -173,8 +173,13 @@
    #:project-configuration
    #:make-project-configuration
    #:project-configuration-copyright-holder
-   #:project-configuration-license
+   #:project-configuration-copyright-year
+   #:project-configuration-project-filename
+   #:project-configuration-project-name
+   #:project-configuration-project-description
+   #:project-configuration-project-long-description
    #:project-configuration-homepage
+   #:project-configuration-license
    #:read-project-configuration
    #:linter-configuration
    #:make-linter-configuration

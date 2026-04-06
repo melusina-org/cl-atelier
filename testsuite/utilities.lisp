@@ -59,6 +59,16 @@
 
 
 ;;;;
+;;;; Fixture Directory
+;;;;
+
+(defun testsuite-fixtures-directory ()
+  "Return the pathname to the testsuite fixtures directory."
+  (merge-pathnames #p"testsuite/fixtures/"
+                   (asdf:system-source-directory "org.melusina.atelier")))
+
+
+;;;;
 ;;;; File Utilities
 ;;;;
 

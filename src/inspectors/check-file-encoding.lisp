@@ -23,7 +23,7 @@ Return an ENCODING-FINDING when PATHNAME is not valid UTF-8, or NIL."
         (read-file-into-string pathname :external-format :utf-8)
         nil)
     (error ()
-      (list (make-file-finding
+      (list (make-instance 'encoding-finding
               :inspector 'check-file-encoding
               :severity :error
               :observation (format nil "File ~A is not valid UTF-8."
