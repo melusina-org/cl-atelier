@@ -1,6 +1,6 @@
 # Slice 004: CST-Level Inspectors
 
-**Status:** Planned
+**Status:** Complete
 **Type:** Bet
 **Goal:** G2 — Linter covers file, line, region, and CST level with ASDF integration
 **OKR contribution:** G2 — CST-level inspectors produce structured `syntax-finding` instances through the linter pipeline
@@ -10,9 +10,9 @@
 **Leading indicator:** Number of CST-level inspectors registered and producing findings — baseline 0, target ≥ 4 by slice completion.
 **Kill criterion:** If CST-level inspectors cannot produce `syntax-finding` instances through the existing runner without architectural changes to the pipeline, the syntax stage design must be revisited.
 **Planned start / end:** 2026-04-07 / 2026-04-12
-**Actual end:**
+**Actual end:** 2026-04-07
 **Implementation phases:**
-  - Phase 1: product/slice/004-cst-inspectors/implementation-1.md — Planned
+  - Phase 1: product/slice/004-cst-inspectors/implementation-1.md — Complete
 
 ---
 
@@ -65,10 +65,10 @@ After this slice: A developer runs `linter-op` and receives `syntax-finding` ins
 - Given an `inspect-syntax` method on a concrete inspector, when called with a CST node, then it can traverse the tree and produce `syntax-finding` instances.
 
 ## Quality Attribute Acceptance Criteria
-- [ ] All fast tests execute in under 2 seconds total.
-- [ ] All slow tests execute in under 10 seconds total.
-- [ ] Each inspector is exported and documented with docstrings.
-- [ ] Each inspector produces `syntax-finding` instances with valid CST node and root references.
+- [x] All fast tests execute in under 2 seconds total.
+- [x] All slow tests execute in under 10 seconds total.
+- [x] Each inspector is exported and documented with docstrings.
+- [x] Each inspector produces `syntax-finding` instances with valid CST node and root references.
 
 ## Capability Maturity Transitions
 - CST-level Inspection (G2): Not started → Foundation
@@ -82,9 +82,9 @@ After this slice: A developer runs `linter-op` and receives `syntax-finding` ins
 - [x] Dependencies clear — Slices 001–003 complete, Eclector CST available
 
 ## Definition of Done
-- [ ] All stories complete with acceptance criteria passing
-- [ ] Quality attribute criteria passing
-- [ ] Leading indicator being measured
-- [ ] All implementation phases have completion notes
-- [ ] `product/slice/004-cst-inspectors/retrospective.md` created
-- [ ] `product/maturity-tracker.md` updated
+- [x] All stories complete with acceptance criteria passing
+- [x] Quality attribute criteria passing
+- [x] Leading indicator being measured
+- [x] All implementation phases have completion notes
+- [x] `product/slice/004-cst-inspectors/retrospective.md` created
+- [x] `product/maturity-tracker.md` updated

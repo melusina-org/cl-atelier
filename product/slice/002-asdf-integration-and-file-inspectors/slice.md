@@ -71,10 +71,10 @@ After this slice: A developer adds two ASDF components to their system definitio
 - Given a linter-configuration that disables an inspector, when the runner runs, then the disabled inspector is skipped.
 
 ## Quality Attribute Acceptance Criteria
-- [ ] All fast tests execute in under 2 seconds total.
-- [ ] All slow tests (filesystem I/O for encoding/license checks) execute in under 10 seconds total.
-- [ ] The ASDF component types and `linter-op` are fully exported and documented with docstrings.
-- [ ] Policy files are read with `*read-eval*` bound to NIL — no code execution from configuration.
+- [x] All fast tests execute in under 2 seconds total.
+- [x] All slow tests (filesystem I/O for encoding/license checks) execute in under 10 seconds total.
+- [x] The ASDF component types and `linter-op` are fully exported and documented with docstrings.
+- [x] Policy files are read with `*read-eval*` bound to NIL — no code execution from configuration.
 
 ## Capability Maturity Transitions
 - Linter ASDF Integration (G2): Not started → Foundation
@@ -89,12 +89,12 @@ After this slice: A developer adds two ASDF components to their system definitio
 - [x] Dependencies clear — Slice 001 complete (finding/resolution schema, inspector/maintainer registry)
 
 ## Definition of Done
-- [ ] All stories complete with acceptance criteria passing
-- [ ] Quality attribute criteria passing
-- [ ] Leading indicator being measured
-- [ ] All implementation phases have completion notes
-- [ ] `product/slice/002-asdf-integration-and-file-inspectors/retrospective.md` created
-- [ ] `product/maturity-tracker.md` updated
+- [x] All stories complete with acceptance criteria passing
+- [x] Quality attribute criteria passing
+- [x] Leading indicator being measured
+- [x] All implementation phases have completion notes
+- [x] `product/slice/002-asdf-integration-and-file-inspectors/retrospective.md` created
+- [x] `product/maturity-tracker.md` updated
 
 ## Assumptions Made (autonomous mode)
 - **Assumption 1:** The `.sexp` format for configuration files is a flat plist read with `*read-eval*` bound to NIL. No nested structure or inheritance between systems.

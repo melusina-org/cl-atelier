@@ -88,9 +88,9 @@ After this slice: A developer can define an inspector (via `define-inspector`) t
 - Given a `syntax-resolution` transform function, when it receives a CST node, then the node is an Eclector CST object.
 
 ## Quality Attribute Acceptance Criteria
-- [ ] All fast tests execute in under 2 seconds total (no I/O, no external dependencies).
-- [ ] The public API (classes, macros, generics, functions) is fully exported and documented with docstrings.
-- [ ] No SBCL-specific extensions used without `#+sbcl` guard.
+- [x] All fast tests execute in under 2 seconds total (no I/O, no external dependencies).
+- [x] The public API (classes, macros, generics, functions) is fully exported and documented with docstrings.
+- [x] No SBCL-specific extensions used without `#+sbcl` guard.
 
 ## Capability Maturity Transitions
 - Diagnostic Schema (G7): Not started → Foundation
@@ -104,12 +104,12 @@ After this slice: A developer can define an inspector (via `define-inspector`) t
 - [x] Dependencies clear — named-instance pattern supplied by maintainer in utilities.lisp
 
 ## Definition of Done
-- [ ] All stories complete with acceptance criteria passing
-- [ ] Quality attribute criteria passing
-- [ ] Leading indicator being measured
-- [ ] All implementation phases have completion notes
-- [ ] `product/slice/001-finding-resolution-schema/retrospective.md` created
-- [ ] `product/maturity-tracker.md` updated
+- [x] All stories complete with acceptance criteria passing
+- [x] Quality attribute criteria passing
+- [x] Leading indicator being measured
+- [x] All implementation phases have completion notes
+- [x] `product/slice/001-finding-resolution-schema/retrospective.md` created
+- [x] `product/maturity-tracker.md` updated
 
 ## Assumptions Made (autonomous mode)
 - **Assumption 1:** ~~This slice does NOT wire the new schema into the existing linter.~~ **Corrected:** The existing linter (`src/lint.lisp`) IS integrated in this slice — `hint` objects are bridged to findings, and the existing `define-inspector`/`define-linter` workflow produces schema-valid output.

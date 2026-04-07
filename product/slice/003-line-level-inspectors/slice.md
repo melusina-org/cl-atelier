@@ -64,10 +64,10 @@ After this slice: A developer runs `(asdf:operate 'atelier:linter-op :my-system)
 - Given `atelier/development:lint` runs on the project, then it completes without error.
 
 ## Quality Attribute Acceptance Criteria
-- [ ] All fast tests execute in under 2 seconds total.
-- [ ] All slow tests (fixture file I/O) execute in under 10 seconds total.
-- [ ] Each inspector is exported and documented with docstrings.
-- [ ] Each inspector produces its own finding subclass (`trailing-whitespace-finding`, `line-too-long-finding`, `mixed-indentation-finding`).
+- [x] All fast tests execute in under 2 seconds total.
+- [x] All slow tests (fixture file I/O) execute in under 10 seconds total.
+- [x] Each inspector is exported and documented with docstrings.
+- [x] Each inspector produces its own finding subclass (`trailing-whitespace-finding`, `line-too-long-finding`, `mixed-indentation-finding`).
 
 ## Capability Maturity Transitions
 - Line-level Inspection (G2): Not started → Foundation
@@ -81,9 +81,9 @@ After this slice: A developer runs `(asdf:operate 'atelier:linter-op :my-system)
 - [x] Dependencies clear — Slice 002 complete (ASDF integration, runner, file inspectors)
 
 ## Definition of Done
-- [ ] All stories complete with acceptance criteria passing
-- [ ] Quality attribute criteria passing
-- [ ] Leading indicator being measured
-- [ ] All implementation phases have completion notes
-- [ ] `product/slice/003-line-level-inspectors/retrospective.md` created
-- [ ] `product/maturity-tracker.md` updated
+- [x] All stories complete with acceptance criteria passing
+- [x] Quality attribute criteria passing
+- [x] Leading indicator being measured
+- [x] All implementation phases have completion notes
+- [x] `product/slice/003-line-level-inspectors/retrospective.md` created
+- [x] `product/maturity-tracker.md` updated
