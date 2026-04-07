@@ -1,6 +1,6 @@
 # Slice 005: Autofix Pipeline with Pretty-Printer
 
-**Status:** Planned
+**Status:** Complete
 **Type:** Bet
 **Goal:** G2 — Linter covers file, line, region, and CST level with ASDF integration; G4 — Common Lisp code formatter
 **OKR contribution:** G2 — Findings produce resolutions that are applied back to source files automatically. G4 — Pretty-printer emits correctly indented Lisp forms for structural transforms.
@@ -10,7 +10,7 @@
 **Leading indicator:** Number of automatic maintainers producing applicable resolutions — baseline 0, target ≥ 6 by slice completion.
 **Kill criterion:** If CL's built-in pretty-printer cannot emit correctly indented Lisp forms for the FLET wrapping transform (bare-lambda fix), the pretty-printer decision must be escalated. If write-back corrupts source files for any of the six fix types, the write-back engine design must be revisited.
 **Planned start / end:** 2026-04-08 / 2026-04-15
-**Actual end:**
+**Actual end:** 2026-04-07
 **Implementation phases:**
   - Phase 1: product/slice/005-autofix-pipeline/implementation-1.md — Planned
 

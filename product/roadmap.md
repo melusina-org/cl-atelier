@@ -3,9 +3,7 @@
 
 ## Now (in progress)
 
-| Slice | Type | Goal addressed | Description |
-|-------|------|----------------|-------------|
-| [005-autofix-pipeline](slice/005-autofix-pipeline/slice.md) | Bet | G2, G4 | Write-back engine, 6 automatic maintainers (text-resolution + syntax-resolution), pretty-printer for structural transforms, batch autofix integration. Resolves backlog #23. |
+_Nothing in progress._
 
 ## Completed
 
@@ -15,6 +13,7 @@
 | [002-asdf-integration-and-file-inspectors](slice/002-asdf-integration-and-file-inspectors/slice.md) | Bet | G2 | ✅ |
 | [003-line-level-inspectors](slice/003-line-level-inspectors/slice.md) | Bet | G2 | ✅ |
 | [004-cst-inspectors](slice/004-cst-inspectors/slice.md) | Bet | G2 | ✅ |
+| [005-autofix-pipeline](slice/005-autofix-pipeline/slice.md) | Bet | G2, G4 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
@@ -73,3 +72,4 @@
 | 2026-04-07 | Slice 004 (CST-level inspectors) added to Now |
 | 2026-04-07 | Slice 004 completed — verdict ✅ Supported. Moved to Completed |
 | 2026-04-07 | Slice 005 (autofix pipeline + pretty-printer) added to Now. Resolves backlog #23 (pretty-printer decision: CL built-in pprint, not third-party) |
+| 2026-04-07 | Slice 005 completed — verdict ✅ Validated. Moved to Completed. 7 automatic maintainers delivered (target was 6). |

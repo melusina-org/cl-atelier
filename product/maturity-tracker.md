@@ -19,6 +19,8 @@
 | File-level Inspection | G2 | Foundation | 2026-04-06 | 002 |
 | Line-level Inspection | G2 | Foundation | 2026-04-07 | 003 |
 | CST-level Inspection | G2 | Foundation | 2026-04-07 | 004 |
+| Autofix / Write-back | G2 | Foundation | 2026-04-07 | 005 |
+| Pretty-printer | G4 | Foundation | 2026-04-07 | 005 |
 
 ## Transition History
 
@@ -29,3 +31,5 @@
 | 2026-04-06 | File-level Inspection | Not started | Foundation | 002 |
 | 2026-04-07 | Line-level Inspection | Not started | Foundation | 003 |
 | 2026-04-07 | CST-level Inspection | Not started | Foundation | 004 |
+| 2026-04-07 | Autofix / Write-back | Not started | Foundation | 005 |
+| 2026-04-07 | Pretty-printer | Not started | Foundation | 005 |
