@@ -258,15 +258,30 @@ returns a default instance, emitting a warning for non-Atelier systems."
              (asdf:component-name system))
        (make-linter-configuration)))))
 
-(defun lint-system (system-designator)
+(defun lint-system (system-designator &key autofix)
   "Lint all source files in the system designated by SYSTEM-DESIGNATOR.
 Return a list of findings. Reads project and linter configuration from
-ASDF components when present; otherwise uses sensible defaults."
+ASDF components when present; otherwise uses sensible defaults.
+When AUTOFIX is true, applies automatic resolutions for each finding
+that has a registered maintainer, grouped by file. Returns the full
+findings list regardless of which were fixed."
   (let* ((system (asdf:find-system system-designator))
          (*project-configuration* (load-system-project-configuration system))
-         (*linter-configuration* (load-system-linter-configuration system)))
-    (loop :for pathname :in (collect-system-source-files system)
-          :nconc (perform-inspection pathname))))
+         (*linter-configuration* (load-system-linter-configuration system))
+         (findings (loop :for pathname :in (collect-system-source-files system)
+                         :nconc (perform-inspection pathname))))
+    (when autofix
+      ;; Only line-findings have line/column positions that TEXT-RESOLUTION requires.
+      (let ((resolutions-by-file (make-hash-table :test 'equal)))
+        (dolist (finding findings)
+          (when (typep finding 'line-finding)
+            (dolist (resolution (resolve-finding finding))
+              (push resolution (gethash (finding-file finding) resolutions-by-file)))))
+        ;; Apply each file's resolutions end-to-start.
+        (maphash (lambda (pathname resolutions)
+                   (apply-resolutions-to-file pathname (nreverse resolutions)))
+                 resolutions-by-file)))
+    findings))
 
 
 ;;;;

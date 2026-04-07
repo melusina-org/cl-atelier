@@ -1,0 +1,8 @@
+---
+description: DEFVAR variable name gains earmuffs
+inspector: check-earmuffs
+---
+(defvar wrong-name 42)
+---
+(defvar *wrong-name* 42)
+---

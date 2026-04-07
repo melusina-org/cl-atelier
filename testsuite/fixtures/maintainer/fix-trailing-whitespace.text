@@ -1,0 +1,8 @@
+---
+description: Trailing whitespace stripped from line
+inspector: check-trailing-whitespace
+---
+(defvar *x* 1)   
+---
+(defvar *x* 1)
+---

@@ -1,0 +1,14 @@
+---
+description: DEFUN with long lambda list breaks differently at margin 40
+column: 0
+right-margin: [nil, 40]
+---
+(defun compute-discount (unit-price discount-rate) (* unit-price (- 1.0 discount-rate)))
+---
+(defun compute-discount (unit-price discount-rate)
+  (* unit-price (- 1.0 discount-rate)))
+---
+(defun compute-discount
+       (unit-price discount-rate)
+  (* unit-price (- 1.0 discount-rate)))
+---

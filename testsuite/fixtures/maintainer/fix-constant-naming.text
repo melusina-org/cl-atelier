@@ -1,0 +1,8 @@
+---
+description: DEFCONSTANT constant name gains plus markers
+inspector: check-constant-naming
+---
+(defconstant wrong-name 42)
+---
+(defconstant +wrong-name+ 42)
+---

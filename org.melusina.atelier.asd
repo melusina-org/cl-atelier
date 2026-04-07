@@ -44,6 +44,16 @@
 		   (:file "check-constant-naming")
 		   (:file "check-bare-lambda")
 		   (:file "check-loop-keywords")))
+		 (:file "pretty-printer")
+		 (:file "write-back")
+		 (:module "maintainers"
+		  :components
+		  ((:file "fix-trailing-whitespace")
+		   (:file "fix-mixed-indentation")
+		   (:file "fix-earmuffs")
+		   (:file "fix-constant-naming")
+		   (:file "fix-bare-loop-keywords")
+		   (:file "fix-bare-lambda")))
 		 (:file "main")))))
 
 (asdf:defsystem #:org.melusina.atelier/legacy
@@ -93,6 +103,17 @@
 		   (:file "check-constant-naming")
 		   (:file "check-bare-lambda")
 		   (:file "check-loop-keywords")))
+		 (:file "pretty-printer")
+		 (:file "write-back")
+		 (:module "maintainers"
+		  :components
+		  ((:file "fix-trailing-whitespace")
+		   (:file "fix-mixed-indentation")
+		   (:file "fix-earmuffs")
+		   (:file "fix-constant-naming")
+		   (:file "fix-bare-loop-keywords")
+		   (:file "fix-bare-lambda")))
+		 (:file "autofix")
 		 (:module "legacy-inspector"
 		  :pathname "inspector"
 		  :components

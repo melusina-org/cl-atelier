@@ -1,0 +1,9 @@
+---
+description: Function call that fits on one line
+column: 0
+right-margin: [nil]
+---
+(compute-discount price rate tax)
+---
+(compute-discount price rate tax)
+---

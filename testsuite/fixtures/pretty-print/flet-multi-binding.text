@@ -1,0 +1,13 @@
+---
+description: FLET with two bindings at unlimited margin
+column: 0
+right-margin: [nil]
+---
+(flet ((compute-total (x) (+ x tax)) (compute-discount (price rate) (* price (- 1.0 rate)))) (mapcar #'compute-total prices))
+---
+(flet ((compute-total (x)
+         (+ x tax))
+       (compute-discount (price rate)
+         (* price (- 1.0 rate))))
+  (mapcar #'compute-total prices))
+---

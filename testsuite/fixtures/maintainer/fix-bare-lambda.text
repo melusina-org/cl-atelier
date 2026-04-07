@@ -1,0 +1,10 @@
+---
+description: Bare lambda extracted to named FLET function
+inspector: check-bare-lambda
+---
+(mapcar (lambda (x) (1+ x)) items)
+---
+(flet ((map-item (x)
+         (1+ x)))
+  (mapcar #'map-item items))
+---

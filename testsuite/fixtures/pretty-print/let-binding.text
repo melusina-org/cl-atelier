@@ -1,0 +1,14 @@
+---
+description: LET bindings pack on one line at nil margin, break at margin 40
+column: 0
+right-margin: [nil, 40]
+---
+(let ((discount-rate 0.1) (unit-price 100.0)) (* unit-price (- 1.0 discount-rate)))
+---
+(let ((discount-rate 0.1) (unit-price 100.0))
+  (* unit-price (- 1.0 discount-rate)))
+---
+(let ((discount-rate 0.1)
+      (unit-price 100.0))
+  (* unit-price (- 1.0 discount-rate)))
+---

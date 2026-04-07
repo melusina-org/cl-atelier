@@ -1,0 +1,12 @@
+---
+description: DEFUN containing nested FLET with correct body indentation
+column: 0
+right-margin: [nil]
+---
+(defun process-items (items tax) (flet ((apply-tax (item) (* item (+ 1.0 tax)))) (remove-if #'null (mapcar #'apply-tax items))))
+---
+(defun process-items (items tax)
+  (flet ((apply-tax (item)
+           (* item (+ 1.0 tax))))
+    (remove-if #'null (mapcar #'apply-tax items))))
+---

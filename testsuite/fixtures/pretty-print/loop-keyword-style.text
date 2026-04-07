@@ -1,0 +1,17 @@
+---
+description: LOOP with keyword clause symbols breaks at margin 20
+column: 0
+right-margin: [nil, 20]
+---
+(loop :for item :in items :when (valid-item-p item) :collect (transform-item item))
+---
+(loop :for item :in items
+      :when (valid-item-p item)
+      :collect (transform-item item))
+---
+(loop :for item :in items
+      :when (valid-item-p
+             item)
+      :collect (transform-item
+                item))
+---

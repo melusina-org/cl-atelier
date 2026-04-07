@@ -157,6 +157,22 @@
    ;; Protocol
    #:prepare-resolution
    #:resolve-finding
+
+   ;; Pretty-printer
+   #:*atelier-pprint-dispatch*
+   #:pretty-print-form
+
+   ;; Write-back engine
+   #:apply-resolutions-to-file
+   #:resolution-text-span
+
+   ;; Concrete maintainers
+   #:fix-trailing-whitespace
+   #:fix-mixed-indentation
+   #:fix-earmuffs
+   #:fix-constant-naming
+   #:fix-bare-loop-keywords
+   #:fix-bare-lambda
    #:inspect-file
    #:inspect-line
    #:*current-pathname*

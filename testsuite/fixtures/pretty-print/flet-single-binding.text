@@ -1,0 +1,11 @@
+---
+description: FLET with single binding at column 4 — continuation lines indented
+column: 4
+right-margin: [nil]
+---
+(flet ((compute-total (x) (+ x tax))) (mapcar #'compute-total prices))
+---
+(flet ((compute-total (x)
+             (+ x tax)))
+      (mapcar #'compute-total prices))
+---
