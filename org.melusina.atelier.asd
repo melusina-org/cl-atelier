@@ -44,7 +44,10 @@
 		   (:file "check-constant-naming")
 		   (:file "check-bare-lambda")
 		   (:file "check-loop-keywords")
-		   (:file "check-labels-for-flet")))
+		   (:file "check-labels-for-flet")
+		   (:file "check-header-line")
+		   (:file "check-footer-line")
+		   (:file "check-project-identification")))
 		 (:file "pretty-printer")
 		 (:file "write-back")
 		 (:module "maintainers"
@@ -55,7 +58,10 @@
 		   (:file "fix-constant-naming")
 		   (:file "fix-bare-loop-keywords")
 		   (:file "fix-bare-lambda")
-		   (:file "fix-labels-to-flet")))
+		   (:file "fix-labels-to-flet")
+		   (:file "fix-header-line")
+		   (:file "fix-footer-line")
+		   (:file "fix-project-identification")))
 		 (:file "main")))))
 
 (asdf:defsystem #:org.melusina.atelier/legacy
@@ -105,7 +111,10 @@
 		   (:file "check-constant-naming")
 		   (:file "check-bare-lambda")
 		   (:file "check-loop-keywords")
-		   (:file "check-labels-for-flet")))
+		   (:file "check-labels-for-flet")
+		   (:file "check-header-line")
+		   (:file "check-footer-line")
+		   (:file "check-project-identification")))
 		 (:file "pretty-printer")
 		 (:file "write-back")
 		 (:module "maintainers"
@@ -116,7 +125,10 @@
 		   (:file "fix-constant-naming")
 		   (:file "fix-bare-loop-keywords")
 		   (:file "fix-bare-lambda")
-		   (:file "fix-labels-to-flet")))
+		   (:file "fix-labels-to-flet")
+		   (:file "fix-header-line")
+		   (:file "fix-footer-line")
+		   (:file "fix-project-identification")))
 		 (:file "autofix")
 		 (:module "legacy-inspector"
 		  :pathname "inspector"

@@ -176,6 +176,9 @@
    #:fix-labels-to-flet
    #:compute-flet-depth-table
    #:labels-transform-to-flet
+   #:fix-header-line
+   #:fix-footer-line
+   #:fix-project-identification
    #:inspect-file
    #:inspect-line
    #:*current-pathname*
@@ -196,6 +199,9 @@
    #:bare-lambda-finding
    #:bare-loop-keyword-finding
    #:spurious-labels-finding
+   #:header-line-finding
+   #:footer-line-finding
+   #:project-identification-finding
 
    ;; Concrete inspectors
    #:check-file-encoding
@@ -211,6 +217,11 @@
    #:check-labels-for-flet
    #:collect-calls-in-forms
    #:labels-call-graph-has-cycles-p
+   #:check-header-line
+   #:check-footer-line
+   #:check-project-identification
+   #:lisp-source-file-p
+   #:canonical-project-identification-text
 
    ;; Syntax inspection infrastructure
    #:inspect-syntax

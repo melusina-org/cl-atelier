@@ -1,4 +1,4 @@
-;;;; package.lisp — Package for the Atelier test suite Lisp System
+;;;; fix-project-identification.lisp — Tests for the project identification maintainer
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -11,17 +11,12 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(defpackage #:atelier/testsuite
-  (:use #:common-lisp)
-  (:import-from #:confidence
-   #:define-testcase
-   #:define-assertion
-   #:assert-t
-   #:assert-eq
-   #:assert-set-equal
-   #:assert-string=
-   #:assert-type)
-  (:export
-   #:run-all-tests))
+(in-package #:atelier/testsuite)
 
-;;;; End of file `package.lisp'
+(define-testcase validate-fix-project-identification-registered ()
+  (assert-t (not (null (atelier:find-maintainer 'atelier:fix-project-identification)))))
+
+(define-testcase testsuite-fix-project-identification ()
+  (validate-fix-project-identification-registered))
+
+;;;; End of file `fix-project-identification.lisp'
