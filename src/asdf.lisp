@@ -208,9 +208,9 @@ The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
 (defmethod asdf:perform ((operation linter-op) (component asdf:cl-source-file))
   "Inspect the source file of COMPONENT with all registered file-level inspectors."
   (let ((pathname (asdf:component-pathname component)))
-    (let ((findings (run-file-inspectors pathname
-                                        *current-project-configuration*
-                                        *current-linter-configuration*)))
+    (let ((findings (perform-inspection pathname
+                                       *current-project-configuration*
+                                       *current-linter-configuration*)))
       (setf *linter-findings* (nconc *linter-findings* findings)))))
 
 (defmethod asdf:perform ((operation linter-op) (component asdf:static-file))

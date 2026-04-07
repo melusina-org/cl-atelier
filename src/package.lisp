@@ -160,7 +160,10 @@
    #:inspect-file
    #:inspect-line
    #:*current-pathname*
-   #:run-file-inspectors
+   #:perform-inspection
+   #:perform-file-inspection
+   #:perform-line-inspection
+   #:perform-syntax-inspection
    #:read-file-into-line-vector
 
    ;; Concrete finding subclasses
@@ -169,6 +172,10 @@
    #:trailing-whitespace-finding
    #:line-too-long-finding
    #:mixed-indentation-finding
+   #:earmuffs-finding
+   #:constant-naming-finding
+   #:bare-lambda-finding
+   #:bare-loop-keyword-finding
 
    ;; Concrete inspectors
    #:check-file-encoding
@@ -177,6 +184,20 @@
    #:check-line-length
    #:check-mixed-indentation
    #:read-file-header
+   #:check-earmuffs
+   #:check-constant-naming
+   #:check-bare-lambda
+   #:check-loop-keywords
+
+   ;; Syntax inspection infrastructure
+   #:inspect-syntax
+   #:parse-lisp-file
+   #:make-syntax-finding-from-form
+   #:source-position-to-line-column
+   #:*current-cst-root*
+   #:*current-line-vector*
+   #:cst-form-operator
+   #:cst-form-operator-p
 
    ;; ASDF integration
    #:project-configuration

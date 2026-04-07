@@ -40,6 +40,121 @@ Return a list of findings for this line, or NIL. LINE is a string.
 (defvar *current-pathname* nil
   "The pathname of the file currently being inspected.")
 
+(defvar *current-cst-root* nil
+  "The list of top-level CST forms of the file currently being inspected.
+Bound during syntax inspection so INSPECT-SYNTAX methods can reference the
+full parsed structure of the file.")
+
+(defvar *current-line-vector* nil
+  "The line vector of the file currently being inspected.
+Bound during syntax inspection so SOURCE-POSITION-TO-LINE-COLUMN can convert
+CST character offsets to line/column numbers without re-reading the file.")
+
+
+;;;;
+;;;; Syntax Inspection Protocol
+;;;;
+
+(defgeneric inspect-syntax (inspector form)
+  (:documentation "Run INSPECTOR on a single top-level CST FORM.
+Return a list of findings, or NIL. FORM is a CONCRETE-SYNTAX-TREE:CST node.
+*CURRENT-PATHNAME*, *CURRENT-CST-ROOT*, and *CURRENT-LINE-VECTOR* are bound
+by the caller.")
+  (:method ((inspector inspector) form)
+    "Default method returns NIL — no findings."
+    (declare (ignore form))
+    nil))
+
+
+;;;;
+;;;; CST Helpers
+;;;;
+
+(defun parse-lisp-file (pathname)
+  "Parse PATHNAME with Eclector and return a list of top-level CST forms.
+Return NIL if the file cannot be parsed due to non-Lisp content or reader errors."
+  (declare (type pathname pathname)
+           (values list))
+  (handler-case
+      (with-open-file (stream pathname :direction :input :external-format :utf-8)
+        (loop :for form = (eclector.concrete-syntax-tree:read stream nil :eof)
+              :until (eq form :eof)
+              :collect form))
+    (error () nil)))
+
+(defun source-position-to-line-column (position line-vector)
+  "Convert character POSITION to a cons (LINE . COLUMN) using LINE-VECTOR.
+LINE is 1-based; COLUMN is 0-based. Assumes Unix line endings (newline per line).
+Each entry in LINE-VECTOR is a string without its trailing newline character."
+  (declare (type fixnum position)
+           (type vector line-vector)
+           (values cons))
+  (let ((offset 0))
+    (loop :for line-index :from 0 :below (length line-vector)
+          :for line-string = (aref line-vector line-index)
+          ;; +1 for the newline character that follows each line in the file
+          :for line-end = (+ offset (length line-string) 1)
+          :when (< position line-end)
+            :return (cons (1+ line-index) (- position offset))
+          :do (setf offset line-end)
+          :finally (return (cons (length line-vector) 0)))))
+
+(defun make-syntax-finding-from-form (form finding-class
+                                      &key inspector severity observation rationale)
+  "Create a FINDING-CLASS instance from CST FORM, deriving file, line, column
+from the CST source positions and *CURRENT-LINE-VECTOR*.
+*CURRENT-PATHNAME*, *CURRENT-LINE-VECTOR*, and *CURRENT-CST-ROOT* must be bound."
+  (declare (type concrete-syntax-tree:cst form)
+           (type symbol finding-class inspector)
+           (type keyword severity)
+           (type string observation rationale))
+  (let* ((source (cst:source form))
+         (start-pos (car source))
+         (end-pos (cdr source))
+         (line-vector *current-line-vector*)
+         (start-lc (source-position-to-line-column start-pos line-vector))
+         (end-lc (source-position-to-line-column end-pos line-vector))
+         (source-text (write-to-string (cst:raw form))))
+    (make-instance finding-class
+      :inspector inspector
+      :severity severity
+      :observation observation
+      :rationale rationale
+      :file *current-pathname*
+      :line (car start-lc)
+      :column (cdr start-lc)
+      :end-line (car end-lc)
+      :end-column (cdr end-lc)
+      :source-text source-text
+      :cst-node form
+      :cst-root *current-cst-root*)))
+
+
+;;;;
+;;;; INSPECT-FILE methods for SYNTAX-INSPECTOR
+;;;;
+
+(defmethod inspect-file ((inspector syntax-inspector) (pathname pathname))
+  "Parse PATHNAME with Eclector and delegate to the list-of-forms method.
+Binds *CURRENT-PATHNAME* and *CURRENT-LINE-VECTOR* for syntax inspection.
+Returns NIL without error when the file cannot be parsed."
+  (let ((forms (parse-lisp-file pathname)))
+    (when forms
+      (let ((*current-pathname* pathname)
+            (*current-line-vector* (read-file-into-line-vector pathname)))
+        (inspect-file inspector forms)))))
+
+(defmethod inspect-file ((inspector syntax-inspector) (forms list))
+  "Walk top-level CST FORMS and call INSPECT-SYNTAX on each.
+Binds *CURRENT-CST-ROOT* to FORMS. *CURRENT-PATHNAME* and
+*CURRENT-LINE-VECTOR* must already be bound by the caller."
+  (let ((*current-cst-root* forms))
+    (loop :for form :in forms
+          :for form-findings = (inspect-syntax inspector form)
+          :when form-findings
+          :nconc form-findings)))
+
+
 (defmethod inspect-file ((inspector line-inspector) (pathname pathname))
   "Read PATHNAME into lines and delegate to the VECTOR method.
 Bind *CURRENT-PATHNAME* so inspectors can reference the file."
@@ -112,46 +227,74 @@ Return FINDING unchanged if no override applies."
 
 
 ;;;;
-;;;; Runner
+;;;; Inspection Pipeline
 ;;;;
 
-(defun run-file-inspectors (pathname project-configuration linter-configuration)
-  "Run all registered inspectors on PATHNAME in pipeline order.
-Stage 1: run file-inspector instances on the pathname.
-Stage 2: read the file into lines once, run line-inspector instances
-on the line vector via INSPECT-FILE.
-Bind *CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION*
-for inspectors to access. Return a list of findings."
+(defun perform-file-inspection (pathname linter-configuration)
+  "Run all registered file-level inspectors on PATHNAME.
+Return a list of findings from file-inspector instances, applying any
+severity overrides from LINTER-CONFIGURATION."
+  (declare (type pathname pathname)
+           (values list))
+  (let ((file-inspectors
+          (collect-inspectors-by-level 'file-inspector linter-configuration)))
+    (loop :for inspector-instance :in file-inspectors
+          :for inspector-findings = (inspect-file inspector-instance pathname)
+          :when inspector-findings
+          :nconc (collect-and-override-findings
+                  inspector-instance inspector-findings linter-configuration))))
+
+(defun perform-line-inspection (pathname linter-configuration)
+  "Run all registered line-level inspectors on PATHNAME.
+Reads the file into a line vector once and runs each line-inspector via
+INSPECT-FILE. Return a list of findings, applying any severity overrides
+from LINTER-CONFIGURATION."
+  (declare (type pathname pathname)
+           (values list))
+  (let ((line-inspectors
+          (collect-inspectors-by-level 'line-inspector linter-configuration)))
+    (when line-inspectors
+      (let ((lines (read-file-into-line-vector pathname))
+            (*current-pathname* pathname))
+        (loop :for inspector-instance :in line-inspectors
+              :for inspector-findings = (inspect-file inspector-instance lines)
+              :when inspector-findings
+              :nconc (collect-and-override-findings
+                      inspector-instance inspector-findings linter-configuration))))))
+
+(defun perform-syntax-inspection (pathname linter-configuration)
+  "Run all registered syntax-level inspectors on PATHNAME.
+Parses the file with Eclector once and reads the line vector once; both
+are shared across all syntax inspectors. Return a list of findings, or
+NIL when the file cannot be parsed by Eclector."
+  (declare (type pathname pathname)
+           (values list))
+  (let ((syntax-inspectors
+          (collect-inspectors-by-level 'syntax-inspector linter-configuration)))
+    (when syntax-inspectors
+      (let ((forms (parse-lisp-file pathname)))
+        (when forms
+          (let ((*current-pathname* pathname)
+                (*current-line-vector* (read-file-into-line-vector pathname))
+                (*current-cst-root* forms))
+            (loop :for inspector-instance :in syntax-inspectors
+                  :for inspector-findings = (inspect-file inspector-instance forms)
+                  :when inspector-findings
+                  :nconc (collect-and-override-findings
+                          inspector-instance inspector-findings linter-configuration))))))))
+
+(defun perform-inspection (pathname project-configuration linter-configuration)
+  "Run the full inspection pipeline on PATHNAME and return a combined list of findings.
+Executes three stages in order: file inspection, line inspection, syntax inspection.
+Binds *CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION* for the
+duration so inspectors and helpers can access them."
   (declare (type pathname pathname)
            (values list))
   (let ((*current-project-configuration* project-configuration)
-        (*current-linter-configuration* linter-configuration)
-        (findings nil))
-    ;; Stage 1: file inspectors
-    (let ((file-inspectors
-            (collect-inspectors-by-level 'file-inspector linter-configuration)))
-      (loop :for inspector-instance :in file-inspectors
-            :for inspector-findings = (inspect-file inspector-instance pathname)
-            :when inspector-findings
-            :do (setf findings
-                      (nconc findings
-                             (collect-and-override-findings
-                              inspector-instance inspector-findings
-                              linter-configuration)))))
-    ;; Stage 2: line inspectors (read file once)
-    (let ((line-inspectors
-            (collect-inspectors-by-level 'line-inspector linter-configuration)))
-      (when line-inspectors
-        (let ((lines (read-file-into-line-vector pathname))
-              (*current-pathname* pathname))
-          (loop :for inspector-instance :in line-inspectors
-                :for inspector-findings = (inspect-file inspector-instance lines)
-                :when inspector-findings
-                :do (setf findings
-                          (nconc findings
-                                 (collect-and-override-findings
-                                  inspector-instance inspector-findings
-                                  linter-configuration)))))))
-    findings))
+        (*current-linter-configuration* linter-configuration))
+    (nconc
+     (perform-file-inspection pathname linter-configuration)
+     (perform-line-inspection pathname linter-configuration)
+     (perform-syntax-inspection pathname linter-configuration))))
 
 ;;;; End of file `runner.lisp'

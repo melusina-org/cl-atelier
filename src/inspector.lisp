@@ -207,7 +207,54 @@ on each. Return a list of findings for the line, or NIL."
   `(define-inspector ,name (region-inspector) ,lambda-list ,@body))
 
 (defmacro define-syntax-inspector (name lambda-list &body body)
-  "Define a syntax-level inspector. Convenience wrapper for DEFINE-INSPECTOR."
-  `(define-inspector ,name (syntax-inspector) ,lambda-list ,@body))
+  "Define a syntax-level inspector named NAME.
+LAMBDA-LIST is the parameter list for the INSPECT-SYNTAX method — typically
+just (form), where FORM is a top-level CST node. The generated method
+dispatches on the inspector class; INSPECT-SYNTAX is called once per
+top-level form by the runtime.
+
+Example:
+  (define-syntax-inspector check-earmuffs (form)
+    \"Check DEFVAR names for earmuffs convention.\"
+    ...)"
+  (check-type name symbol)
+  (multiple-value-bind (docstring options body-forms)
+      (parse-define-body body)
+    (declare (ignore options))
+    `(progn
+       (defclass ,name (syntax-inspector)
+         ()
+         ,@(when docstring
+             `((:documentation ,docstring))))
+       (setf (gethash ',name *inspectors*)
+             (make-instance ',name
+               :name ',name
+               :description ,docstring))
+       ,@(when body-forms
+           `((defmethod inspect-syntax ((inspector ,name) ,@lambda-list)
+               ,@(when docstring (list docstring))
+               (declare (ignorable inspector))
+               ,@body-forms)))
+       ',name)))
+
+
+;;;;
+;;;; CST Form Helpers
+;;;;
+
+(defun cst-form-operator (form)
+  "Return the operator symbol (first element raw value) of CST FORM.
+Return NIL if FORM is not a cons node."
+  (declare (type concrete-syntax-tree:cst form)
+           (values t))
+  (when (cst:consp form)
+    (cst:raw (cst:first form))))
+
+(defun cst-form-operator-p (form operator)
+  "Return T if CST FORM is a cons whose operator is EQ to OPERATOR."
+  (declare (type concrete-syntax-tree:cst form)
+           (type symbol operator)
+           (values boolean))
+  (eq (cst-form-operator form) operator))
 
 ;;;; End of file `inspector.lisp'

@@ -242,24 +242,29 @@ diagnostics spanning multiple lines without precise column information."))
 ;;;; Concrete Finding Subclasses
 ;;;;
 
-(defclass encoding-finding (file-finding)
-  ()
-  (:documentation "A file is not valid UTF-8."))
+(defmacro define-finding (name parent documentation)
+  "Define a concrete finding subclass NAME inheriting from PARENT."
+  `(defclass ,name (,parent) () (:documentation ,documentation)))
 
-(defclass spdx-license-header-finding (file-finding)
-  ()
-  (:documentation "A file has a missing or incorrect SPDX license identifier."))
+(defmacro define-findings (&rest specs)
+  "Define multiple concrete finding subclasses.
+Each SPEC is (PARENT NAME DOCUMENTATION), ordered so that lines sort
+meaningfully by parent class."
+  `(progn
+     ,@(mapcar (lambda (spec)
+                 (destructuring-bind (parent name documentation) spec
+                   `(define-finding ,name ,parent ,documentation)))
+               specs)))
 
-(defclass trailing-whitespace-finding (line-finding)
-  ()
-  (:documentation "A source line has trailing whitespace."))
-
-(defclass line-too-long-finding (line-finding)
-  ()
-  (:documentation "A source line exceeds the maximum length."))
-
-(defclass mixed-indentation-finding (line-finding)
-  ()
-  (:documentation "A source line uses the wrong indentation character."))
+(define-findings
+  (file-finding   encoding-finding             "A file is not valid UTF-8.")
+  (file-finding   spdx-license-header-finding  "A file has a missing or incorrect SPDX license identifier.")
+  (line-finding   line-too-long-finding        "A source line exceeds the maximum length.")
+  (line-finding   mixed-indentation-finding    "A source line uses the wrong indentation character.")
+  (line-finding   trailing-whitespace-finding  "A source line has trailing whitespace.")
+  (syntax-finding bare-lambda-finding          "A higher-order function call uses a bare LAMBDA instead of a named FLET function.")
+  (syntax-finding bare-loop-keyword-finding    "A LOOP form uses a bare symbol for a clause keyword instead of a keyword symbol.")
+  (syntax-finding constant-naming-finding      "A DEFCONSTANT constant name lacks the +plus-surrounded+ convention.")
+  (syntax-finding earmuffs-finding             "A DEFVAR or DEFPARAMETER variable name lacks the *earmuffs* convention."))
 
 ;;;; End of file `finding.lisp'

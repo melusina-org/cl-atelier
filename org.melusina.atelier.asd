@@ -39,7 +39,11 @@
 		   (:file "check-spdx-license-header")
 		   (:file "check-trailing-whitespace")
 		   (:file "check-line-length")
-		   (:file "check-mixed-indentation")))
+		   (:file "check-mixed-indentation")
+		   (:file "check-earmuffs")
+		   (:file "check-constant-naming")
+		   (:file "check-bare-lambda")
+		   (:file "check-loop-keywords")))
 		 (:file "main")))))
 
 (asdf:defsystem #:org.melusina.atelier/legacy
@@ -84,7 +88,11 @@
 		   (:file "check-spdx-license-header")
 		   (:file "check-trailing-whitespace")
 		   (:file "check-line-length")
-		   (:file "check-mixed-indentation")))
+		   (:file "check-mixed-indentation")
+		   (:file "check-earmuffs")
+		   (:file "check-constant-naming")
+		   (:file "check-bare-lambda")
+		   (:file "check-loop-keywords")))
 		 (:module "legacy-inspector"
 		  :pathname "inspector"
 		  :components

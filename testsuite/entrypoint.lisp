@@ -30,6 +30,10 @@
   (testsuite-check-trailing-whitespace)
   (testsuite-check-line-length)
   (testsuite-check-mixed-indentation)
+  (testsuite-check-earmuffs)
+  (testsuite-check-constant-naming)
+  (testsuite-check-bare-lambda)
+  (testsuite-check-loop-keywords)
   (testsuite-linter)
   (testsuite-template))
 

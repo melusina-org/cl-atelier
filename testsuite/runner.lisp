@@ -13,34 +13,34 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-run-file-inspectors ()
+(define-testcase validate-perform-inspection ()
   "Verify that the runner calls file and line inspectors and collects findings."
   (let* ((fixture-path (merge-pathnames "missing-spdx.lisp"
                                         (testsuite-fixtures-directory)))
-         (findings (atelier:run-file-inspectors fixture-path nil nil)))
+         (findings (atelier:perform-inspection fixture-path nil nil)))
     (assert-t (not (null findings)))
     (assert-t (every (lambda (finding)
                        (typep finding 'atelier:finding))
                      findings))))
 
-(define-testcase validate-run-file-inspectors-respects-policy ()
+(define-testcase validate-perform-inspection-respects-policy ()
   "Verify that the runner skips disabled inspectors."
   (let* ((fixture-path (merge-pathnames "missing-spdx.lisp"
                                         (testsuite-fixtures-directory)))
          (all-inspector-names (atelier:list-inspectors))
          (policy (atelier:make-linter-configuration
                    :disabled-inspectors all-inspector-names))
-         (findings (atelier:run-file-inspectors fixture-path nil policy)))
+         (findings (atelier:perform-inspection fixture-path nil policy)))
     (assert-t (null findings))))
 
-(define-testcase validate-run-file-inspectors-severity-override ()
+(define-testcase validate-perform-inspection-severity-override ()
   "Verify that severity overrides are applied to findings."
   (let* ((fixture-path (merge-pathnames "missing-spdx.lisp"
                                         (testsuite-fixtures-directory)))
          (policy (atelier:make-linter-configuration
                    :severity-overrides
                    '((atelier:check-spdx-license-header . :error))))
-         (findings (atelier:run-file-inspectors fixture-path nil policy)))
+         (findings (atelier:perform-inspection fixture-path nil policy)))
     (flet ((spdx-finding-p (finding)
              (eq 'atelier:check-spdx-license-header
                  (atelier:finding-inspector finding))))
@@ -49,8 +49,8 @@
         (assert-eq :error (atelier:finding-severity (first spdx-findings)))))))
 
 (define-testcase testsuite-runner ()
-  (validate-run-file-inspectors)
-  (validate-run-file-inspectors-respects-policy)
-  (validate-run-file-inspectors-severity-override))
+  (validate-perform-inspection)
+  (validate-perform-inspection-respects-policy)
+  (validate-perform-inspection-severity-override))
 
 ;;;; End of file `runner.lisp'
