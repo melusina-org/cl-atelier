@@ -14,6 +14,7 @@ _Nothing in progress._
 | [003-line-level-inspectors](slice/003-line-level-inspectors/slice.md) | Bet | G2 | ✅ |
 | [004-cst-inspectors](slice/004-cst-inspectors/slice.md) | Bet | G2 | ✅ |
 | [005-autofix-pipeline](slice/005-autofix-pipeline/slice.md) | Bet | G2, G4 | ✅ |
+| [006-linter-refinements](slice/006-linter-refinements/slice.md) | Bet | G2 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
@@ -73,3 +74,4 @@ _Nothing in progress._
 | 2026-04-07 | Slice 004 completed — verdict ✅ Supported. Moved to Completed |
 | 2026-04-07 | Slice 005 (autofix pipeline + pretty-printer) added to Now. Resolves backlog #23 (pretty-printer decision: CL built-in pprint, not third-party) |
 | 2026-04-07 | Slice 005 completed — verdict ✅ Validated. Moved to Completed. 7 automatic maintainers delivered (target was 6). |
+| 2026-04-07 | Slice 006 (linter refinements) added and completed. Legacy system removed. SPDX headers, fixture reorg, autofix signalling, project configuration. 13 inspectors, 10 maintainers. |

@@ -1,6 +1,6 @@
 # Slice 006: Linter Refinements
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** Bet
 **Goal:** G2 — Linter covers file, line, region, and CST level with ASDF integration
 **Hypothesis assumption:** Three refinements — fixture auto-discovery, SPDX-driven header simplification, and autofix signalling — can be delivered as a single coherent slice because they share the inspector/maintainer/resolution infrastructure.
