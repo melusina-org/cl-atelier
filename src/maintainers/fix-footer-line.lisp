@@ -17,7 +17,8 @@
     ((finding footer-line-finding))
   "Replace the last non-blank line with the canonical footer line."
   (let* ((filename (file-namestring (finding-file finding)))
-         (replacement (format nil ";;;; End of file `~A'" filename)))
+         (prefix (or (file-comment-prefix (finding-file finding)) ";;;; "))
+         (replacement (format nil "~AEnd of file `~A'" prefix filename)))
     (make-text-resolution
      :maintainer 'fix-footer-line
      :finding finding

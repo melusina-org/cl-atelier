@@ -220,6 +220,7 @@
    #:check-header-line
    #:check-footer-line
    #:check-project-identification
+   #:file-comment-prefix
    #:lisp-source-file-p
    #:canonical-project-identification-text
 
