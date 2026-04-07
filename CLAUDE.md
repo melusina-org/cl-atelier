@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `org.melusina.atelier` is a Common Lisp developer toolbox providing:
 - **Project scaffolding** via a template system (`new-lisp-project`, `new-lisp-file`)
-- **A linter** for Common Lisp, Shell Script, and other source file types, extensible by companion ASDF systems
-- **License management** (MIT, GPL, CeCILL, Proprietary)
+- **A linter** with 13 inspectors, 10 automatic maintainers, autofix, and pretty-printer
+- **License management** (MIT, GPL, CeCILL, Proprietary) with SPDX identifiers
 
 ## Common Commands (REPL)
 
@@ -28,29 +28,34 @@ Run all tests:
 (atelier/testsuite:run-all-tests)
 ```
 
-Run a single test group (from `testsuite/entrypoint.lisp`):
-```lisp
-(atelier/testsuite:testsuite-linter)
-(atelier/testsuite:testsuite-template)
-```
-
 Run the linter on this project:
 ```lisp
 (ql:quickload "org.melusina.atelier/development")
 (atelier/development:lint)
 ```
 
+Lint with autofix:
+```lisp
+(atelier:lint-system "org.melusina.atelier" :autofix t)
+```
+
 ## ASDF Systems
 
 | System | Purpose |
 |--------|---------|
-| `org.melusina.atelier` | Main system (scaffolding, current linter) |
+| `org.melusina.atelier` | Main system: scaffolding, linter, inspectors, maintainers, pretty-printer |
 | `org.melusina.atelier/testsuite` | Test suite (uses `org.melusina.confidence`) |
 | `org.melusina.atelier/development` | Dev helpers: `lint`, `reload` |
-| `org.melusina.atelier/linter` | Redesigned linter engine (in progress — see `agent/`) |
-| `org.melusina.atelier/asdf` | ASDF `lint-op` and `linter-parameters` component (in progress) |
 
 ## Architecture
+
+### Project Configuration
+
+Each project has two `.sexp` configuration files:
+- **`project-configuration.sexp`** — project name, homepage, copyright, license. Declared as `asdf-project-configuration` component, or read directly from system source directory for Atelier's own system.
+- **`linter-configuration.sexp`** — disabled inspectors, severity overrides, indentation style, maintainer overrides. Declared as `asdf-linter-configuration` component.
+
+`project-configuration-parameter-bindings` bridges project configuration to the template system's `*parameter-bindings*`.
 
 ### Initialization
 
@@ -60,11 +65,9 @@ Run the linter on this project:
 
 Templates use `${PARAMETER_NAME}` placeholders. Parameter names are case- and separator-insensitive (`copyright-holder` = `COPYRIGHT_HOLDER`). `*parameter-bindings*` is the dynamic alist of replacements. `parameter-replace` does topological sorting of bindings to handle inter-parameter references.
 
-Block parameters (`:license-text`, `:license-header`) are handled differently: the replacement is indented to match the surrounding comment style.
-
 ### License Repository (`src/license.lisp`, `resource/license/`)
 
-License files are `.text` files with YAML front matter followed by two documents (header, full text), separated by `---`. Loaded into `*license-repository*` hash table keyed by keyword (e.g., `:mit`).
+License files are `.text` files with YAML front matter (`name:`, `spdx:`) followed by two documents (header, full text), separated by `---`. Loaded into `*license-repository*` hash table keyed by keyword (e.g., `:mit`). Each license has a `spdx-identifier` slot (e.g., `"MIT"`, `"LicenseRef-Proprietary"`).
 
 ### Template Repository (`src/template.lisp`, `resource/template/`)
 
@@ -74,59 +77,43 @@ Two template kinds:
 
 `write-template` dispatches on template type and destination (pathname, stream, or `t` for stdout). `new-lisp-project` is the top-level entry point.
 
-### Current Linter (`src/lint.lisp`, `src/inspector/`)
+### Linter
 
-**Linters** (registered in `*linter-table*` by file-type keyword) match files via a predicate DSL (`:has-suffix`, `:has-name`, `:has-shebang`, `:or`, `:and`) and carry three inspector lists: file, content, line.
+**Finding hierarchy:** `finding` > `file-finding` > `line-finding` > `syntax-finding`, plus `region-finding`. Concrete subclasses for each inspector (e.g., `trailing-whitespace-finding`, `bare-lambda-finding`).
 
-**Inspectors** are functions registered with `define-inspector` (keyed by keyword code in `*inspector-table*`). They return `nil` (no hint), a `hint` instance, a list of hints, or a modified string (for content/line inspectors that auto-fix).
+**Resolution hierarchy:** `resolution` > `text-resolution` (replacement string) | `syntax-resolution` (CST transform function) | `agent-resolution` (LLM prompt) | `composite-resolution` (ordered list).
 
-`*linter-interactive-p*` defaults to `t` when SWANK is connected. In batch mode, anomaly conditions are caught and the process exits with status 1 on any hint.
+**Inspector registry:** `*inspectors*` hash table. `define-file-inspector`, `define-line-inspector`, `define-syntax-inspector` macros. 13 inspectors:
+- File: `check-file-encoding`, `check-spdx-license-header`, `check-header-line`, `check-footer-line`, `check-project-identification`
+- Line: `check-trailing-whitespace`, `check-line-length`, `check-mixed-indentation`
+- Syntax (CST): `check-earmuffs`, `check-constant-naming`, `check-bare-lambda`, `check-loop-keywords`, `check-labels-for-flet`
 
-Built-in linter types: `plain-line-comment-linter` (Lisp, shell, make, Docker, TeX) and `plain-block-comment-linter`.
+**Maintainer registry:** `*maintainers*` hash table with superseding partial order. `define-automatic-maintainer` macro. 10 maintainers:
+- `fix-trailing-whitespace`, `fix-mixed-indentation`, `fix-earmuffs`, `fix-constant-naming`, `fix-bare-loop-keywords`, `fix-bare-lambda`, `fix-labels-to-flet`, `fix-header-line`, `fix-footer-line`, `fix-project-identification`
 
-### Redesigned Linter (in progress — `agent/SLICE-*.md`)
+**Maintainer maturity:** Each maintainer has a `:maturity` slot (`:stable` or `:experimental`). Experimental maintainers signal a warning instead of auto-applying in batch mode.
 
-The SLICE plans in `agent/` implement the linter architecture described in the README. Key concepts:
+**Autofix signalling:** During `lint-system :autofix t`, each resolution is signalled as `resolution-proposed` with `apply-resolution` and `skip-resolution` restarts. The `linter-configuration` can override per-maintainer disposition (`:auto`, `:interactive`, `:skip`).
 
-**Three analysis levels:** File-level (encoding, copyright), line-level (trailing whitespace, line length), and code-level (parsed structure via Eclector CST reader, SBCL compiler backend, or LLM backend via llama-server).
+**Comment style:** `file-comment-prefix` maps file extensions to comment prefixes: Lisp (`;;;; `), Shell/Make/Docker/Terraform (`# `), C/C++ (`// `), TeX (`% `), Autoconf (`dnl `).
 
-**Inspector identity via packages:** Each inspector is a Lisp symbol (e.g., `org.melusina.atelier.line:trailing-whitespace`). No separate string naming scheme.
+**Write-back engine:** `apply-resolutions-to-file` applies resolutions end-to-start via atomic write (tmpize + rename). `resolution-text-span` converts each resolution to `(start end replacement)`.
 
-**Findings → Advice:** Inspectors produce `finding` objects (pure observations). The runner consults the `policy` and advice providers to produce `advice` objects carrying an optional fix callable and recovery options.
-
-**Four dispositions:** `allow` (silent) < `warn` (report) < `deny` (report + fail) < `forbid` (deny + immune to suppression). Configured per inspector symbol, per package group, or project-wide default.
-
-**Condition/restart protocol:** Each advice is signalled as `atelier:inspector-warning` or `atelier:inspector-error` with four standard restarts: `accept-finding`, `apply-fix`, `suppress-inspector`, `skip-file`. In batch mode the runner invokes `apply-fix` automatically; in interactive mode (SLIME/SLY) the debugger presents restarts.
-
-**ASDF integration:** `atelier:lint-op` is a first-class operation. Policy is declared as a `atelier:linter-parameters` component in the system definition, pointing to a `.sexp` data file read with `*read-eval*` bound to `nil`.
-
-**Extensibility:** Any project can publish a companion ASDF system that calls `atelier:define-inspector` to register project-specific inspectors. Loading it is sufficient to activate them in subsequent `lint-op` runs.
-
-**Runtime dependencies:** The SBCL compiler backend and file-permissions inspector are `#+sbcl` guarded. `shellcheck`/`terraform` inspectors require the tools on `PATH`. The LLM backend requires a running llama-server instance and is disabled by default.
+**Pretty-printer:** `*atelier-pprint-dispatch*` is an isolated dispatch table. `pretty-print-form` emits indented Lisp at a given column.
 
 ### Resource Files (`resource/`)
 
-- `resource/license/*.text` — license definitions
+- `resource/license/*.text` — license definitions with SPDX identifiers
 - `resource/template/*.text` — file templates with YAML front matter
 - `*resourcedir*` is set at compile/load time from the system source directory, or overridden via `ATELIER_RESOURCEDIR` env var
 
 ## Code Conventions
 
 - Every source file begins with `;;;; filename — Description` and ends with `;;;; End of file 'filename'`.
+- Every source file has `;;;; SPDX-License-Identifier: MIT` after the copyright block.
 - LOOP clause keywords are always keyword symbols (`:for`, `:in`, `:collect`).
 - `MAPCAR`/`MAPCAN`/`REMOVE-IF` receive a named `FLET` function, never a bare `LAMBDA`.
+- `LABELS` is used only when local functions are mutually or self-recursive; otherwise use `FLET` (with nesting if needed).
 - Tests use `define-testcase` from `org.melusina.confidence`.
-- Current inspectors: `define-inspector :keyword-code function-name (args)`.
-- Redesigned inspectors (SLICE plans): `define-inspector package:symbol :level … :languages …`.
+- Test fixtures live in `testsuite/fixtures/{inspector,maintainer,pretty-print}/` with accessor functions `inspector-fixture`, `maintainer-fixture`, `pretty-printer-fixture`.
 - No SBCL-specific extensions without an explicit `#+sbcl` guard.
-
-## Implementation Status
-
-The `agent/` directory contains SLICE plans (`SLICE-0.md` through `SLICE-4.md`) implementing the linter architecture described in the README:
-- `SLICE-0` — core protocol (`inspector`/`finding`/`advice`/`policy`), condition/restart protocol, ASDF `lint-op`
-- `SLICE-1` — file and line inspectors
-- `SLICE-2` — code inspectors (Eclector CST backend)
-- `SLICE-3` — SBCL compiler backend
-- `SLICE-4` — LLM backend (llama-server)
-
-The existing `src/lint.lisp` and `src/inspector/` contain the current (pre-redesign) linter, which remains functional.
