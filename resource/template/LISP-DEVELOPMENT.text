@@ -38,15 +38,8 @@ name: Lisp development file
     (:license . :${LICENSE_IDENTIFIER})))
 
 (defun lint ()
-  (let ((atelier:*parameter-bindings* *parameter-bindings*))
-    (atelier/legacy:lint
-     (system-relative-pathname
-      #p"${PROJECT_FILENAME}.asd"
-      #p"development"
-      #p"doc"
-      #p"src"
-      #p"test"
-      #p"libexec/lisp/development.lisp"))))
+  "Lint the project using the new-style linter."
+  (atelier:lint-system "${LISP_SYSTEM_NAME}"))
 
 #+quicklisp
 (defun reload ()

@@ -22,7 +22,6 @@
   (testsuite-resolution)
   (testsuite-inspector)
   (testsuite-maintainer)
-  (testsuite-bridge)
   (testsuite-runner)
   (testsuite-asdf)
   (testsuite-check-file-encoding)
@@ -51,7 +50,6 @@
   (testsuite-fix-footer-line)
   (testsuite-fix-project-identification)
   (testsuite-autofix)
-  (testsuite-linter)
   (testsuite-template))
 
 ;;;; End of file `entrypoint.lisp'

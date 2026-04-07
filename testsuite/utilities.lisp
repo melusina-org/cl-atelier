@@ -37,25 +37,6 @@
      ,@body-forms))
   
 
-(defmacro with-fixed-linter-environment (&body body-forms)
-  `(let ((atelier:*parameter-bindings*
-	   '((:copyright-holder . "A. U. Thor")
-             (:copyright-year . "2017–2022")
-	     (:project-filename . "net.cl-user.acme.example")
-             (:project-name . "Example")
-	     (:project-description . "Example for Atelier test")
-             (:project-long-description .
-	      "The Example for the Atelier test.")
-             (:homepage . "https://cl-user.net/acme/example")
-             (:license . :cecill-b)))
-	 (atelier/legacy::*hint-pathname*
-	   "test.lisp"))
-     (handler-bind
-	 ((atelier/legacy::anomaly
-	    (lambda (c)
-	      (declare (ignore c))
-	      (invoke-restart 'atelier/legacy::autocorrect))))
-       ,@body-forms)))
 
 
 ;;;;

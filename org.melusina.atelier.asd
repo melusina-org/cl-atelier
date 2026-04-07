@@ -64,27 +64,11 @@
 		   (:file "fix-project-identification")))
 		 (:file "main")))))
 
-(asdf:defsystem #:org.melusina.atelier/legacy
-  :description "Legacy linter for Atelier"
-  :author "Michaël Le Barbier"
-  :depends-on (#:org.melusina.atelier)
-  :components
-  ((:module "src/legacy"
-    :components ((:file "package")
-                 (:file "lint")
-		 (:module "inspector"
-		  :components
-		  ((:file "codestyle-0003")
-		   (:file "codestyle-0004")
-		   (:file "codestyle-0005")))
-		 (:file "bridge")))))
-
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"
   :author "Michaël Le Barbier"
   :depends-on (#:alexandria
 	       #:org.melusina.atelier
-	       #:org.melusina.atelier/legacy
 	       #:org.melusina.confidence)
   :components
   ((:module "testsuite"
@@ -97,7 +81,6 @@
 		 (:file "resolution")
 		 (:file "inspector")
 		 (:file "maintainer")
-		 (:file "bridge")
 		 (:file "runner")
 		 (:file "asdf")
 		 (:module "inspectors"
@@ -130,21 +113,13 @@
 		   (:file "fix-footer-line")
 		   (:file "fix-project-identification")))
 		 (:file "autofix")
-		 (:module "legacy-inspector"
-		  :pathname "inspector"
-		  :components
-		  ((:file "codestyle-0003")
-		   (:file "codestyle-0004")
-		   (:file "codestyle-0005")))
-		 (:file "lint")
 		 (:file "entrypoint")))))
 
 (asdf:defsystem #:org.melusina.atelier/development
   :description "Development tools for Atelier"
   :author "Michaël Le Barbier"
   :license "MIT License"
-  :depends-on (#:org.melusina.atelier
-	       #:org.melusina.atelier/legacy)
+  :depends-on (#:org.melusina.atelier)
   :components
   ((:module "libexec/lisp"
     :components ((:file "development")))))
