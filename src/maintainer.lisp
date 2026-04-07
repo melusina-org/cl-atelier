@@ -40,7 +40,14 @@
     :reader maintainer-description
     :type (or null string)
     :initform nil
-    :documentation "A human-readable description of the maintainer."))
+    :documentation "A human-readable description of the maintainer.")
+   (maturity
+    :initarg :maturity
+    :reader maintainer-maturity
+    :type (member :stable :experimental)
+    :initform :stable
+    :documentation "Maturity of this maintainer. :EXPERIMENTAL maintainers
+signal a warning instead of auto-applying in batch mode."))
   (:documentation "Base class for all maintainers.
 Each concrete maintainer is a subclass with a singleton instance in
 the registry. Maintainers participate in a superseding partial order."))
@@ -136,6 +143,7 @@ docstring, followed by keyword options, then body forms.
 
 Keyword options:
   (:supersedes LIST-OF-NAMES) — maintainer names this one supersedes.
+  (:maturity KEYWORD) — :STABLE (default) or :EXPERIMENTAL.
 
 Example:
   (define-maintainer fix-spdx-license-header (automatic-maintainer)
@@ -146,7 +154,8 @@ Example:
   (check-type name symbol)
   (multiple-value-bind (docstring options body-forms)
       (parse-define-body body)
-    (let ((supersedes (second (find :supersedes options :key #'first))))
+    (let ((supersedes (second (find :supersedes options :key #'first)))
+          (maturity (or (second (find :maturity options :key #'first)) :stable)))
       `(progn
          (defclass ,name (,@direct-superclasses)
            ()
@@ -156,6 +165,7 @@ Example:
                (make-instance ',name
                  :name ',name
                  :supersedes ,supersedes
+                 :maturity ,maturity
                  :description ,docstring))
          ,@(when body-forms
              `((defmethod prepare-resolution ((maintainer ,name) ,@lambda-list)

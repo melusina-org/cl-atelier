@@ -135,15 +135,23 @@ The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
     :reader linter-configuration-indentation-style
     :type (member :spaces :tabs)
     :initform :spaces
-    :documentation "The indentation style for the project: :SPACES or :TABS."))
+    :documentation "The indentation style for the project: :SPACES or :TABS.")
+   (maintainer-overrides
+    :initarg :maintainer-overrides
+    :reader linter-configuration-maintainer-overrides
+    :type list
+    :initform nil
+    :documentation "Alist of (maintainer-name . disposition) overrides.
+Disposition is :AUTO, :INTERACTIVE, or :SKIP."))
   (:documentation "Linter policy configuration for an ASDF system.
 Read from a .sexp file declared as an ASDF component."))
 
 (defun make-linter-configuration (&rest initargs
                                   &key disabled-inspectors severity-overrides
-                                       indentation-style)
+                                       indentation-style maintainer-overrides)
   "Create and return a LINTER-CONFIGURATION."
-  (declare (ignore disabled-inspectors severity-overrides indentation-style))
+  (declare (ignore disabled-inspectors severity-overrides
+                   indentation-style maintainer-overrides))
   (apply #'make-instance 'linter-configuration initargs))
 
 (defmethod print-object ((instance linter-configuration) stream)
@@ -186,6 +194,48 @@ The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
   ()
   (:default-initargs :type "sexp")
   (:documentation "An ASDF component pointing to a linter configuration .sexp file."))
+
+
+;;;;
+;;;; Resolution Proposed Condition
+;;;;
+
+(define-condition resolution-proposed ()
+  ((resolution
+    :initarg :resolution
+    :reader resolution-proposed-resolution
+    :documentation "The resolution being proposed.")
+   (finding
+    :initarg :finding
+    :reader resolution-proposed-finding
+    :documentation "The finding this resolution addresses.")
+   (maintainer-name
+    :initarg :maintainer-name
+    :reader resolution-proposed-maintainer-name
+    :documentation "The symbol naming the maintainer that produced this resolution."))
+  (:report (lambda (condition stream)
+             (format stream "Resolution proposed by ~S: ~A"
+                     (resolution-proposed-maintainer-name condition)
+                     (resolution-description
+                      (resolution-proposed-resolution condition)))))
+  (:documentation "Signalled during autofix before applying a resolution.
+Provides APPLY-RESOLUTION and SKIP-RESOLUTION restarts."))
+
+(defun effective-maintainer-disposition (maintainer-name)
+  "Return the effective disposition for MAINTAINER-NAME.
+Checks *LINTER-CONFIGURATION* overrides first, then falls back to the
+maintainer's maturity: :STABLE → :AUTO, :EXPERIMENTAL → :INTERACTIVE."
+  (declare (type symbol maintainer-name))
+  (let ((override (when *linter-configuration*
+                    (assoc maintainer-name
+                           (linter-configuration-maintainer-overrides *linter-configuration*)
+                           :test #'eq))))
+    (if override
+        (cdr override)
+        (let ((maintainer (find-maintainer maintainer-name)))
+          (if (and maintainer (eq :experimental (maintainer-maturity maintainer)))
+              :interactive
+              :auto)))))
 
 
 ;;;;
@@ -276,19 +326,48 @@ the final inspection pass."
                    :nconc (perform-inspection pathname)))
            (resolutions-for-findings (findings)
              ;; Only line-findings carry line/column positions for TEXT-RESOLUTION.
-             ;; Group non-nil production resolutions by file.
+             ;; Group non-nil production resolutions by file, signalling
+             ;; RESOLUTION-PROPOSED for each and respecting dispositions.
              (flet ((production-resolution-p (resolution)
-                      ;; Accept only resolutions from maintainers whose package name
-                      ;; does not contain "TEST". This prevents test maintainers loaded
-                      ;; into the same image from corrupting production source files.
                       (let ((pkg-name (package-name
                                        (symbol-package (resolution-maintainer resolution)))))
-                        (not (search "TEST" pkg-name :test #'char-equal)))))
+                        (not (search "TEST" pkg-name :test #'char-equal))))
+                    (accept-resolution-p (resolution)
+                      ;; Signal resolution-proposed with restarts.
+                      ;; Returns T if the resolution should be applied.
+                      (let* ((maint-name (resolution-maintainer resolution))
+                             (disposition (effective-maintainer-disposition maint-name)))
+                        (case disposition
+                          (:skip nil)
+                          (:interactive
+                           ;; Experimental or interactive: signal as warning.
+                           (restart-case
+                               (progn
+                                 (warn 'resolution-proposed
+                                       :resolution resolution
+                                       :finding (resolution-finding resolution)
+                                       :maintainer-name maint-name)
+                                 ;; If warning is not handled, skip in batch.
+                                 nil)
+                             (apply-resolution () :report "Apply this resolution." t)
+                             (skip-resolution () :report "Skip this resolution." nil)))
+                          (otherwise
+                           ;; :auto — signal and auto-apply.
+                           (restart-case
+                               (progn
+                                 (signal 'resolution-proposed
+                                         :resolution resolution
+                                         :finding (resolution-finding resolution)
+                                         :maintainer-name maint-name)
+                                 t)
+                             (apply-resolution () :report "Apply this resolution." t)
+                             (skip-resolution () :report "Skip this resolution." nil)))))))
                (let ((by-file (make-hash-table :test 'equal)))
                  (dolist (finding findings)
                    (when (typep finding 'line-finding)
                      (dolist (resolution (resolve-finding finding))
-                       (when (production-resolution-p resolution)
+                       (when (and (production-resolution-p resolution)
+                                  (accept-resolution-p resolution))
                          (push resolution (gethash (finding-file finding) by-file))))))
                  by-file)))
            (apply-all-resolutions (resolutions-by-file)

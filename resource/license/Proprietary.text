@@ -1,5 +1,6 @@
 ---
-name: Proprietary softwarce license
+name: Proprietary software license
+spdx: LicenseRef-Proprietary
 ---
 Unauthorized copying of this file, via any medium is strictly
 prohibited. This software is proprietary and confidential.

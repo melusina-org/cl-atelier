@@ -72,6 +72,7 @@
    #:license-name
    #:license-header
    #:license-text
+   #:license-spdx-identifier
    #:find-license
    #:template-repository-empty-p
 
@@ -151,6 +152,7 @@
    #:maintainer-name
    #:maintainer-supersedes
    #:maintainer-kind
+   #:maintainer-maturity
    #:maintainer-description
    #:list-maintainers
 
@@ -251,11 +253,17 @@
    #:linter-configuration-disabled-inspectors
    #:linter-configuration-severity-overrides
    #:linter-configuration-indentation-style
+   #:linter-configuration-maintainer-overrides
    #:read-linter-configuration
    #:*project-configuration*
    #:*linter-configuration*
    #:asdf-project-configuration
    #:asdf-linter-configuration
+   #:resolution-proposed
+   #:resolution-proposed-resolution
+   #:resolution-proposed-finding
+   #:resolution-proposed-maintainer-name
+   #:effective-maintainer-disposition
    #:linter-op
    #:lint-system
 

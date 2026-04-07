@@ -39,7 +39,12 @@
     :initarg :identifier
     :reader license-id
     :initform nil
-    :documentation "The ID of the license in the SPDX database."))
+    :documentation "The ID of the license in the SPDX database.")
+   (spdx-identifier
+    :initarg :spdx-identifier
+    :reader license-spdx-identifier
+    :initform nil
+    :documentation "The SPDX short identifier, e.g. \"MIT\", \"GPL-2.0-only\", \"LicenseRef-Proprietary\"."))
   (:documentation
    "This class presents the various characteristics of a software license."))
 
@@ -63,6 +68,7 @@ The file format is expected to have three documents separated by '---':
       (assoc-value front-matter :id)
       (assoc-value front-matter :identifier)
       (make-keyword (string-upcase (pathname-name pathname))))
+     :spdx-identifier (assoc-value front-matter :spdx)
      :header (join-lines (first documents))
      :text (join-lines (second documents)))))
 
