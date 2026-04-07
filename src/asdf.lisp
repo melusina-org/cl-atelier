@@ -263,25 +263,43 @@ returns a default instance, emitting a warning for non-Atelier systems."
 Return a list of findings. Reads project and linter configuration from
 ASDF components when present; otherwise uses sensible defaults.
 When AUTOFIX is true, applies automatic resolutions for each finding
-that has a registered maintainer, grouped by file. Returns the full
-findings list regardless of which were fixed."
+that has a registered maintainer, grouped by file, then re-inspects
+each modified file until no further fixable findings remain or the
+per-file pass limit is reached. Returns the full findings list from
+the final inspection pass."
   (let* ((system (asdf:find-system system-designator))
          (*project-configuration* (load-system-project-configuration system))
-         (*linter-configuration* (load-system-linter-configuration system))
-         (findings (loop :for pathname :in (collect-system-source-files system)
-                         :nconc (perform-inspection pathname))))
-    (when autofix
-      ;; Only line-findings have line/column positions that TEXT-RESOLUTION requires.
-      (let ((resolutions-by-file (make-hash-table :test 'equal)))
-        (dolist (finding findings)
-          (when (typep finding 'line-finding)
-            (dolist (resolution (resolve-finding finding))
-              (push resolution (gethash (finding-file finding) resolutions-by-file)))))
-        ;; Apply each file's resolutions end-to-start.
-        (maphash (lambda (pathname resolutions)
-                   (apply-resolutions-to-file pathname (nreverse resolutions)))
-                 resolutions-by-file)))
-    findings))
+         (*linter-configuration* (load-system-linter-configuration system)))
+    (flet ((inspect-system ()
+             ;; Collect findings from every source file in the system.
+             (loop :for pathname :in (collect-system-source-files system)
+                   :nconc (perform-inspection pathname)))
+           (resolutions-for-findings (findings)
+             ;; Only line-findings carry line/column positions for TEXT-RESOLUTION.
+             ;; Group non-nil resolutions by file.
+             (let ((by-file (make-hash-table :test 'equal)))
+               (dolist (finding findings)
+                 (when (typep finding 'line-finding)
+                   (dolist (resolution (resolve-finding finding))
+                     (push resolution (gethash (finding-file finding) by-file)))))
+               by-file))
+           (apply-all-resolutions (resolutions-by-file)
+             ;; Write each file back with its resolutions applied end-to-start.
+             (maphash (lambda (pathname resolutions)
+                        (apply-resolutions-to-file pathname (nreverse resolutions)))
+                      resolutions-by-file)))
+      (if (not autofix)
+          (inspect-system)
+          ;; Autofix loop: inspect → resolve → apply → re-inspect until clean.
+          ;; The pass limit guards against a maintainer that reintroduces the
+          ;; finding it was supposed to fix.
+          (loop :with findings = (inspect-system)
+                :repeat 10
+                :for resolutions-by-file = (resolutions-for-findings findings)
+                :while (plusp (hash-table-count resolutions-by-file))
+                :do (apply-all-resolutions resolutions-by-file)
+                    (setf findings (inspect-system))
+                :finally (return findings))))))
 
 
 ;;;;

@@ -79,37 +79,41 @@ the finding's column. Returns (values start end replacement-string)."
   "Apply RESOLUTIONS to the source file at PATHNAME.
 Reads the file into a string, converts each resolution to a text span
 via RESOLUTION-TEXT-SPAN, sorts spans by start-offset descending
-(end-to-start ordering per I17), applies each replacement, writes
-to a temporary file, then renames over PATHNAME atomically.
-Returns PATHNAME. Signals an error if any spans overlap."
+(end-to-start ordering per I17). When two consecutive spans overlap,
+the later one (lower start offset) is silently skipped — the caller is
+expected to re-inspect and retry rather than receive an error. Writes
+the non-overlapping replacements to a temporary file then renames over
+PATHNAME atomically. Returns PATHNAME."
   (declare (type pathname pathname)
            (type list resolutions)
            (values pathname))
-  (flet ((collect-span (resolution)
-           ;; Return a list (start end replacement) for one resolution.
-           (multiple-value-list (resolution-text-span resolution)))
-         (span-start (span) (first span))
-         (span-end (span) (second span))
-         (span-replacement (span) (third span))
-         (spans-overlap-p (a b)
-           ;; Spans are sorted descending by start: A has the higher start.
-           ;; [B.start, B.end) and [A.start, A.end) overlap iff B.end > A.start.
-           (> (second b) (first a))))
-    (let* ((spans (mapcar #'collect-span resolutions))
-           (sorted (sort spans #'> :key #'span-start)))
-      ;; Check for overlapping spans.
-      (loop :for (a b) :on sorted
-            :while b
-            :when (spans-overlap-p a b)
-              :do (error "Overlapping resolution spans at offsets ~D–~D and ~D–~D in ~A"
-                         (span-start a) (span-end a)
-                         (span-start b) (span-end b)
-                         pathname))
-      ;; Read the file content, apply replacements end-to-start.
+  (labels ((collect-span (resolution)
+              ;; Return a list (start end replacement) for one resolution.
+              (multiple-value-list (resolution-text-span resolution)))
+            (span-start (span) (first span))
+            (span-end   (span) (second span))
+            (span-replacement (span) (third span))
+            (spans-overlap-p (a b)
+              ;; Spans sorted descending by start: A has the higher start.
+              ;; [B.start, B.end) and [A.start, A.end) overlap iff B.end > A.start.
+              (> (second b) (first a)))
+            (remove-overlapping-spans (sorted)
+              ;; Walk the sorted list; skip any span that overlaps the previous
+              ;; accepted span.  Returns the compatible subset, preserving order.
+              (let ((accepted nil))
+                (dolist (span sorted)
+                  (when (or (null accepted)
+                            (not (spans-overlap-p (first accepted) span)))
+                    (push span accepted)))
+                (nreverse accepted))))
+    (let* ((spans   (mapcar #'collect-span resolutions))
+           (sorted  (sort spans #'> :key #'span-start))
+           (compatible (remove-overlapping-spans sorted)))
+      ;; Read the file content, apply non-overlapping replacements end-to-start.
       (let* ((content (uiop:read-file-string pathname :external-format :utf-8))
              (result
                (loop :with text = content
-                     :for span :in sorted
+                     :for span :in compatible
                      :do (setf text
                                (concatenate 'string
                                             (subseq text 0 (span-start span))
