@@ -20,8 +20,7 @@
 
 (define-testcase validate-check-constant-naming-violation ()
   "Verify that a DEFCONSTANT without +plus+ convention produces a CONSTANT-NAMING-FINDING."
-  (let ((fixture-path (merge-pathnames "constant-naming-bad.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-constant-naming "bad")))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-constant-naming-violation: ~A not found.~%" fixture-path)
       (return-from validate-check-constant-naming-violation nil))

@@ -20,8 +20,7 @@
 
 (define-testcase validate-check-earmuffs-correct ()
   "Verify that a file with correct *earmuffs* produces no findings."
-  (let ((fixture-path (merge-pathnames "earmuffs-good.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-earmuffs "good")))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-earmuffs-correct: ~A not found.~%" fixture-path)
       (return-from validate-check-earmuffs-correct nil))
@@ -31,8 +30,7 @@
 
 (define-testcase validate-check-earmuffs-violation ()
   "Verify that a file with missing earmuffs produces EARMUFFS-FINDING instances."
-  (let ((fixture-path (merge-pathnames "earmuffs-bad.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-earmuffs "bad")))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-earmuffs-violation: ~A not found.~%" fixture-path)
       (return-from validate-check-earmuffs-violation nil))

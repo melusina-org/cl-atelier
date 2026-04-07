@@ -79,8 +79,7 @@
 
 (define-testcase validate-check-labels-for-flet-violation ()
   "Verify that a LABELS with acyclic call graph produces a SPURIOUS-LABELS-FINDING."
-  (let ((fixture-path (merge-pathnames "spurious-labels.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-labels-for-flet "spurious")))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-labels-for-flet-violation: ~A not found.~%"
               fixture-path)
@@ -92,8 +91,7 @@
 
 (define-testcase validate-check-labels-for-flet-mutual-recursion-clean ()
   "Verify that a LABELS with mutual recursion produces no finding."
-  (let ((fixture-path (merge-pathnames "necessary-labels.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-labels-for-flet "necessary")))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-labels-for-flet-mutual-recursion-clean: ~A not found.~%"
               fixture-path)

@@ -20,8 +20,7 @@
 
 (define-testcase validate-check-loop-keywords-violation ()
   "Verify that a LOOP with bare clause keywords produces BARE-LOOP-KEYWORD-FINDING instances."
-  (let ((fixture-path (merge-pathnames "bare-loop-keywords.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-loop-keywords)))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-loop-keywords-violation: ~A not found.~%" fixture-path)
       (return-from validate-check-loop-keywords-violation nil))
@@ -32,8 +31,7 @@
 
 (define-testcase validate-check-loop-keywords-correct ()
   "Verify that a LOOP with keyword symbols produces no findings."
-  (let ((fixture-path (merge-pathnames "bare-loop-keywords.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-loop-keywords)))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-loop-keywords-correct: ~A not found.~%" fixture-path)
       (return-from validate-check-loop-keywords-correct nil))

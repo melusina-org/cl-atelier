@@ -67,6 +67,39 @@
   (merge-pathnames #p"testsuite/fixtures/"
                    (asdf:system-source-directory "org.melusina.atelier")))
 
+(defun inspector-fixture (inspector-name &optional (name "baseline"))
+  "Return the pathname of fixture NAME for INSPECTOR-NAME.
+INSPECTOR-NAME is a symbol like ATELIER:CHECK-BARE-LAMBDA.
+NAME defaults to \"baseline\". Extension is .lisp."
+  (declare (type symbol inspector-name)
+           (type string name))
+  (merge-pathnames
+   (make-pathname :directory (list :relative "testsuite" "fixtures" "inspector"
+                                   (string-downcase (symbol-name inspector-name)))
+                  :name name :type "lisp")
+   (asdf:system-source-directory "org.melusina.atelier")))
+
+(defun maintainer-fixture (maintainer-name &optional (name "baseline"))
+  "Return the pathname of fixture NAME for MAINTAINER-NAME.
+MAINTAINER-NAME is a symbol like ATELIER:FIX-BARE-LAMBDA.
+NAME defaults to \"baseline\". Extension is .text."
+  (declare (type symbol maintainer-name)
+           (type string name))
+  (merge-pathnames
+   (make-pathname :directory (list :relative "testsuite" "fixtures" "maintainer"
+                                   (string-downcase (symbol-name maintainer-name)))
+                  :name name :type "text")
+   (asdf:system-source-directory "org.melusina.atelier")))
+
+(defun pretty-printer-fixture (name)
+  "Return the pathname of pretty-printer fixture NAME.
+NAME is a string like \"flet-single-binding\". Extension is .text."
+  (declare (type string name))
+  (merge-pathnames
+   (make-pathname :directory '(:relative "testsuite" "fixtures" "pretty-print")
+                  :name name :type "text")
+   (asdf:system-source-directory "org.melusina.atelier")))
+
 
 ;;;;
 ;;;; File Utilities

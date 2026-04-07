@@ -20,8 +20,7 @@
 
 (define-testcase validate-check-bare-lambda-violation ()
   "Verify that MAPCAR with a bare LAMBDA produces a BARE-LAMBDA-FINDING."
-  (let ((fixture-path (merge-pathnames "bare-lambda.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-bare-lambda)))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-bare-lambda-violation: ~A not found.~%" fixture-path)
       (return-from validate-check-bare-lambda-violation nil))
@@ -33,8 +32,7 @@
 
 (define-testcase validate-check-bare-lambda-named-function ()
   "Verify that MAPCAR with a named function produces no finding."
-  (let ((fixture-path (merge-pathnames "bare-lambda.lisp"
-                                       (testsuite-fixtures-directory))))
+  (let ((fixture-path (inspector-fixture 'atelier:check-bare-lambda)))
     (unless (probe-file fixture-path)
       (format t "~&SKIP validate-check-bare-lambda-named-function: ~A not found.~%" fixture-path)
       (return-from validate-check-bare-lambda-named-function nil))
