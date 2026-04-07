@@ -3,7 +3,9 @@
 
 ## Now (in progress)
 
-*None — selecting next slice.*
+| Slice | Type | Goal addressed | Description |
+|-------|------|----------------|-------------|
+| [004-cst-inspectors](slice/004-cst-inspectors/slice.md) | Bet | G2 | CST-level inspectors: earmuffs, constant naming, bare lambda, bare loop keywords. Syntax inspector infrastructure. |
 
 ## Completed
 
@@ -67,3 +69,4 @@
 | 2026-04-06 | Slice 002 completed — verdict ✅ Supported. Moved to Completed |
 | 2026-04-06 | Slice 003 (line-level inspectors) added to Now |
 | 2026-04-07 | Slice 003 completed — verdict ✅ Supported. Moved to Completed |
+| 2026-04-07 | Slice 004 (CST-level inspectors) added to Now |
