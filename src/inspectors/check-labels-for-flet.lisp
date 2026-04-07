@@ -41,8 +41,12 @@ skipped. Returns a list of local names found."
                   (when (and (symbolp (first form))
                              (gethash (first form) local-set))
                     (pushnew (first form) result :test #'eq))
-                  (dolist (sub form)
-                    (walk sub))))))
+                  ;; Walk the cons structure; handle improper lists
+                  ;; (e.g. destructuring patterns like (KEY . VALUE)).
+                  (loop :for tail :on form
+                        :do (walk (car tail))
+                        :when (and (cdr tail) (atom (cdr tail)))
+                        :do (walk (cdr tail)))))))
       (dolist (form forms)
         (walk form)))
     result))

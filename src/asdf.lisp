@@ -356,9 +356,9 @@ the final inspection pass."
              ;; Group non-nil production resolutions by file, signalling
              ;; RESOLUTION-PROPOSED for each and respecting dispositions.
              (flet ((production-resolution-p (resolution)
-                      (let ((pkg-name (package-name
-                                       (symbol-package (resolution-maintainer resolution)))))
-                        (not (search "TEST" pkg-name :test #'char-equal))))
+                      (let ((pkg (symbol-package (resolution-maintainer resolution))))
+                        (and pkg
+                             (not (search "TEST" (package-name pkg) :test #'char-equal)))))
                     (accept-resolution-p (resolution)
                       ;; Signal resolution-proposed with restarts.
                       ;; Returns T if the resolution should be applied.
