@@ -22,4 +22,4 @@
      :description (format nil "Replace bare ~S with keyword form." keyword)
      :replacement replacement)))
 
-;;;; End of file 'fix-bare-loop-keywords.lisp'
+;;;; End of file `fix-bare-loop-keywords.lisp'

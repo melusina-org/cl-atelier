@@ -20,4 +20,4 @@
    :description "Remove trailing whitespace."
    :replacement ""))
 
-;;;; End of file 'fix-trailing-whitespace.lisp'
+;;;; End of file `fix-trailing-whitespace.lisp'

@@ -22,4 +22,4 @@
      :description (format nil "Add +plus-surrounded+ markers to ~S." name)
      :replacement replacement)))
 
-;;;; End of file 'fix-constant-naming.lisp'
+;;;; End of file `fix-constant-naming.lisp'

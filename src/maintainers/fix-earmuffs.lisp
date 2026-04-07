@@ -22,4 +22,4 @@
      :description (format nil "Add *earmuffs* to ~S." name)
      :replacement replacement)))
 
-;;;; End of file 'fix-earmuffs.lisp'
+;;;; End of file `fix-earmuffs.lisp'

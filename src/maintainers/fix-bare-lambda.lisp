@@ -123,4 +123,4 @@ and returns a TEXT-RESOLUTION spanning the full call."
          :description (format nil "Extract lambda to FLET ~S." flet-name)
          :replacement replacement)))))
 
-;;;; End of file 'fix-bare-lambda.lisp'
+;;;; End of file `fix-bare-lambda.lisp'

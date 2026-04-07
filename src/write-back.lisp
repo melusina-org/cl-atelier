@@ -84,46 +84,44 @@ PATHNAME atomically. Returns PATHNAME."
   (declare (type pathname pathname)
            (type list resolutions)
            (values pathname))
-  (labels ((collect-span (resolution)
-              ;; Return a list (start end replacement) for one resolution.
-              (multiple-value-list (resolution-text-span resolution)))
-            (span-start (span) (first span))
-            (span-end   (span) (second span))
-            (span-replacement (span) (third span))
-            (spans-overlap-p (a b)
-              ;; Spans sorted descending by start: A has the higher start.
-              ;; [B.start, B.end) and [A.start, A.end) overlap iff B.end > A.start.
-              (> (second b) (first a)))
-            (remove-overlapping-spans (sorted)
-              ;; Walk the sorted list; skip any span that overlaps the previous
-              ;; accepted span.  Returns the compatible subset, preserving order.
-              (let ((accepted nil))
-                (dolist (span sorted)
-                  (when (or (null accepted)
-                            (not (spans-overlap-p (first accepted) span)))
-                    (push span accepted)))
-                (nreverse accepted))))
-    (let* ((spans   (mapcar #'collect-span resolutions))
-           (sorted  (sort spans #'> :key #'span-start))
-           (compatible (remove-overlapping-spans sorted)))
-      ;; Read the file content, apply non-overlapping replacements end-to-start.
-      (let* ((content (uiop:read-file-string pathname :external-format :utf-8))
-             (result
-               (loop :with text = content
-                     :for span :in compatible
-                     :do (setf text
-                               (concatenate 'string
-                                            (subseq text 0 (span-start span))
-                                            (span-replacement span)
-                                            (subseq text (span-end span))))
-                     :finally (return text)))
-             (tmp (uiop:tmpize-pathname pathname)))
-        (with-open-file (stream tmp
-                                :direction :output
-                                :if-exists :supersede
-                                :external-format :utf-8)
-          (write-string result stream))
-        (uiop:rename-file-overwriting-target tmp pathname)
-        pathname))))
+  (flet ((collect-span (resolution)
+           (multiple-value-list (resolution-text-span resolution)))
+         (span-start (span)
+           (first span))
+         (span-end (span)
+           (second span))
+         (span-replacement (span)
+           (third span))
+         (spans-overlap-p (a b)
+           (> (second b) (first a))))
+    (flet ((remove-overlapping-spans (sorted)
+             (let ((accepted nil))
+               (dolist (span sorted)
+                 (when
+                     (or (null accepted)
+                         (not (spans-overlap-p (first accepted) span)))
+                   (push span accepted)))
+               (nreverse accepted))))
+      (let* ((spans (mapcar #'collect-span resolutions))
+             (sorted (sort spans #'> :key #'span-start))
+             (compatible (remove-overlapping-spans sorted)))
+        (let* ((content
+                (uiop/stream:read-file-string pathname :external-format :utf-8))
+               (result
+                (loop :with text = content
+                      :for span :in compatible
+                      :do (setf text
+                                  (concatenate 'string
+                                               (subseq text 0 (span-start span))
+                                               (span-replacement span)
+                                               (subseq text (span-end span))))
+                      :finally (return text)))
+               (tmp (uiop/stream:tmpize-pathname pathname)))
+          (with-open-file
+              (stream tmp :direction :output :if-exists :supersede
+               :external-format :utf-8)
+            (write-string result stream))
+          (uiop/filesystem:rename-file-overwriting-target tmp pathname)
+          pathname)))))
 
-;;;; End of file 'write-back.lisp'
+;;;; End of file `write-back.lisp'

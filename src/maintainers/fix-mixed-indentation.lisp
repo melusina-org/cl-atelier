@@ -29,4 +29,4 @@ Each tab replaced with 2 spaces; each errant space replaced with a tab."
      :description "Replace wrong indentation character."
      :replacement replacement)))
 
-;;;; End of file 'fix-mixed-indentation.lisp'
+;;;; End of file `fix-mixed-indentation.lisp'
