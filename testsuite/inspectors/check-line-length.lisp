@@ -22,8 +22,8 @@
   "Verify that a file with short lines produces no findings."
   (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
                                         (testsuite-fixtures-directory)))
-         (atelier:*current-project-configuration* nil)
-         (atelier:*current-linter-configuration*
+         (atelier:*project-configuration* nil)
+         (atelier:*linter-configuration*
            (atelier:make-linter-configuration))
          (inspector-instance
            (atelier:find-inspector 'atelier:check-line-length))
@@ -34,8 +34,8 @@
   "Verify that a file with long lines produces findings."
   (let* ((fixture-path (merge-pathnames "long-lines.lisp"
                                         (testsuite-fixtures-directory)))
-         (atelier:*current-project-configuration* nil)
-         (atelier:*current-linter-configuration*
+         (atelier:*project-configuration* nil)
+         (atelier:*linter-configuration*
            (atelier:make-linter-configuration))
          (inspector-instance
            (atelier:find-inspector 'atelier:check-line-length))
@@ -56,8 +56,8 @@
                                   :if-exists :supersede)
             (format stream "(defun ~A ()~%  nil)~%"
                     (make-string 120 :initial-element #\x)))
-          (let* ((atelier:*current-project-configuration* nil)
-                 (atelier:*current-linter-configuration*
+          (let* ((atelier:*project-configuration* nil)
+                 (atelier:*linter-configuration*
                    (atelier:make-linter-configuration))
                  (inspector-instance
                    (atelier:find-inspector 'atelier:check-line-length))

@@ -189,43 +189,8 @@ The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
 
 
 ;;;;
-;;;; Linter Operation
+;;;; Lint System
 ;;;;
-
-(defclass linter-op (asdf:operation)
-  ()
-  (:documentation "An ASDF operation that lints source files in a system."))
-
-(defvar *linter-findings* nil
-  "Accumulator for findings produced during a linter-op run.")
-
-(defvar *current-project-configuration* nil
-  "The project configuration for the system currently being linted.")
-
-(defvar *current-linter-configuration* nil
-  "The linter configuration for the system currently being linted.")
-
-(defmethod asdf:perform ((operation linter-op) (component asdf:cl-source-file))
-  "Inspect the source file of COMPONENT with all registered file-level inspectors."
-  (let ((pathname (asdf:component-pathname component)))
-    (let ((findings (perform-inspection pathname
-                                       *current-project-configuration*
-                                       *current-linter-configuration*)))
-      (setf *linter-findings* (nconc *linter-findings* findings)))))
-
-(defmethod asdf:perform ((operation linter-op) (component asdf:static-file))
-  "Do nothing for static files."
-  (declare (ignore operation component))
-  nil)
-
-(defmethod asdf:perform ((operation linter-op) (component asdf:module))
-  "Do nothing for modules — ASDF traverses children automatically."
-  (declare (ignore operation component))
-  nil)
-
-(defmethod asdf:component-depends-on ((operation linter-op) (component t))
-  "Linter-op has no compile/load dependencies."
-  nil)
 
 (defun find-system-configuration-component (system component-class)
   "Find the first component of COMPONENT-CLASS in SYSTEM, or NIL."
@@ -234,25 +199,105 @@ The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
            (typep component component-class)))
     (find-if #'matching-component-p (asdf:component-children system))))
 
+(defun atelier-own-system-p (system-name)
+  "Return T if SYSTEM-NAME names an Atelier system that needs no configuration warning.
+Atelier's own systems have no configuration components by design."
+  (declare (type string system-name))
+  (or (string= system-name "org.melusina.atelier")
+      (string-prefix-p "org.melusina.atelier/" system-name)))
+
+(defun collect-system-source-files (system)
+  "Collect all CL-SOURCE-FILE pathnames in SYSTEM, walking the component tree."
+  (declare (type asdf:system system))
+  (let ((result nil))
+    (labels ((walk (component)
+               (typecase component
+                 (asdf:cl-source-file
+                  (push (asdf:component-pathname component) result))
+                 (t
+                  (dolist (child (asdf:component-children component))
+                    (walk child))))))
+      (walk system))
+    (nreverse result)))
+
+(defun load-system-project-configuration (system)
+  "Return a PROJECT-CONFIGURATION for SYSTEM.
+Reads the ASDF-PROJECT-CONFIGURATION component when present; otherwise
+returns a default instance, emitting a warning for non-Atelier systems."
+  (declare (type asdf:system system))
+  (let ((component
+          (find-system-configuration-component system 'asdf-project-configuration)))
+    (cond
+      (component
+       (read-project-configuration (asdf:component-pathname component)))
+      ((atelier-own-system-p (asdf:component-name system))
+       (make-project-configuration))
+      (t
+       (warn "System ~A declares no project-configuration component; ~
+              using defaults. Add an ASDF-PROJECT-CONFIGURATION component ~
+              to suppress this warning."
+             (asdf:component-name system))
+       (make-project-configuration)))))
+
+(defun load-system-linter-configuration (system)
+  "Return a LINTER-CONFIGURATION for SYSTEM.
+Reads the ASDF-LINTER-CONFIGURATION component when present; otherwise
+returns a default instance, emitting a warning for non-Atelier systems."
+  (declare (type asdf:system system))
+  (let ((component
+          (find-system-configuration-component system 'asdf-linter-configuration)))
+    (cond
+      (component
+       (read-linter-configuration (asdf:component-pathname component)))
+      ((atelier-own-system-p (asdf:component-name system))
+       (make-linter-configuration))
+      (t
+       (warn "System ~A declares no linter-configuration component; ~
+              using defaults. Add an ASDF-LINTER-CONFIGURATION component ~
+              to suppress this warning."
+             (asdf:component-name system))
+       (make-linter-configuration)))))
+
 (defun lint-system (system-designator)
   "Lint all source files in the system designated by SYSTEM-DESIGNATOR.
-Return a list of findings. Read project-configuration and linter-configuration
-from ASDF components if present."
+Return a list of findings. Reads project and linter configuration from
+ASDF components when present; otherwise uses sensible defaults."
   (let* ((system (asdf:find-system system-designator))
-         (project-config-component
-           (find-system-configuration-component system 'asdf-project-configuration))
-         (linter-config-component
-           (find-system-configuration-component system 'asdf-linter-configuration))
-         (*current-project-configuration*
-           (when project-config-component
-             (read-project-configuration
-               (asdf:component-pathname project-config-component))))
-         (*current-linter-configuration*
-           (when linter-config-component
-             (read-linter-configuration
-               (asdf:component-pathname linter-config-component))))
-         (*linter-findings* nil))
-    (asdf:operate 'linter-op system-designator)
-    *linter-findings*))
+         (*project-configuration* (load-system-project-configuration system))
+         (*linter-configuration* (load-system-linter-configuration system)))
+    (loop :for pathname :in (collect-system-source-files system)
+          :nconc (perform-inspection pathname))))
+
+
+;;;;
+;;;; Linter Operation
+;;;;
+
+(defclass linter-op (asdf:operation)
+  ()
+  (:documentation "An ASDF operation that lints source files in a system.
+Delegates to LINT-SYSTEM for the actual inspection work."))
+
+(defvar *linter-findings* nil
+  "Accumulator for findings produced during a linter-op run.")
+
+(defmethod asdf:perform ((operation linter-op) (component asdf:system))
+  "Lint COMPONENT by delegating to LINT-SYSTEM."
+  (setf *linter-findings*
+        (lint-system (asdf:component-name component))))
+
+(defmethod asdf:perform ((operation linter-op) (component asdf:static-file))
+  "Do nothing for static files."
+  (declare (ignore operation component))
+  nil)
+
+(defmethod asdf:perform ((operation linter-op) (component asdf:module))
+  "Do nothing for modules."
+  (declare (ignore operation component))
+  nil)
+
+(defmethod asdf:component-depends-on ((operation linter-op) (component t))
+  "Linter-op has no compile/load dependencies."
+  nil)
 
 ;;;; End of file `asdf.lisp'

@@ -22,8 +22,8 @@
   "Verify that a spaces-only file produces no findings with default config."
   (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
                                         (testsuite-fixtures-directory)))
-         (atelier:*current-project-configuration* nil)
-         (atelier:*current-linter-configuration*
+         (atelier:*project-configuration* nil)
+         (atelier:*linter-configuration*
            (atelier:make-linter-configuration))
          (inspector-instance
            (atelier:find-inspector 'atelier:check-mixed-indentation))
@@ -46,8 +46,8 @@
             (write-char #\Newline stream)
             (write-string "  spaces-again" stream)
             (write-char #\Newline stream))
-          (let* ((atelier:*current-project-configuration* nil)
-                 (atelier:*current-linter-configuration*
+          (let* ((atelier:*project-configuration* nil)
+                 (atelier:*linter-configuration*
                    (atelier:make-linter-configuration))
                  (inspector-instance
                    (atelier:find-inspector 'atelier:check-mixed-indentation))
@@ -74,8 +74,8 @@
             (write-char #\Newline stream)
             (write-string "  spaces-line" stream)
             (write-char #\Newline stream))
-          (let* ((atelier:*current-project-configuration* nil)
-                 (atelier:*current-linter-configuration*
+          (let* ((atelier:*project-configuration* nil)
+                 (atelier:*linter-configuration*
                    (atelier:make-linter-configuration
                      :indentation-style :tabs))
                  (inspector-instance

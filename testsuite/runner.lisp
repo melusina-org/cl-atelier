@@ -17,7 +17,7 @@
   "Verify that the runner calls file and line inspectors and collects findings."
   (let* ((fixture-path (merge-pathnames "missing-spdx.lisp"
                                         (testsuite-fixtures-directory)))
-         (findings (atelier:perform-inspection fixture-path nil nil)))
+         (findings (atelier:perform-inspection fixture-path)))
     (assert-t (not (null findings)))
     (assert-t (every (lambda (finding)
                        (typep finding 'atelier:finding))
@@ -30,7 +30,8 @@
          (all-inspector-names (atelier:list-inspectors))
          (policy (atelier:make-linter-configuration
                    :disabled-inspectors all-inspector-names))
-         (findings (atelier:perform-inspection fixture-path nil policy)))
+         (atelier:*linter-configuration* policy)
+         (findings (atelier:perform-inspection fixture-path)))
     (assert-t (null findings))))
 
 (define-testcase validate-perform-inspection-severity-override ()
@@ -40,7 +41,8 @@
          (policy (atelier:make-linter-configuration
                    :severity-overrides
                    '((atelier:check-spdx-license-header . :error))))
-         (findings (atelier:perform-inspection fixture-path nil policy)))
+         (atelier:*linter-configuration* policy)
+         (findings (atelier:perform-inspection fixture-path)))
     (flet ((spdx-finding-p (finding)
              (eq 'atelier:check-spdx-license-header
                  (atelier:finding-inspector finding))))

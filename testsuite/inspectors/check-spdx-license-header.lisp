@@ -15,9 +15,9 @@
 
 (defmacro with-spdx-test-configuration ((&key (license "MIT")) &body body)
   "Execute BODY with project and linter configuration bound for SPDX tests."
-  `(let ((atelier:*current-project-configuration*
+  `(let ((atelier:*project-configuration*
            (atelier:make-project-configuration :license ,license))
-         (atelier:*current-linter-configuration* nil))
+         (atelier:*linter-configuration* nil))
      ,@body))
 
 (define-testcase validate-check-spdx-header-present ()

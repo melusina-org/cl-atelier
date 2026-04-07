@@ -18,10 +18,10 @@
   "Check a single line for wrong indentation characters.
 Return a list containing a MIXED-INDENTATION-FINDING if LINE uses the
 wrong indentation character, or NIL. The expected style is read from
-*CURRENT-LINTER-CONFIGURATION* and defaults to :SPACES."
-  (let ((style (if *current-linter-configuration*
+*LINTER-CONFIGURATION* and defaults to :SPACES."
+  (let ((style (if *linter-configuration*
                    (linter-configuration-indentation-style
-                    *current-linter-configuration*)
+                    *linter-configuration*)
                    :spaces)))
     (flet ((wrong-indentation-p (line)
              (let ((leading-whitespace

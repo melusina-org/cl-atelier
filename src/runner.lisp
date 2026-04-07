@@ -22,7 +22,7 @@
   (:documentation "Run INSPECTOR on SOURCE and return a list of findings or NIL.
 SOURCE is a PATHNAME for file-level inspectors, or a VECTOR of line
 strings for line-level inspectors. Configuration is available via
-*CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION*.")
+*PROJECT-CONFIGURATION* and *LINTER-CONFIGURATION*.")
   (:method ((inspector inspector) source)
     "Default method returns NIL — no findings."
     (declare (ignore source))
@@ -39,6 +39,12 @@ Return a list of findings for this line, or NIL. LINE is a string.
 
 (defvar *current-pathname* nil
   "The pathname of the file currently being inspected.")
+
+(defvar *project-configuration* nil
+  "The project configuration for the system currently being linted.")
+
+(defvar *linter-configuration* nil
+  "The linter configuration for the system currently being linted.")
 
 (defvar *current-cst-root* nil
   "The list of top-level CST forms of the file currently being inspected.
@@ -174,44 +180,43 @@ Bind *CURRENT-PATHNAME* so inspectors can reference the file."
 ;;;; Helpers
 ;;;;
 
-(defun inspector-disabled-p (inspector-name linter-configuration)
-  "Return T if INSPECTOR-NAME is disabled in LINTER-CONFIGURATION."
+(defun inspector-disabled-p (inspector-name)
+  "Return T if INSPECTOR-NAME is disabled in *LINTER-CONFIGURATION*."
   (declare (type symbol inspector-name))
-  (when linter-configuration
+  (when *linter-configuration*
     (member inspector-name
-            (linter-configuration-disabled-inspectors linter-configuration)
+            (linter-configuration-disabled-inspectors *linter-configuration*)
             :test #'eq)))
 
-(defun apply-severity-override (finding inspector-name linter-configuration)
-  "Return FINDING with its severity overridden if LINTER-CONFIGURATION specifies one.
+(defun apply-severity-override (finding inspector-name)
+  "Return FINDING with its severity overridden if *LINTER-CONFIGURATION* specifies one.
 Return FINDING unchanged if no override applies."
   (declare (type finding finding)
            (type symbol inspector-name))
-  (when linter-configuration
+  (when *linter-configuration*
     (let ((override (assoc inspector-name
-                          (linter-configuration-severity-overrides linter-configuration)
+                          (linter-configuration-severity-overrides *linter-configuration*)
                           :test #'eq)))
       (when override
         (setf (slot-value finding 'severity) (cdr override)))))
   finding)
 
-(defun collect-inspectors-by-level (level-class linter-configuration)
+(defun collect-inspectors-by-level (level-class)
   "Return all registered inspectors of LEVEL-CLASS that are not disabled."
   (declare (type symbol level-class))
   (loop :for inspector-name :being :the :hash-key :of *inspectors*
         :for inspector-instance = (gethash inspector-name *inspectors*)
         :when (and (typep inspector-instance level-class)
-                   (not (inspector-disabled-p inspector-name
-                                              linter-configuration)))
+                   (not (inspector-disabled-p inspector-name)))
         :collect inspector-instance))
 
-(defun collect-and-override-findings (inspector-instance findings linter-configuration)
+(defun collect-and-override-findings (inspector-instance findings)
   "Apply severity overrides to FINDINGS from INSPECTOR-INSTANCE and return them."
   (declare (type inspector inspector-instance)
            (type list findings))
   (let ((inspector-name (inspector-name inspector-instance)))
     (flet ((apply-override (finding)
-             (apply-severity-override finding inspector-name linter-configuration)))
+             (apply-severity-override finding inspector-name)))
       (mapcar #'apply-override findings))))
 
 (defun read-file-into-line-vector (pathname)
@@ -230,47 +235,42 @@ Return FINDING unchanged if no override applies."
 ;;;; Inspection Pipeline
 ;;;;
 
-(defun perform-file-inspection (pathname linter-configuration)
+(defun perform-file-inspection (pathname)
   "Run all registered file-level inspectors on PATHNAME.
 Return a list of findings from file-inspector instances, applying any
-severity overrides from LINTER-CONFIGURATION."
+severity overrides from *LINTER-CONFIGURATION*."
   (declare (type pathname pathname)
            (values list))
-  (let ((file-inspectors
-          (collect-inspectors-by-level 'file-inspector linter-configuration)))
+  (let ((file-inspectors (collect-inspectors-by-level 'file-inspector)))
     (loop :for inspector-instance :in file-inspectors
           :for inspector-findings = (inspect-file inspector-instance pathname)
           :when inspector-findings
-          :nconc (collect-and-override-findings
-                  inspector-instance inspector-findings linter-configuration))))
+          :nconc (collect-and-override-findings inspector-instance inspector-findings))))
 
-(defun perform-line-inspection (pathname linter-configuration)
+(defun perform-line-inspection (pathname)
   "Run all registered line-level inspectors on PATHNAME.
 Reads the file into a line vector once and runs each line-inspector via
 INSPECT-FILE. Return a list of findings, applying any severity overrides
-from LINTER-CONFIGURATION."
+from *LINTER-CONFIGURATION*."
   (declare (type pathname pathname)
            (values list))
-  (let ((line-inspectors
-          (collect-inspectors-by-level 'line-inspector linter-configuration)))
+  (let ((line-inspectors (collect-inspectors-by-level 'line-inspector)))
     (when line-inspectors
       (let ((lines (read-file-into-line-vector pathname))
             (*current-pathname* pathname))
         (loop :for inspector-instance :in line-inspectors
               :for inspector-findings = (inspect-file inspector-instance lines)
               :when inspector-findings
-              :nconc (collect-and-override-findings
-                      inspector-instance inspector-findings linter-configuration))))))
+              :nconc (collect-and-override-findings inspector-instance inspector-findings))))))
 
-(defun perform-syntax-inspection (pathname linter-configuration)
+(defun perform-syntax-inspection (pathname)
   "Run all registered syntax-level inspectors on PATHNAME.
 Parses the file with Eclector once and reads the line vector once; both
 are shared across all syntax inspectors. Return a list of findings, or
 NIL when the file cannot be parsed by Eclector."
   (declare (type pathname pathname)
            (values list))
-  (let ((syntax-inspectors
-          (collect-inspectors-by-level 'syntax-inspector linter-configuration)))
+  (let ((syntax-inspectors (collect-inspectors-by-level 'syntax-inspector)))
     (when syntax-inspectors
       (let ((forms (parse-lisp-file pathname)))
         (when forms
@@ -281,20 +281,18 @@ NIL when the file cannot be parsed by Eclector."
                   :for inspector-findings = (inspect-file inspector-instance forms)
                   :when inspector-findings
                   :nconc (collect-and-override-findings
-                          inspector-instance inspector-findings linter-configuration))))))))
+                          inspector-instance inspector-findings))))))))
 
-(defun perform-inspection (pathname project-configuration linter-configuration)
+(defun perform-inspection (pathname)
   "Run the full inspection pipeline on PATHNAME and return a combined list of findings.
 Executes three stages in order: file inspection, line inspection, syntax inspection.
-Binds *CURRENT-PROJECT-CONFIGURATION* and *CURRENT-LINTER-CONFIGURATION* for the
-duration so inspectors and helpers can access them."
+Reads *PROJECT-CONFIGURATION* and *LINTER-CONFIGURATION* as dynamic variables;
+bind them before calling if you need non-default configuration."
   (declare (type pathname pathname)
            (values list))
-  (let ((*current-project-configuration* project-configuration)
-        (*current-linter-configuration* linter-configuration))
-    (nconc
-     (perform-file-inspection pathname linter-configuration)
-     (perform-line-inspection pathname linter-configuration)
-     (perform-syntax-inspection pathname linter-configuration))))
+  (nconc
+   (perform-file-inspection pathname)
+   (perform-line-inspection pathname)
+   (perform-syntax-inspection pathname)))
 
 ;;;; End of file `runner.lisp'

@@ -111,7 +111,8 @@
          (policy (atelier:make-linter-configuration
                    :disabled-inspectors '(atelier:check-spdx-license-header
                                           atelier:check-file-encoding)))
-         (findings (atelier:perform-inspection fixture-path nil policy)))
+         (atelier:*linter-configuration* policy)
+         (findings (atelier:perform-inspection fixture-path)))
     (assert-t (null findings))))
 
 (define-testcase validate-linter-configuration-severity-override ()
@@ -121,7 +122,8 @@
          (policy (atelier:make-linter-configuration
                    :severity-overrides
                    '((atelier:check-spdx-license-header . :error))))
-         (findings (atelier:perform-inspection fixture-path nil policy)))
+         (atelier:*linter-configuration* policy)
+         (findings (atelier:perform-inspection fixture-path)))
     (let ((spdx-findings
             (remove-if-not (lambda (finding)
                              (eq 'atelier:check-spdx-license-header

@@ -217,8 +217,8 @@
    #:linter-configuration-severity-overrides
    #:linter-configuration-indentation-style
    #:read-linter-configuration
-   #:*current-project-configuration*
-   #:*current-linter-configuration*
+   #:*project-configuration*
+   #:*linter-configuration*
    #:asdf-project-configuration
    #:asdf-linter-configuration
    #:linter-op

@@ -22,8 +22,8 @@
   "Verify that a file without trailing whitespace produces no findings."
   (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
                                         (testsuite-fixtures-directory)))
-         (atelier:*current-project-configuration* nil)
-         (atelier:*current-linter-configuration*
+         (atelier:*project-configuration* nil)
+         (atelier:*linter-configuration*
            (atelier:make-linter-configuration))
          (inspector-instance
            (atelier:find-inspector 'atelier:check-trailing-whitespace))
@@ -45,8 +45,8 @@
             (write-char #\Newline stream)
             (write-string "also clean" stream)
             (write-char #\Newline stream))
-          (let* ((atelier:*current-project-configuration* nil)
-                 (atelier:*current-linter-configuration*
+          (let* ((atelier:*project-configuration* nil)
+                 (atelier:*linter-configuration*
                    (atelier:make-linter-configuration))
                  (inspector-instance
                    (atelier:find-inspector 'atelier:check-trailing-whitespace))

@@ -23,8 +23,8 @@
   (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
                                         (testsuite-fixtures-directory)))
          (inspector-instance (atelier:find-inspector 'atelier:check-file-encoding))
-         (findings (let ((atelier:*current-project-configuration* nil)
-                    (atelier:*current-linter-configuration* nil))
+         (findings (let ((atelier:*project-configuration* nil)
+                    (atelier:*linter-configuration* nil))
                (atelier:inspect-file inspector-instance fixture-path))))
     (assert-t (null findings))))
 
@@ -43,8 +43,8 @@
             (write-byte #xFE stream)
             (write-byte #x00 stream))
           (let* ((inspector-instance (atelier:find-inspector 'atelier:check-file-encoding))
-                 (findings (let ((atelier:*current-project-configuration* nil)
-                      (atelier:*current-linter-configuration* nil))
+                 (findings (let ((atelier:*project-configuration* nil)
+                      (atelier:*linter-configuration* nil))
                  (atelier:inspect-file inspector-instance temporary-path))))
             (assert-eq 1 (length findings))
             (assert-t (typep (first findings) 'atelier:encoding-finding))
