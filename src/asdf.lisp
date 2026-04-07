@@ -197,6 +197,26 @@ The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
 
 
 ;;;;
+;;;; Parameter Bindings from Project Configuration
+;;;;
+
+(defun project-configuration-parameter-bindings (config)
+  "Derive *PARAMETER-BINDINGS* alist from a PROJECT-CONFIGURATION.
+Maps configuration slots to the parameter names used by the template system."
+  (declare (type project-configuration config)
+           (values list))
+  (list (cons :copyright-holder (project-configuration-copyright-holder config))
+        (cons :copyright-year (project-configuration-copyright-year config))
+        (cons :project-filename (project-configuration-project-filename config))
+        (cons :project-name (project-configuration-project-name config))
+        (cons :project-description (project-configuration-project-description config))
+        (cons :project-long-description (project-configuration-project-long-description config))
+        (cons :homepage (project-configuration-homepage config))
+        (cons :license (let ((license (project-configuration-license config)))
+                         (when license (make-keyword (string-upcase license)))))))
+
+
+;;;;
 ;;;; Resolution Proposed Condition
 ;;;;
 
@@ -272,8 +292,9 @@ Atelier's own systems have no configuration components by design."
 
 (defun load-system-project-configuration (system)
   "Return a PROJECT-CONFIGURATION for SYSTEM.
-Reads the ASDF-PROJECT-CONFIGURATION component when present; otherwise
-returns a default instance, emitting a warning for non-Atelier systems."
+Reads the ASDF-PROJECT-CONFIGURATION component when present. For Atelier's
+own systems, reads project-configuration.sexp from the system source directory.
+Otherwise returns a default instance with a warning."
   (declare (type asdf:system system))
   (let ((component
           (find-system-configuration-component system 'asdf-project-configuration)))
@@ -281,7 +302,11 @@ returns a default instance, emitting a warning for non-Atelier systems."
       (component
        (read-project-configuration (asdf:component-pathname component)))
       ((atelier-own-system-p (asdf:component-name system))
-       (make-project-configuration))
+       (let ((path (merge-pathnames #p"project-configuration.sexp"
+                                    (asdf:system-source-directory system))))
+         (if (probe-file path)
+             (read-project-configuration path)
+             (make-project-configuration))))
       (t
        (warn "System ~A declares no project-configuration component; ~
               using defaults. Add an ASDF-PROJECT-CONFIGURATION component ~
@@ -291,8 +316,9 @@ returns a default instance, emitting a warning for non-Atelier systems."
 
 (defun load-system-linter-configuration (system)
   "Return a LINTER-CONFIGURATION for SYSTEM.
-Reads the ASDF-LINTER-CONFIGURATION component when present; otherwise
-returns a default instance, emitting a warning for non-Atelier systems."
+Reads the ASDF-LINTER-CONFIGURATION component when present. For Atelier's
+own systems, reads linter-configuration.sexp from the system source directory.
+Otherwise returns a default instance with a warning."
   (declare (type asdf:system system))
   (let ((component
           (find-system-configuration-component system 'asdf-linter-configuration)))
@@ -300,7 +326,11 @@ returns a default instance, emitting a warning for non-Atelier systems."
       (component
        (read-linter-configuration (asdf:component-pathname component)))
       ((atelier-own-system-p (asdf:component-name system))
-       (make-linter-configuration))
+       (let ((path (merge-pathnames #p"linter-configuration.sexp"
+                                    (asdf:system-source-directory system))))
+         (if (probe-file path)
+             (read-linter-configuration path)
+             (make-linter-configuration))))
       (t
        (warn "System ~A declares no linter-configuration component; ~
               using defaults. Add an ASDF-LINTER-CONFIGURATION component ~

@@ -255,6 +255,7 @@
    #:linter-configuration-indentation-style
    #:linter-configuration-maintainer-overrides
    #:read-linter-configuration
+   #:project-configuration-parameter-bindings
    #:*project-configuration*
    #:*linter-configuration*
    #:asdf-project-configuration

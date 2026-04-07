@@ -20,6 +20,12 @@
 
 (in-package #:atelier/development)
 
+(defun project-configuration ()
+  "Return the project configuration for Atelier, read from project-configuration.sexp."
+  (let ((path (merge-pathnames #p"project-configuration.sexp"
+                               (asdf:system-source-directory "org.melusina.atelier"))))
+    (atelier:read-project-configuration path)))
+
 (defun lint ()
   "Lint the Atelier project using the new-style linter."
   (atelier:lint-system "org.melusina.atelier"))
