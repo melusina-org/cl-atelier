@@ -251,10 +251,15 @@ diagnostics spanning multiple lines without precise column information."))
 Each SPEC is (PARENT NAME DOCUMENTATION), ordered so that lines sort
 meaningfully by parent class."
   `(progn
-     ,@(mapcar (lambda (spec)
-                 (destructuring-bind (parent name documentation) spec
-                   `(define-finding ,name ,parent ,documentation)))
-               specs)))
+     ,@(flet ((map-item (spec)
+                (destructuring-bind
+                    (parent name documentation)
+                    spec
+                  (eclector.reader:quasiquote
+                   (define-finding (eclector.reader:unquote name)
+                    (eclector.reader:unquote parent)
+                    (eclector.reader:unquote documentation))))))
+         (mapcar #'map-item specs))))
 
 (define-findings
   (file-finding   encoding-finding             "A file is not valid UTF-8.")

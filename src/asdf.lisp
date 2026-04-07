@@ -270,24 +270,32 @@ the final inspection pass."
   (let* ((system (asdf:find-system system-designator))
          (*project-configuration* (load-system-project-configuration system))
          (*linter-configuration* (load-system-linter-configuration system)))
-    (flet ((inspect-system ()
-             ;; Collect findings from every source file in the system.
-             (loop :for pathname :in (collect-system-source-files system)
-                   :nconc (perform-inspection pathname)))
-           (resolutions-for-findings (findings)
-             ;; Only line-findings carry line/column positions for TEXT-RESOLUTION.
-             ;; Group non-nil resolutions by file.
-             (let ((by-file (make-hash-table :test 'equal)))
-               (dolist (finding findings)
-                 (when (typep finding 'line-finding)
-                   (dolist (resolution (resolve-finding finding))
-                     (push resolution (gethash (finding-file finding) by-file)))))
-               by-file))
-           (apply-all-resolutions (resolutions-by-file)
-             ;; Write each file back with its resolutions applied end-to-start.
-             (maphash (lambda (pathname resolutions)
-                        (apply-resolutions-to-file pathname (nreverse resolutions)))
-                      resolutions-by-file)))
+    (labels ((inspect-system ()
+               ;; Collect findings from every source file in the system.
+               (loop :for pathname :in (collect-system-source-files system)
+                     :nconc (perform-inspection pathname)))
+             (production-resolution-p (resolution)
+               ;; Accept only resolutions from maintainers whose package name
+               ;; does not contain "TEST". This prevents test maintainers loaded
+               ;; into the same image from corrupting production source files.
+               (let ((pkg-name (package-name
+                                (symbol-package (resolution-maintainer resolution)))))
+                 (not (search "TEST" pkg-name :test #'char-equal))))
+             (resolutions-for-findings (findings)
+               ;; Only line-findings carry line/column positions for TEXT-RESOLUTION.
+               ;; Group non-nil production resolutions by file.
+               (let ((by-file (make-hash-table :test 'equal)))
+                 (dolist (finding findings)
+                   (when (typep finding 'line-finding)
+                     (dolist (resolution (resolve-finding finding))
+                       (when (production-resolution-p resolution)
+                         (push resolution (gethash (finding-file finding) by-file))))))
+                 by-file))
+             (apply-all-resolutions (resolutions-by-file)
+               ;; Write each file back with its resolutions applied end-to-start.
+               (maphash (lambda (pathname resolutions)
+                          (apply-resolutions-to-file pathname (nreverse resolutions)))
+                        resolutions-by-file)))
       (if (not autofix)
           (inspect-system)
           ;; Autofix loop: inspect → resolve → apply → re-inspect until clean.

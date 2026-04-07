@@ -54,15 +54,15 @@ The file format is expected to have three documents separated by '---':
 1. Front Matter (YAML-like key-value pairs)
 2. License Header
 3. License Text"
-  (multiple-value-bind (front-matter documents) 
+  (multiple-value-bind (front-matter documents)
       (read-file-documents-with-yaml-front-matter pathname)
     (make-instance
      'license
      :name (assoc-value front-matter :name)
      :identifier (or
-		  (assoc-value front-matter :id)		  
-		  (assoc-value front-matter :identifier)
-		  (make-keyword (string-upcase (pathname-name pathname))))
+      (assoc-value front-matter :id)
+      (assoc-value front-matter :identifier)
+      (make-keyword (string-upcase (pathname-name pathname))))
      :header (join-lines (first documents))
      :text (join-lines (second documents)))))
 
@@ -73,9 +73,9 @@ The file format is expected to have three documents separated by '---':
 (defun license-repository-load (&optional (license-repository-pathname *license-repository-pathname*))
   "Load all licenses on LICENSE-REPOSITORY-PATHNAME."
   (loop :for pathname :in (uiop:directory-files license-repository-pathname "*.text")
-	:for designator = (make-keyword (string-upcase (pathname-name pathname)))
-	:do (setf (gethash designator *license-repository*)
-		  (license-repository-load-definition pathname))))
+  :for designator = (make-keyword (string-upcase (pathname-name pathname)))
+  :do (setf (gethash designator *license-repository*)
+      (license-repository-load-definition pathname))))
 
 
 ;;;
@@ -91,9 +91,9 @@ The file format is expected to have three documents separated by '---':
      (gethash designator *license-repository*))
     ((stringp designator)
      (loop :for identifier :being :the :hash-keys :of *license-repository*
-	   :using (hash-value license)
-	   :when (string-equal (symbol-name identifier) designator)
-	   :return license))
+     :using (hash-value license)
+     :when (string-equal (symbol-name identifier) designator)
+     :return license))
     ((null designator)
      nil)
     (t

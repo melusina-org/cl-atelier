@@ -14,18 +14,18 @@
 (in-package #:atelier)
 
 (defparameter *resourcedir* #.(or (uiop:getenv "ATELIER_RESOURCEDIR")
-				  (when *compile-file-pathname*
-				    (make-pathname
-				     :directory
-				     (append
-				      (butlast (pathname-directory *compile-file-pathname*))
-				      '("resource"))))
-				  (when *load-pathname*
-				    (make-pathname
-				     :directory
-				     (append
-				      (butlast (pathname-directory *load-pathname*))
-				      '("resource")))))
-	      "The pathname to the directory holding program resources.")
+          (when *compile-file-pathname*
+            (make-pathname
+             :directory
+             (append
+              (butlast (pathname-directory *compile-file-pathname*))
+              '("resource"))))
+          (when *load-pathname*
+            (make-pathname
+             :directory
+             (append
+              (butlast (pathname-directory *load-pathname*))
+              '("resource")))))
+        "The pathname to the directory holding program resources.")
 
 ;;;; End of file `configuration.lisp'

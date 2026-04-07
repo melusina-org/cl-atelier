@@ -20,13 +20,13 @@
     (labels
         ((match-step (i j)
            (case (when (and (<= j text-length) (< i pattern-length))
-		   (elt pattern i))
+       (elt pattern i))
              ((nil)
               (eq j text-length))
              (#\?
               (and (< j text-length) (match-step (1+ i) (1+ j))))
              (#\*
-	      (or (match-step (1+ i) j) (match-step i (1+ j))))
+        (or (match-step (1+ i) j) (match-step i (1+ j))))
              (t
               (when (< j text-length)
                 (and (char= (elt pattern i) (elt text j))
@@ -44,10 +44,10 @@
 (defun join-lines (lines &optional (separator #\Newline))
   (with-output-to-string (buffer)
     (loop :for line :in lines
-	  :for first-line = t :then nil
-	  :do (unless first-line
-	       (format buffer "~A" separator))
-	  do (write-string line buffer))))
+    :for first-line = t :then nil
+    :do (unless first-line
+         (format buffer "~A" separator))
+    :do (write-string line buffer))))
 
 (defun string-lines (string)
   "Prepare the list of lines in STRING."
@@ -71,7 +71,7 @@
 (defun edit-first-line (string first-line)
   "Edit the first line of STRING to FIRST-LINE as a new string."
   (let ((end-of-line
-	  (position #\Newline string)))
+    (position #\Newline string)))
     (with-output-to-string (buffer)
       (write-string first-line buffer)
       (write-string string buffer :start end-of-line))))
@@ -80,17 +80,17 @@
   "The position of the last line of STRING.
 The position is represented as multiple values, the START-POS and END-POS."
   (let* ((length
-	   (length string))
-	 (end-pos
-	   (if (char= #\Newline (char string (1- length)))
-	       (1- length)
-	       length))
-	 (start-pos
-	   (let ((position
-		   (position #\Newline string :from-end t :end end-pos)))
-	     (if position
-		 (1+ position)
-		 0))))
+     (length string))
+   (end-pos
+     (if (char= #\Newline (char string (1- length)))
+         (1- length)
+         length))
+   (start-pos
+     (let ((position
+       (position #\Newline string :from-end t :end end-pos)))
+       (if position
+     (1+ position)
+     0))))
     (values start-pos end-pos)))
 
 (defun last-line (string)
@@ -131,11 +131,11 @@ is useful for testing."
 (defun count-string-words (string)
   "Count the number of words in STRING."
   (flet ((count-matches (regex)
-	   (/ (length (ppcre:all-matches regex string)) 2)))
+     (/ (length (ppcre:all-matches regex string)) 2)))
     (1+ (- (count-matches "[ ]+")
-	   (count-matches "^ +")
-	   (count-matches " +$")))))
-  
+     (count-matches "^ +")
+     (count-matches " +$")))))
+
 (defun add-pathname (pathname list-of-pathnames)
   "Add PATHNAME to LIST-OF-PATHNAMES unless it is already found there."
   (unless (member pathname list-of-pathnames)
@@ -143,15 +143,15 @@ is useful for testing."
 
 (defun indent (target-string &optional (margin-left 4))
   (let ((indentation
-	  (make-string margin-left :initial-element #\Space)))
+    (make-string margin-left :initial-element #\Space)))
     (ppcre:regex-replace-all (ppcre:create-scanner "^" :multi-line-mode t)
-			     target-string
-			     indentation)))
+           target-string
+           indentation)))
 
 (defun break-down (taste sequence)
   "Break down a list SEQUENCE into consecutive lists of constant TASTE.
 The TASTE argument is a function which is applied on sequence elements to
-taste them. Taste values are 
+taste them. Taste values are
 
 The answer is an alist whose terms have the form
 
@@ -164,38 +164,38 @@ such that:
   3. Consecutive terms of the answer have distinct TASTE1.
 "
   (flet ((catamorphism (state next)
-	   (destructuring-bind (current-taste current-subsequence accumulator) state
-	     (let ((next-taste
-		     (funcall taste next)))
-	       (cond
-		 ((eq nil current-subsequence)
-		  (list next-taste (list next) accumulator))
-		 ((eq next-taste current-taste)
-		  (list current-taste (cons next current-subsequence) accumulator))
-		 (t
-		  (list next-taste
-			(list next)
-			(cons (cons current-taste (nreverse current-subsequence)) accumulator))))))))
+     (destructuring-bind (current-taste current-subsequence accumulator) state
+       (let ((next-taste
+         (funcall taste next)))
+         (cond
+     ((eq nil current-subsequence)
+      (list next-taste (list next) accumulator))
+     ((eq next-taste current-taste)
+      (list current-taste (cons next current-subsequence) accumulator))
+     (t
+      (list next-taste
+      (list next)
+      (cons (cons current-taste (nreverse current-subsequence)) accumulator))))))))
     (destructuring-bind (current-taste current-subsequence accumulator)
-	(reduce #'catamorphism sequence :initial-value (list nil nil nil))
+  (reduce #'catamorphism sequence :initial-value (list nil nil nil))
       (nreverse (cons (cons current-taste (nreverse current-subsequence)) accumulator)))))
 
 
 (defun find-regular-files (&rest pathnames)
   (let ((prune-list
-	  (list ".DS_Store" ".git" ".hg" ".svn" "CVS" "*.fasl")))
+    (list ".DS_Store" ".git" ".hg" ".svn" "CVS" "*.fasl")))
     (flet ((find-predicate (prune-list)
-	     (let ((prune-expr
-		     (loop :for (prune . tail) :on prune-list
-			   :collect "-name"
-			   :collect prune
-			   :when tail
-			   :collect "-o")))
-	       `("(" ,@prune-expr ")" "-prune" "-o" "-type" "f" "-print"))))
+       (let ((prune-expr
+         (loop :for (prune . tail) :on prune-list
+         :collect "-name"
+         :collect prune
+         :when tail
+         :collect "-o")))
+         `("(" ,@prune-expr ")" "-prune" "-o" "-type" "f" "-print"))))
   (uiop:run-program
    (append (list "/usr/bin/find")
-	   (mapcar #'namestring pathnames)
-	   (find-predicate prune-list))
+     (mapcar #'namestring pathnames)
+     (find-predicate prune-list))
    :output :lines))))
 
 
@@ -215,63 +215,63 @@ a Document End Marker \"...\" or the end of the file.
 Currently only a small subset of YAML is supported, dictionaries of strings presented as a
 block, without using quotes or line folding operators."
   (let ((document-start-marker
-	  "---")
-	(document-end-marker
-	  "...")
-	(documents
-	  nil)
+    "---")
+  (document-end-marker
+    "...")
+  (documents
+    nil)
         (front-matter-lines
-	  nil))
+    nil))
     (labels ((marker-p (marker line)
-	       (string-prefix-p marker line))
-	     (start (lines)
-	       (cond ((null lines)
-		      (stop))
-		     ((marker-p document-start-marker (first lines))
-		      (read-front-matter (rest lines)))
-		     (t
-		      (read-front-matter lines))))
-	     (read-front-matter (lines)
-	       (cond ((null lines)
-		      (stop))
-		     ((marker-p document-start-marker (first lines))
-		      (read-document (rest lines)))
-		     ((marker-p document-end-marker (first lines))
-		      (stop))
-		     (t
-		      (push (first lines) front-matter-lines)
-		      (read-front-matter (rest lines)))))
-	     (read-document (lines &optional current-document current-document-last)
-	       (cond ((null lines)
-		      (stop))
-		     ((marker-p document-start-marker (first lines))
-		      (push current-document documents)
-		      (read-document (rest lines)))
-		     ((marker-p document-end-marker (first lines))
-		      (push current-document documents)
-		      (stop))
-		     ((null current-document)
-		      (let ((new-current-document
-			      (list (first lines))))
-			(read-document (rest lines) new-current-document new-current-document)))
-		     (t
-		      (let ((new-current-document-last
-			      (list (first lines))))
-			(rplacd current-document-last new-current-document-last)
-			(read-document (rest lines) current-document
-				       new-current-document-last)))))
-	     (stop ()
-	       (loop :with front-matter = nil
-		     :for line :in front-matter-lines
-		     :for colon-pos = (position #\: line)
-		     :when colon-pos
-		     :do (let ((key
-				 (string-trim '(#\Space #\Tab) (subseq line 0 colon-pos)))
-			       (value
-				 (string-trim '(#\Space #\Tab) (subseq line (1+ colon-pos)))))
-			   (push (cons (make-keyword (string-upcase key)) value) front-matter))
-		     :finally (return-from read-stream-documents-with-yaml-front-matter
-				(values front-matter (reverse documents))))))
+         (string-prefix-p marker line))
+       (start (lines)
+         (cond ((null lines)
+          (stop))
+         ((marker-p document-start-marker (first lines))
+          (read-front-matter (rest lines)))
+         (t
+          (read-front-matter lines))))
+       (read-front-matter (lines)
+         (cond ((null lines)
+          (stop))
+         ((marker-p document-start-marker (first lines))
+          (read-document (rest lines)))
+         ((marker-p document-end-marker (first lines))
+          (stop))
+         (t
+          (push (first lines) front-matter-lines)
+          (read-front-matter (rest lines)))))
+       (read-document (lines &optional current-document current-document-last)
+         (cond ((null lines)
+          (stop))
+         ((marker-p document-start-marker (first lines))
+          (push current-document documents)
+          (read-document (rest lines)))
+         ((marker-p document-end-marker (first lines))
+          (push current-document documents)
+          (stop))
+         ((null current-document)
+          (let ((new-current-document
+            (list (first lines))))
+      (read-document (rest lines) new-current-document new-current-document)))
+         (t
+          (let ((new-current-document-last
+            (list (first lines))))
+      (rplacd current-document-last new-current-document-last)
+      (read-document (rest lines) current-document
+               new-current-document-last)))))
+       (stop ()
+         (loop :with front-matter = nil
+         :for line :in front-matter-lines
+         :for colon-pos = (position #\: line)
+         :when colon-pos
+         :do (let ((key
+         (string-trim '(#\Space #\Tab) (subseq line 0 colon-pos)))
+             (value
+         (string-trim '(#\Space #\Tab) (subseq line (1+ colon-pos)))))
+         (push (cons (make-keyword (string-upcase key)) value) front-matter))
+         :finally (return-from read-stream-documents-with-yaml-front-matter
+        (values front-matter (reverse documents))))))
       (start (string-lines (alexandria:read-stream-content-into-string stream))))))
 
 (defun read-file-documents-with-yaml-front-matter (pathname)
@@ -285,30 +285,30 @@ block, without using quotes or line folding operators."
 
 (defmacro define-named-class (class-name direct-superclasses direct-slots &rest options)
   (let* ((name-option
-	   (find :name options :key #'car))
+     (find :name options :key #'car))
          (name-slot
-	   (if name-option (second name-option) 'name))
-	 (name-initarg
-	   (getf (cdr (assoc name-slot direct-slots)) :initarg))
+     (if name-option (second name-option) 'name))
+   (name-initarg
+     (getf (cdr (assoc name-slot direct-slots)) :initarg))
          (class-options
-	   (remove :name options :key #'car))
-	 (class-initargs
-	   (loop :for (slot-name . slot-definition) :in direct-slots
-		 :for slot-initarg = (getf slot-definition :initarg)
-		 :when (and slot-initarg (not (eq slot-initarg name-initarg)))
-		 :collect (intern (symbol-name slot-initarg))))
+     (remove :name options :key #'car))
+   (class-initargs
+     (loop :for (slot-name . slot-definition) :in direct-slots
+     :for slot-initarg = (getf slot-definition :initarg)
+     :when (and slot-initarg (not (eq slot-initarg name-initarg)))
+     :collect (intern (symbol-name slot-initarg))))
          (instance-registry
-	   (intern (format nil "*~AS*" class-name)))
+     (intern (format nil "*~AS*" class-name)))
          (define-instance
-	   (intern (format nil "DEFINE-~A" class-name)))
+     (intern (format nil "DEFINE-~A" class-name)))
          (find-instance
-	   (intern (format nil "FIND-~A" class-name)))
-	 (symbol-instance
-	   (intern (format nil "SYMBOL-~A" class-name)))
+     (intern (format nil "FIND-~A" class-name)))
+   (symbol-instance
+     (intern (format nil "SYMBOL-~A" class-name)))
          (instance-cell
-	   class-name)
-	 (unbound-instance-control-string
-	   (concatenate 'string "UNBOUND-" (symbol-name class-name) " ~S")))
+     class-name)
+   (unbound-instance-control-string
+     (concatenate 'string "UNBOUND-" (symbol-name class-name) " ~S")))
     `(progn
        (defclass ,class-name ,direct-superclasses
          ,direct-slots
@@ -319,9 +319,9 @@ block, without using quotes or line folding operators."
        (defun ,find-instance (designator)
          (etypecase designator
            (,class-name
-	    designator)
+      designator)
            (symbol
-	    (gethash designator ,instance-registry))))
+      (gethash designator ,instance-registry))))
 
        (defun ,symbol-instance (symbol)
          (multiple-value-bind (instance present-p) (gethash symbol ,instance-registry)
@@ -331,10 +331,10 @@ block, without using quotes or line folding operators."
          (setf (gethash symbol ,instance-registry) new-value))
 
        (defmacro ,instance-cell (symbol)
-	 `(,',symbol-instance ',symbol))
+   `(,',symbol-instance ',symbol))
 
        (defmacro ,define-instance (,name-slot &rest initargs &key ,@class-initargs)
-	 (declare (ignore ,@(remove 'name class-initargs)))
+   (declare (ignore ,@(remove 'name class-initargs)))
          (check-type name symbol)
          `(setf (gethash ',,name-slot ,',instance-registry)
                 (make-instance ',',class-name ,',name-initarg ',,name-slot ,@initargs)))

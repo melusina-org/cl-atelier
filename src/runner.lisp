@@ -78,11 +78,17 @@ by the caller.")
 
 (defun parse-lisp-file (pathname)
   "Parse PATHNAME with Eclector and return a list of top-level CST forms.
-Return NIL if the file cannot be parsed due to non-Lisp content or reader errors."
+Return NIL if the file cannot be parsed due to non-Lisp content or reader errors.
+Reads the file into a string first so that Eclector's source positions are
+character offsets, not byte offsets. This matters for files whose headers
+contain multi-byte UTF-8 characters (©, –, ë, etc.) because file-position
+on a UTF-8 stream returns the byte position, while the line-vector
+infrastructure counts characters."
   (declare (type pathname pathname)
            (values list))
   (handler-case
-      (with-open-file (stream pathname :direction :input :external-format :utf-8)
+      (let* ((content (uiop:read-file-string pathname :external-format :utf-8))
+             (stream (make-string-input-stream content)))
         (loop :for form = (eclector.concrete-syntax-tree:read stream nil :eof)
               :until (eq form :eof)
               :collect form))

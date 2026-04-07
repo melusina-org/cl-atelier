@@ -68,7 +68,12 @@ has source position LAMBDA-SOURCE. Returns the call node or NIL."
                    (walk (concrete-syntax-tree:first node)))
                  (unless result
                    (walk (concrete-syntax-tree:rest node))))))
-      (walk cst-root))
+      ;; *current-cst-root* holds a plain list of all top-level CST forms;
+      ;; handle both that case and a single CST node (as in tests).
+      (if (listp cst-root)
+          (dolist (form cst-root)
+            (unless result (walk form)))
+          (walk cst-root)))
     result))
 
 

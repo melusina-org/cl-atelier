@@ -47,7 +47,7 @@
   (when (template-repository-empty-p)
     (restart-case (error "The template repository is empty.")
       (initialize ()
-	(initialize))))    
+  (initialize))))
   (cond
     ((typep designator 'template)
      designator)
@@ -70,50 +70,50 @@
   "Prepare template environment based on ENVIRONMENT.
 The prepared template environment features license information and *PARAMETER-BINDINGS*."
   (flet ((license-information ()
-	   (let ((license
-		   (find-license
-		    (or (assoc-value environment :license
-				     :test #'parameter-name-equal)
-			(assoc-value *parameter-bindings* :license
-				     :test #'parameter-name-equal)))))
-	     (when license
-	       (with-slots (name text header identifier) license
-		 (list (cons :license-name name)
-		       (cons :license-text text)
-		       (cons :license-header header)
-		       (cons :license-identifier (symbol-name identifier)))))))
-	 (lisp-environment ()
-	   (let* ((project-filename
-		    (or (assoc-value environment :project-filename
-				     :test #'parameter-name-equal)
-			(assoc-value *parameter-bindings* :project-filename
-				     :test #'parameter-name-equal)))
-		  (project-filename-last-dot-position
-		    (position #\. project-filename
-			      :from-end t))
-		  (lisp-package-name
-		    (cond (project-filename-last-dot-position
-			   (subseq project-filename
-				   (1+ project-filename-last-dot-position)))
-			  (t project-filename))))
-	     (list
-	      (cons :lisp-system-name "${PROJECT_FILENAME}")
-	      (cons :lisp-package-name lisp-package-name)
-	      (cons :lisp-test-system-name "${LISP_SYSTEM_NAME}/test")
-	      (cons :lisp-test-package-name "${LISP_PACKAGE_NAME}/test")
-	      (cons :lisp-development-system-name "${LISP_SYSTEM_NAME}/development")
-	      (cons :lisp-development-package-name "${LISP_PACKAGE_NAME}/development")
-	      (cons :lisp-operation-system-name "${LISP_SYSTEM_NAME}/operation")
-	      (cons :lisp-operation-package-name "${LISP_PACKAGE_NAME}/operation"))))
-	 (authorship ()
-	   '((:author . "${COPYRIGHT_HOLDER}"))))
+     (let ((license
+       (find-license
+        (or (assoc-value environment :license
+             :test #'parameter-name-equal)
+      (assoc-value *parameter-bindings* :license
+             :test #'parameter-name-equal)))))
+       (when license
+         (with-slots (name text header identifier) license
+     (list (cons :license-name name)
+           (cons :license-text text)
+           (cons :license-header header)
+           (cons :license-identifier (symbol-name identifier)))))))
+   (lisp-environment ()
+     (let* ((project-filename
+        (or (assoc-value environment :project-filename
+             :test #'parameter-name-equal)
+      (assoc-value *parameter-bindings* :project-filename
+             :test #'parameter-name-equal)))
+      (project-filename-last-dot-position
+        (position #\. project-filename
+            :from-end t))
+      (lisp-package-name
+        (cond (project-filename-last-dot-position
+         (subseq project-filename
+           (1+ project-filename-last-dot-position)))
+        (t project-filename))))
+       (list
+        (cons :lisp-system-name "${PROJECT_FILENAME}")
+        (cons :lisp-package-name lisp-package-name)
+        (cons :lisp-test-system-name "${LISP_SYSTEM_NAME}/test")
+        (cons :lisp-test-package-name "${LISP_PACKAGE_NAME}/test")
+        (cons :lisp-development-system-name "${LISP_SYSTEM_NAME}/development")
+        (cons :lisp-development-package-name "${LISP_PACKAGE_NAME}/development")
+        (cons :lisp-operation-system-name "${LISP_SYSTEM_NAME}/operation")
+        (cons :lisp-operation-package-name "${LISP_PACKAGE_NAME}/operation"))))
+   (authorship ()
+     '((:author . "${COPYRIGHT_HOLDER}"))))
     (reduce #'merge-parameter-bindings
-	    (list environment
-		  (remove :license *parameter-bindings*
-			  :key #'car)
-		  (license-information)
-		  (lisp-environment)
-		  (authorship)))))
+      (list environment
+      (remove :license *parameter-bindings*
+        :key #'car)
+      (license-information)
+      (lisp-environment)
+      (authorship)))))
 
 (defmethod write-template ((designator symbol) pathname &optional environment)
   "Write the template identified by DESIGNATOR under PATHNAME.
@@ -147,7 +147,7 @@ standard output."
    "This class represents a file template which creates a file when written."))
 
 (defun make-file-template (&rest initargs &key identifier name text
-					       template-executable-p)
+                 template-executable-p)
   "Make a file template."
   (declare (ignore identifier name text template-executable-p))
   (apply #'make-instance 'file-template initargs))
@@ -161,24 +161,24 @@ standard output."
 
 (defmethod write-template ((template file-template) (pathname stream) &optional environment)
   (let* ((final-environment
-	   (cond ((assoc :filename environment)
-		  environment)
-		 (t
-		  (append '((:filename . "filename.out")
-			    (:shell-namespace . "filename"))
-			  environment))))
-	 (template-instance
-	   (parameter-replace (slot-value template 'text) final-environment)))
+     (cond ((assoc :filename environment)
+      environment)
+     (t
+      (append '((:filename . "filename.out")
+          (:shell-namespace . "filename"))
+        environment))))
+   (template-instance
+     (parameter-replace (slot-value template 'text) final-environment)))
     (write-string template-instance pathname)))
 
-(defmethod write-template ((template file-template) (pathname pathname) &optional environment) 
+(defmethod write-template ((template file-template) (pathname pathname) &optional environment)
   (let ((filename-bindings
-	  (list (cons :filename
-		      (if (pathname-type pathname)
-			  (concatenate 'string (pathname-name pathname) "." (pathname-type pathname))
-			  (pathname-name pathname)))
-		(cons :shell-namespace
-		      (string-downcase (pathname-name pathname))))))
+    (list (cons :filename
+          (if (pathname-type pathname)
+        (concatenate 'string (pathname-name pathname) "." (pathname-type pathname))
+        (pathname-name pathname)))
+    (cons :shell-namespace
+          (string-downcase (pathname-name pathname))))))
     (ensure-directories-exist pathname)
     (with-open-file (stream pathname :direction :output)
       (write-template template stream (append filename-bindings environment)))
@@ -206,45 +206,45 @@ Each entry of the list is a list of the form
 
 (defmethod list-template-parameters ((template composite-template))
   (loop :for component :in (template-components template)
-	:for designator = (if (listp component) (first component) component)
-	:for pathname = (when (listp component) (second component))
-	:append (list-template-parameters designator) :into parameters
-	:append (when pathname (list-parameter-names (namestring pathname))) :into parameters
-	:finally (return (delete-duplicates parameters
-					    :test #'parameter-name-equal))))
+  :for designator = (if (listp component) (first component) component)
+  :for pathname = (when (listp component) (second component))
+  :append (list-template-parameters designator) :into parameters
+  :append (when pathname (list-parameter-names (namestring pathname))) :into parameters
+  :finally (return (delete-duplicates parameters
+              :test #'parameter-name-equal))))
 
 (defmethod write-template ((template composite-template) (pathname (eql t)) &optional environment)
   (write-template template *standard-output* environment))
 
 (defmethod write-template ((template composite-template) (pathname pathname) &optional environment)
   (labels ((file-component (designator relative-pathname &optional additional-bindings)
-	     (flet ((resolve-pathname (pathname)
-		      (pathname (parameter-replace (namestring pathname) environment)))
-		    (resolve-environment (additional-bindings)
-		      (let ((resolved-additional-bindings
-			      (loop :for (key . value) :in additional-bindings
-				    :for resolved-value = (parameter-replace value environment)
-				    :collect (cons key resolved-value))))
-			(merge-parameter-bindings resolved-additional-bindings environment))))
-	       (list (find-template designator)
-		     (merge-pathnames (resolve-pathname relative-pathname) pathname)
-		     (resolve-environment additional-bindings))))
-	   (composite-component (designator)
-	     (let ((template
-		     (find-template designator)))
-	       (loop :for template-spec :in (template-components template)
-		     :when (symbolp template-spec)
-		     :append (composite-component template-spec)
-		     :when (listp template-spec)
-		     :collect (apply #'file-component template-spec))))
-	   (plan ()
-	     (remove-duplicates
-	      (composite-component template)
-	      :key #'second
-	      :test #'equal
-	      :from-end t)))
+       (flet ((resolve-pathname (pathname)
+          (pathname (parameter-replace (namestring pathname) environment)))
+        (resolve-environment (additional-bindings)
+          (let ((resolved-additional-bindings
+            (loop :for (key . value) :in additional-bindings
+            :for resolved-value = (parameter-replace value environment)
+            :collect (cons key resolved-value))))
+      (merge-parameter-bindings resolved-additional-bindings environment))))
+         (list (find-template designator)
+         (merge-pathnames (resolve-pathname relative-pathname) pathname)
+         (resolve-environment additional-bindings))))
+     (composite-component (designator)
+       (let ((template
+         (find-template designator)))
+         (loop :for template-spec :in (template-components template)
+         :when (symbolp template-spec)
+         :append (composite-component template-spec)
+         :when (listp template-spec)
+         :collect (apply #'file-component template-spec))))
+     (plan ()
+       (remove-duplicates
+        (composite-component template)
+        :key #'second
+        :test #'equal
+        :from-end t)))
     (loop :for subtask :in (plan)
-	  :do (apply #'write-template subtask))))
+    :do (apply #'write-template subtask))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro define-composite-template (identifier &rest initargs &key name description components)
@@ -361,11 +361,11 @@ These scripts are specific to Lisp projects."
   :name "Atelier Lisp Project"
   :description "A complete Lisp project template"
   :components '(project-files
-		lisp-system-scaffolding
-		devops-actions
-		lisp-devops-actions
-		lisp-documentation
-		(lisp-git-ignore #p".gitignore")))
+    lisp-system-scaffolding
+    devops-actions
+    lisp-devops-actions
+    lisp-documentation
+    (lisp-git-ignore #p".gitignore")))
 
 
 ;;;
@@ -382,9 +382,9 @@ These scripts are specific to Lisp projects."
      'file-template
      :name (alexandria:assoc-value front-matter :name)
      :template-executable-p (let ((executable-field
-				    (alexandria:assoc-value front-matter :executable)))
-			      (when executable-field
-				(string= executable-field "true")))
+            (alexandria:assoc-value front-matter :executable)))
+            (when executable-field
+        (string= executable-field "true")))
      :identifier (make-keyword (string-upcase (pathname-name pathname)))
      :text (join-lines (first documents)))))
 
@@ -399,9 +399,9 @@ These scripts are specific to Lisp projects."
   (unless package
     (setf package (symbol-package '*template-repository-pathname*)))
   (loop :for pathname :in (uiop:directory-files pathname "*.text")
-	:for designator = (intern (string-upcase (pathname-name pathname)) package)
-	:do (setf (gethash designator *template-repository*)
-		  (template-repository-load-definition-file pathname))))
+  :for designator = (intern (string-upcase (pathname-name pathname)) package)
+  :do (setf (gethash designator *template-repository*)
+      (template-repository-load-definition-file pathname))))
 
 
 ;;;;
@@ -409,36 +409,36 @@ These scripts are specific to Lisp projects."
 ;;;;
 
 (defun new-lisp-project (pathname &key environment
-				       copyright-holder copyright-year project-filename project-name
-				       project-description project-long-description
-				       homepage license)
+               copyright-holder copyright-year project-filename project-name
+               project-description project-long-description
+               homepage license)
   "Create a new lisp project in PATHNAME."
   (let* ((argv-parameter-bindings
-	   `((:copyright-holder . ,copyright-holder)
+     `((:copyright-holder . ,copyright-holder)
              (:copyright-year . ,copyright-year)
-	     (:project-filename . ,project-filename)
+       (:project-filename . ,project-filename)
              (:project-name . ,project-name)
-	     (:project-description . ,project-description)
-	     (:project-long-description . ,project-long-description)
+       (:project-description . ,project-description)
+       (:project-long-description . ,project-long-description)
              (:homepage . ,homepage)
              (:license . ,license)))
-	 (merged-parameter-bindings
-	   (merge-parameter-bindings *parameter-bindings* argv-parameter-bindings)))
+   (merged-parameter-bindings
+     (merge-parameter-bindings *parameter-bindings* argv-parameter-bindings)))
     (let ((*parameter-bindings* merged-parameter-bindings))
       (write-template 'lisp-project pathname environment))))
 
 (defun new-lisp-file (name summary)
   "Create a new file NAME with SUMMARY."
   (let ((source-pathname
-	  (reduce #'merge-pathnames (list "src/" name) :from-end t))
-	(test-pathname
-	  (reduce #'merge-pathnames (list "test/" name) :from-end t))
-	(source-environment
-	  `((:summary . ,summary)
-	    (:lisp-package-name . "#:${PROJECT_FILENAME}")))
-	(test-environment
-	  `((:summary . ,summary)
-	    (:lisp-package-name . "#:${PROJECT_FILENAME}/test"))))
+    (reduce #'merge-pathnames (list "src/" name) :from-end t))
+  (test-pathname
+    (reduce #'merge-pathnames (list "test/" name) :from-end t))
+  (source-environment
+    `((:summary . ,summary)
+      (:lisp-package-name . "#:${PROJECT_FILENAME}")))
+  (test-environment
+    `((:summary . ,summary)
+      (:lisp-package-name . "#:${PROJECT_FILENAME}/test"))))
     (write-template 'lisp-source source-pathname source-environment)
     (write-template 'lisp-source test-pathname test-environment)))
 
