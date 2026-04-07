@@ -270,6 +270,7 @@ meaningfully by parent class."
   (syntax-finding bare-lambda-finding          "A higher-order function call uses a bare LAMBDA instead of a named FLET function.")
   (syntax-finding bare-loop-keyword-finding    "A LOOP form uses a bare symbol for a clause keyword instead of a keyword symbol.")
   (syntax-finding constant-naming-finding      "A DEFCONSTANT constant name lacks the +plus-surrounded+ convention.")
-  (syntax-finding earmuffs-finding             "A DEFVAR or DEFPARAMETER variable name lacks the *earmuffs* convention."))
+  (syntax-finding earmuffs-finding             "A DEFVAR or DEFPARAMETER variable name lacks the *earmuffs* convention.")
+  (syntax-finding spurious-labels-finding      "A LABELS form has no mutual or self recursion; FLET (with nesting) is the correct construct."))
 
 ;;;; End of file `finding.lisp'

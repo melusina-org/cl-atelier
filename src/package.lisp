@@ -173,6 +173,9 @@
    #:fix-constant-naming
    #:fix-bare-loop-keywords
    #:fix-bare-lambda
+   #:fix-labels-to-flet
+   #:compute-flet-depth-table
+   #:labels-transform-to-flet
    #:inspect-file
    #:inspect-line
    #:*current-pathname*
@@ -192,6 +195,7 @@
    #:constant-naming-finding
    #:bare-lambda-finding
    #:bare-loop-keyword-finding
+   #:spurious-labels-finding
 
    ;; Concrete inspectors
    #:check-file-encoding
@@ -204,6 +208,9 @@
    #:check-constant-naming
    #:check-bare-lambda
    #:check-loop-keywords
+   #:check-labels-for-flet
+   #:collect-calls-in-forms
+   #:labels-call-graph-has-cycles-p
 
    ;; Syntax inspection infrastructure
    #:inspect-syntax

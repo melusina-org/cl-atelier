@@ -17,6 +17,7 @@
    #:define-testcase
    #:define-assertion
    #:assert-t
+   #:assert-t*
    #:assert-eq
    #:assert-set-equal
    #:assert-string=

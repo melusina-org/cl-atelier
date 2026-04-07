@@ -43,7 +43,8 @@
 		   (:file "check-earmuffs")
 		   (:file "check-constant-naming")
 		   (:file "check-bare-lambda")
-		   (:file "check-loop-keywords")))
+		   (:file "check-loop-keywords")
+		   (:file "check-labels-for-flet")))
 		 (:file "pretty-printer")
 		 (:file "write-back")
 		 (:module "maintainers"
@@ -53,7 +54,8 @@
 		   (:file "fix-earmuffs")
 		   (:file "fix-constant-naming")
 		   (:file "fix-bare-loop-keywords")
-		   (:file "fix-bare-lambda")))
+		   (:file "fix-bare-lambda")
+		   (:file "fix-labels-to-flet")))
 		 (:file "main")))))
 
 (asdf:defsystem #:org.melusina.atelier/legacy
@@ -102,7 +104,8 @@
 		   (:file "check-earmuffs")
 		   (:file "check-constant-naming")
 		   (:file "check-bare-lambda")
-		   (:file "check-loop-keywords")))
+		   (:file "check-loop-keywords")
+		   (:file "check-labels-for-flet")))
 		 (:file "pretty-printer")
 		 (:file "write-back")
 		 (:module "maintainers"
@@ -112,7 +115,8 @@
 		   (:file "fix-earmuffs")
 		   (:file "fix-constant-naming")
 		   (:file "fix-bare-loop-keywords")
-		   (:file "fix-bare-lambda")))
+		   (:file "fix-bare-lambda")
+		   (:file "fix-labels-to-flet")))
 		 (:file "autofix")
 		 (:module "legacy-inspector"
 		  :pathname "inspector"
