@@ -12,27 +12,27 @@
 
 (defmacro with-fixed-parameter-bindings
     ((&key (copyright-holder "A. U. Thor")
-	   (copyright-year "2017–2022")
-	   (project-filename  "net.cl-user.acme.example")
+     (copyright-year "2017–2022")
+     (project-filename  "net.cl-user.acme.example")
            (project-name "Example")
-	   (project-description "Example for Atelier test")
+     (project-description "Example for Atelier test")
            (project-long-description
-	    "The Example for the Atelier is used for tests.")
+      "The Example for the Atelier is used for tests.")
            (homepage "https://cl-user.net/acme/example")
            (license :cecill-b))
      &body body-forms)
   `(let ((atelier:*parameter-bindings*
-	   (list
-	    (cons :copyright-holder ,copyright-holder)
+     (list
+      (cons :copyright-holder ,copyright-holder)
             (cons :copyright-year ,copyright-year)
-	    (cons :project-filename ,project-filename)
+      (cons :project-filename ,project-filename)
             (cons :project-name ,project-name)
-	    (cons :project-description ,project-description)
+      (cons :project-description ,project-description)
             (cons :project-long-description ,project-long-description)
             (cons :homepage ,homepage)
             (cons :license ,license))))
      ,@body-forms))
-  
+
 
 
 
@@ -90,13 +90,13 @@ NAME is a string like \"flet-single-binding\". Extension is .text."
   "Return the Unix file mode of PATHNAME."
   (parse-integer
    (uiop:run-program (list "stat" #+darwin "-f%Op" #+linux "-c%a" (namestring pathname))
-		     :output '(:string :stripped t))
+         :output '(:string :stripped t))
    :radix 8))
 
 (defun file-has-required-permissions-p (pathname required-permissions)
   "Predicate that recognises if file under PATHNAME has at least the REQUIRED-PERMISSIONS."
   (let ((actual-permissions
-	  (file-mode pathname)))
+    (file-mode pathname)))
     (eq required-permissions (logand actual-permissions required-permissions))))
 
 
@@ -108,13 +108,13 @@ NAME is a string like \"flet-single-binding\". Extension is .text."
   (assert-string= "A" (atelier::first-line (atelier::join-lines '("A" "B"))))
   (assert-string= "A" (atelier::first-line "A"))
   (let ((string
-	  (atelier::join-lines '("A" "B"))))
+    (atelier::join-lines '("A" "B"))))
     (setf (atelier::first-line string) "C")
     (assert-string= (atelier::join-lines '("C" "B")) string))
   (let ((string
-	  (atelier::join-lines '("A" "B"))))
+    (atelier::join-lines '("A" "B"))))
     (assert-string= (atelier::join-lines '("C" "B"))
-		    (atelier::edit-first-line string "C"))))
+        (atelier::edit-first-line string "C"))))
 
 (define-testcase validate-last-line ()
   (assert-string= "B" (atelier::last-line (atelier::join-lines '("A" "B"))))
@@ -124,13 +124,13 @@ NAME is a string like \"flet-single-binding\". Extension is .text."
     (setf (atelier::last-line string) "C")
     (assert-string= "C" string))
   (let ((string
-	  (atelier::join-lines '("A" "B"))))
+    (atelier::join-lines '("A" "B"))))
     (setf (atelier::last-line string) "C")
     (assert-string=
      (atelier::join-lines '("A" "C"))
      string))
   (let ((string
-	  (atelier::join-lines '("A" "B" ""))))
+    (atelier::join-lines '("A" "B" ""))))
     (setf (atelier::last-line string) "C")
     (assert-string= (atelier::join-lines '("A" "C" "")) string))
   (let ((string "A"))
@@ -138,12 +138,12 @@ NAME is a string like \"flet-single-binding\". Extension is .text."
      "C"
      (atelier::edit-last-line string "C")))
   (let ((string
-	  (atelier::join-lines '("A" "B"))))
+    (atelier::join-lines '("A" "B"))))
     (assert-string=
      (atelier::join-lines '("A" "C"))
      (atelier::edit-last-line string "C")))
   (let ((string
-	  (atelier::join-lines '("A" "B" ""))))
+    (atelier::join-lines '("A" "B" ""))))
     (assert-string=
      (atelier::join-lines '("A" "C" ""))
      (atelier::edit-last-line string "C"))))

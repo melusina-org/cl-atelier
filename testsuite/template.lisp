@@ -25,33 +25,33 @@
 
 (defun sh (pathname &key directory)
   (run-predicate (list "sh" (namestring pathname))
-		 :directory directory))
+     :directory directory))
 
 (defun git-init (&key directory)
  (run-predicate (list "git" "init")
-		:directory directory))
+    :directory directory))
 
 (declaim (inline call-with-temporary-directory))
 (defun call-with-temporary-directory (function)
   (flet ((make-directory-pathname ()
-	  (uiop:ensure-directory-pathname
-	   (merge-pathnames
-	    (format nil "atelier-test-~6,'0X/" (random #xFFFFFF))
-	    (uiop:temporary-directory))))
-	 (validate-directory-pathname (pathname)
-	   (let ((directory-name
-		   (car (last (pathname-directory pathname)))))
-	     (and (uiop:ensure-directory-pathname pathname)
-		  (zerop (search "atelier-test-" directory-name :test #'string=))
-		  (= (length directory-name) #.(length "atelier-test-123456"))))))
+    (uiop:ensure-directory-pathname
+     (merge-pathnames
+      (format nil "atelier-test-~6,'0X/" (random #xFFFFFF))
+      (uiop:temporary-directory))))
+   (validate-directory-pathname (pathname)
+     (let ((directory-name
+       (car (last (pathname-directory pathname)))))
+       (and (uiop:ensure-directory-pathname pathname)
+      (zerop (search "atelier-test-" directory-name :test #'string=))
+      (= (length directory-name) #.(length "atelier-test-123456"))))))
     (let ((directory
-	    (make-directory-pathname)))
+      (make-directory-pathname)))
       (ensure-directories-exist directory)
       (unwind-protect
-	   (funcall function directory)
-	(uiop:delete-directory-tree directory
-				    :validate #'validate-directory-pathname
-				    :if-does-not-exist :ignore)))))
+     (funcall function directory)
+  (uiop:delete-directory-tree directory
+            :validate #'validate-directory-pathname
+            :if-does-not-exist :ignore)))))
 
 (defmacro with-temporary-directory ((pathname) &body body)
   `(locally (declare (inline call-with-temporary-directory))
@@ -73,7 +73,7 @@
       (uiop:symbol-call "EXAMPLE/TEST" "RUN-ALL-TESTS")
       (asdf:load-system "net.cl-user.acme.example/development")
       (uiop:symbol-call "EXAMPLE/DEVELOPMENT" "LINT"))))
-  
+
 (define-testcase ensure-a-lisp-project-is-created-with-a-valid-test (pathname)
   (ensure-development-script-satisfy-formal-requirements
    (merge-pathnames #p"development/test" pathname))
@@ -89,48 +89,48 @@
 (define-testcase ensure-a-lisp-project-is-created-with-a-valid-package-structure
     (pathname &key project-filename system-name package-name)
   (loop :for source-file
-	:in (list (make-pathname :name project-filename
-				 :type "asd")
-		  (make-pathname :directory (list :relative "src")
-				 :name "package"
-				 :type "lisp")
-		  (make-pathname :directory (list :relative "test")
-				 :name "package"
-				 :type "lisp")
-		  (make-pathname :directory (list :relative "doc")
-				 :name project-filename
-				 :type "texinfo"))
-	:do (assert-t (file-regular-p (merge-pathnames source-file pathname))))
+  :in (list (make-pathname :name project-filename
+         :type "asd")
+      (make-pathname :directory (list :relative "src")
+         :name "package"
+         :type "lisp")
+      (make-pathname :directory (list :relative "test")
+         :name "package"
+         :type "lisp")
+      (make-pathname :directory (list :relative "doc")
+         :name project-filename
+         :type "texinfo"))
+  :do (assert-t (file-regular-p (merge-pathnames source-file pathname))))
   (let ((system-definition
-	  (make-pathname :name project-filename :type "asd")))
+    (make-pathname :name project-filename :type "asd")))
     (assert-t
      (grep "org.melusina.confidence" (merge-pathnames system-definition pathname)
-	   :fixed-string t
-	   :ignore-case t))
+     :fixed-string t
+     :ignore-case t))
     (assert-t
      (grep (concatenate 'string system-name "/test")
-	   (merge-pathnames system-definition pathname)
-	   :fixed-string t
-	   :ignore-case t))
+     (merge-pathnames system-definition pathname)
+     :fixed-string t
+     :ignore-case t))
     (assert-t
      (grep (concatenate 'string system-name "/development")
-	   (merge-pathnames system-definition pathname)
-	   :fixed-string t
-	   :ignore-case t))
+     (merge-pathnames system-definition pathname)
+     :fixed-string t
+     :ignore-case t))
     (assert-t
      (grep (concatenate 'string "(defpackage #:" package-name)
-	   (merge-pathnames (make-pathname :directory (list :relative "src")
-					   :name "package"
-					   :type "lisp" )
-			    pathname)
-	   :fixed-string t))
+     (merge-pathnames (make-pathname :directory (list :relative "src")
+             :name "package"
+             :type "lisp" )
+          pathname)
+     :fixed-string t))
     (assert-t
      (grep (concatenate 'string "(defpackage #:" package-name "/test")
-	   (merge-pathnames (make-pathname :directory (list :relative "test")
-					   :name "package"
-					   :type "lisp" )
-			    pathname)
-	   :fixed-string t))))
+     (merge-pathnames (make-pathname :directory (list :relative "test")
+             :name "package"
+             :type "lisp" )
+          pathname)
+     :fixed-string t))))
 
 (define-testcase ensure-a-lisp-project-is-created-fully-functional (&key project-filename package-name system-name)
   (with-temporary-directory (pathname)

@@ -29,4 +29,4 @@
   "Run all fix-bare-loop-keywords tests."
   (validate-fix-bare-loop-keywords))
 
-;;;; End of file 'fix-bare-loop-keywords.lisp'
+;;;; End of file `fix-bare-loop-keywords.lisp'

@@ -42,4 +42,4 @@ Uses a synthetic finding where column 14 to 17 are trailing spaces."
   (validate-fix-trailing-whitespace)
   (validate-line-maintainers-registered))
 
-;;;; End of file 'fix-trailing-whitespace.lisp'
+;;;; End of file `fix-trailing-whitespace.lisp'

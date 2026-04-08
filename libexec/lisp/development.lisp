@@ -29,10 +29,11 @@
 
 #+quicklisp
 (defun reload ()
-  (ql:quickload '("org.melusina.confidence"
-		  "org.melusina.atelier"
-		  "org.melusina.atelier/development"
-		  "org.melusina.atelier/testsuite")))
+  (ql:quickload
+   '("org.melusina.confidence"
+     "org.melusina.atelier"
+     "org.melusina.atelier/development"
+     "org.melusina.atelier/testsuite")))
 
 
 ;;;;

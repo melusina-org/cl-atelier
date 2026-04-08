@@ -50,4 +50,4 @@ prepare-resolution, then applies the resolution and verifies the result."
   (validate-fix-bare-lambda)
   (validate-fix-bare-lambda-registered))
 
-;;;; End of file 'fix-bare-lambda.lisp'
+;;;; End of file `fix-bare-lambda.lisp'

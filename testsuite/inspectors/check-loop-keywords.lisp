@@ -24,7 +24,9 @@
     (let* ((inspector (atelier:find-inspector 'atelier:check-loop-keywords))
            (findings (atelier:inspect-file inspector fixture-path)))
       (assert-t (not (null findings)))
-      (assert-t (every (lambda (f) (typep f 'atelier:bare-loop-keyword-finding)) findings)))))
+      (assert-t (flet ((bare-loop-keyword-finding-p (finding)
+                         (typep finding 'atelier:bare-loop-keyword-finding)))
+                  (every #'bare-loop-keyword-finding-p findings))))))
 
 (define-testcase validate-check-loop-keywords-correct ()
   "Verify that a LOOP with keyword symbols produces no findings."

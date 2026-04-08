@@ -52,18 +52,18 @@ main()
 iff SUBSTRING is a substring of STRING."
   (labels
       ((mainloop (match-start match-index)
-	 (cond
-	   ((> match-start (length string))
-	    nil)
-	   ((>= match-index (length substring))
-	    t)
-	   ((> (+ 1 match-index match-start) (length string))
-	    nil)
-	   ((eq (char string (+ match-index match-start))
-		(char substring match-index))
-	    (mainloop match-start (1+ match-index)))
-	   (t
-	    (mainloop (1+ match-start) 0)))))
+   (cond
+     ((> match-start (length string))
+      nil)
+     ((>= match-index (length substring))
+      t)
+     ((> (+ 1 match-index match-start) (length string))
+      nil)
+     ((eq (char string (+ match-index match-start))
+    (char substring match-index))
+      (mainloop match-start (1+ match-index)))
+     (t
+      (mainloop (1+ match-start) 0)))))
     (mainloop 0 0)))
 
 (define-assertion assert-subsequence (sequence1 sequence2 &key key (test #'eql))
@@ -71,23 +71,23 @@ iff SUBSTRING is a substring of STRING."
 iff SEQUENCE1 is a subsequence of SEQUENCE2."
   (labels
       ((element (sequence n)
-	 (if key
-	     (funcall key (elt sequence n))
-	     (elt sequence n)))
+   (if key
+       (funcall key (elt sequence n))
+       (elt sequence n)))
        (mainloop (match-start match-index)
-	 (cond
-	   ((> match-start (length sequence2))
-	    nil)
-	   ((>= match-index (length sequence1))
-	    t)
-	   ((> (+ 1 match-index match-start) (length sequence2))
-	    nil)
-	   ((funcall test
-		     (element sequence2 (+ match-index match-start))
-		     (element sequence1  match-index))
-	    (mainloop match-start (1+ match-index)))
-	   (t
-	    (mainloop (1+ match-start) 0)))))
+   (cond
+     ((> match-start (length sequence2))
+      nil)
+     ((>= match-index (length sequence1))
+      t)
+     ((> (+ 1 match-index match-start) (length sequence2))
+      nil)
+     ((funcall test
+         (element sequence2 (+ match-index match-start))
+         (element sequence1  match-index))
+      (mainloop match-start (1+ match-index)))
+     (t
+      (mainloop (1+ match-start) 0)))))
     (mainloop 0 0)))
 
 
@@ -122,7 +122,7 @@ iff SEQUENCE1 is a subsequence of SEQUENCE2."
 
 (define-testcase ensure-template-examples-are-processed-correctly ()
   (let ((expected-text-shell
-	  "#!/bin/sh
+    "#!/bin/sh
 
 # This file is part of Atelier.
 #
@@ -136,8 +136,8 @@ main()
 
 main \"$@\"
 ")
-	(expected-text-cpp
-	  "/* expected.cpp */
+  (expected-text-cpp
+    "/* expected.cpp */
 
 /* This file is part of Atelier. */
 
@@ -151,35 +151,35 @@ main()
 }
 "))
     (assert-string= expected-text-shell
-		    (atelier::parameter-replace *template-text-shell* *parameter-bindings*))
+        (atelier::parameter-replace *template-text-shell* *parameter-bindings*))
     (assert-string= expected-text-cpp
-		    (atelier::parameter-replace *template-text-cpp* *parameter-bindings*))))
+        (atelier::parameter-replace *template-text-cpp* *parameter-bindings*))))
 
 
 (define-testcase ensure-merge-parameter-bindings-ignore-nil-values ()
   (assert-string=
    (cdr (assoc :project-name *parameter-bindings*))
    (cdr (assoc :project-name (atelier::merge-parameter-bindings
-			      *parameter-bindings*
-			      '((:project-name)))))))
+            *parameter-bindings*
+            '((:project-name)))))))
 
 (define-testcase ensure-merge-parameter-bindings-does-not-duplicate-keys ()
   (assert-eq (length *parameter-bindings*)
-	     (length (atelier::merge-parameter-bindings
-		      *parameter-bindings*
-		      '((:project-name) (:copyright-holder) (:copyright-year))))))
+       (length (atelier::merge-parameter-bindings
+          *parameter-bindings*
+          '((:project-name) (:copyright-holder) (:copyright-year))))))
 
 (define-testcase ensure-merge-parameter-bindings-only-add-new-values ()
   (assert-string=
    "Atelier"
    (cdr (assoc :project-name (atelier::merge-parameter-bindings
-			      *parameter-bindings*
-			      '((:project-name . "Overridden Project Name"))))))
+            *parameter-bindings*
+            '((:project-name . "Overridden Project Name"))))))
   (assert-string=
    "Value for missing key"
    (cdr (assoc :missing-key (atelier::merge-parameter-bindings
-			     *parameter-bindings*
-			     '((:missing-key . "Value for missing key")))))))
+           *parameter-bindings*
+           '((:missing-key . "Value for missing key")))))))
 
 (define-testcase testsuite-merge-parameter-bindings ()
   (ensure-merge-parameter-bindings-ignore-nil-values)

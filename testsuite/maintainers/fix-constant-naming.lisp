@@ -27,4 +27,4 @@
   "Run all fix-constant-naming tests."
   (validate-fix-constant-naming))
 
-;;;; End of file 'fix-constant-naming.lisp'
+;;;; End of file `fix-constant-naming.lisp'

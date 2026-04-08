@@ -60,4 +60,4 @@
   (validate-fix-earmuffs)
   (validate-syntax-text-maintainers-registered))
 
-;;;; End of file 'fix-earmuffs.lisp'
+;;;; End of file `fix-earmuffs.lisp'

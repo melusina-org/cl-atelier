@@ -111,4 +111,4 @@ After autofix, trailing whitespace is removed but long lines remain."
   "Run all autofix tests."
   (validate-autofix))
 
-;;;; End of file 'autofix.lisp'
+;;;; End of file `autofix.lisp'

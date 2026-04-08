@@ -34,7 +34,9 @@
     (let* ((inspector (atelier:find-inspector 'atelier:check-earmuffs))
            (findings (atelier:inspect-file inspector fixture-path)))
       (assert-t (not (null findings)))
-      (assert-t (every (lambda (f) (typep f 'atelier:earmuffs-finding)) findings))
+      (assert-t (flet ((earmuffs-findings-p (finding)
+                         (typep finding 'atelier:earmuffs-finding)))
+                  (every #'earmuffs-findings-p findings)))
       (assert-eq 2 (length findings)))))
 
 (define-testcase testsuite-check-earmuffs ()

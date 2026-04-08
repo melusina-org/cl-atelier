@@ -16,9 +16,9 @@
                                         (testsuite-fixtures-directory)))
          (findings (atelier:perform-inspection fixture-path)))
     (assert-t (not (null findings)))
-    (assert-t (every (lambda (finding)
-                       (typep finding 'atelier:finding))
-                     findings))))
+    (assert-t (flet ((check-item (finding)
+                       (typep finding 'atelier:finding)))
+                (every #'check-item findings)))))
 
 (define-testcase validate-perform-inspection-respects-policy ()
   "Verify that the runner skips disabled inspectors."

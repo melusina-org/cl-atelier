@@ -37,4 +37,4 @@ Uses a synthetic finding where column 0 to 1 is a tab (style :spaces expected)."
   "Run all fix-mixed-indentation tests."
   (validate-fix-mixed-indentation))
 
-;;;; End of file 'fix-mixed-indentation.lisp'
+;;;; End of file `fix-mixed-indentation.lisp'

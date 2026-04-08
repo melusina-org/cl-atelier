@@ -151,4 +151,4 @@ the file must contain '(- 1 2)' after apply."
   "Run all write-back tests."
   (validate-write-back))
 
-;;;; End of file 'write-back.lisp'
+;;;; End of file `write-back.lisp'

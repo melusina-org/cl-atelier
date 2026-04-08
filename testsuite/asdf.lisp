@@ -122,10 +122,9 @@
          (atelier:*linter-configuration* policy)
          (findings (atelier:perform-inspection fixture-path)))
     (let ((spdx-findings
-            (remove-if-not (lambda (finding)
-                             (eq 'atelier:check-spdx-license-header
-                                 (atelier:finding-inspector finding)))
-                           findings)))
+            (flet ((spdx-license-header-finding-p (finding)
+		     (typep finding 'atelier:spdx-license-header-finding)))
+              (remove-if-not #'spdx-license-header-finding-p findings))))
       (assert-t (not (null spdx-findings)))
       (assert-eq :error (atelier:finding-severity (first spdx-findings))))))
 
