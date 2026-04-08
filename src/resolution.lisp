@@ -82,13 +82,34 @@
     :initarg :transform
     :reader resolution-transform
     :type function
-    :documentation "A function from CST node to new form. NIL means delete."))
-  (:documentation "A resolution that transforms a CST node."))
+    :documentation "A function from raw form to new form.")
+   (cst-node
+    :initarg :cst-node
+    :reader resolution-cst-node
+    :initform nil
+    :type (or null concrete-syntax-tree:cst)
+    :documentation "The CST node whose source span will be replaced and whose
+raw form is passed to the transform function. Defaults to the finding's
+CST-NODE. Set this when the transform targets a different node than the
+one where the problem was detected — for example, FIX-BARE-LAMBDA detects
+the lambda but transforms the enclosing call."))
+  (:documentation "A resolution that transforms a CST node.
+The finding's CST-NODE identifies where the problem was detected (for
+diagnostics and reporting). The resolution's CST-NODE identifies what
+to replace (for the write-back engine). By default they are the same
+node; maintainers override CST-NODE when the fix spans a larger form."))
 
 (defun make-syntax-resolution (&rest initargs
-                               &key maintainer finding kind description transform)
-  "Create and return a SYNTAX-RESOLUTION."
-  (declare (ignore maintainer finding kind description transform))
+                               &key maintainer finding kind description
+                                    transform cst-node)
+  "Create and return a SYNTAX-RESOLUTION.
+When CST-NODE is not supplied, it defaults to the finding's CST-NODE
+if the finding is a SYNTAX-FINDING."
+  (declare (ignore maintainer kind description transform))
+  (unless cst-node
+    (when (typep finding 'syntax-finding)
+      (setf (getf initargs :cst-node)
+            (finding-cst-node finding))))
   (apply #'make-instance 'syntax-resolution initargs))
 
 (defmethod print-object ((instance syntax-resolution) stream)

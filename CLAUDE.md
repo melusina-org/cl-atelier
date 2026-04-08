@@ -81,7 +81,7 @@ Two template kinds:
 
 **Finding hierarchy:** `finding` > `file-finding` > `line-finding` > `syntax-finding`, plus `region-finding`. Concrete subclasses for each inspector (e.g., `trailing-whitespace-finding`, `bare-lambda-finding`).
 
-**Resolution hierarchy:** `resolution` > `text-resolution` (replacement string) | `syntax-resolution` (CST transform function) | `agent-resolution` (LLM prompt) | `composite-resolution` (ordered list).
+**Resolution hierarchy:** `resolution` > `text-resolution` (replacement string) | `syntax-resolution` (CST transform function + optional `cst-node` for transform target) | `agent-resolution` (LLM prompt) | `composite-resolution` (ordered list).
 
 **Inspector registry:** `*inspectors*` hash table. `define-file-inspector`, `define-line-inspector`, `define-syntax-inspector` macros. 13 inspectors:
 - File: `check-file-encoding`, `check-spdx-license-header`, `check-header-line`, `check-footer-line`, `check-project-identification`
@@ -100,6 +100,18 @@ Two template kinds:
 **Write-back engine:** `apply-resolutions` is a generic function on STRING (pure in-memory transform) and PATHNAME (atomic file write). `parse-common-lisp` is a generic on STRING and PATHNAME. `string-to-line-vector` splits content for in-memory use. `resolution-text-span` converts each resolution to `(start end replacement)`.
 
 **Pretty-printer:** `*atelier-pprint-dispatch*` is an isolated dispatch table. `pretty-print-form` emits indented Lisp at a given column.
+
+### Writing Maintainers — Design Guidance
+
+**Maintainers must not reparse files.** The inspection pipeline already parses each file once. Syntax findings carry `cst-node` (the diagnostic node) and `cst-root` (the full file CST). Maintainers should use these — not call `parse-common-lisp` or `read-file-into-line-vector` on the finding's file.
+
+**Use `syntax-resolution` with `cst-node` when the transform target differs from the finding.** A finding's `cst-node` identifies where the problem was detected (for diagnostic display). The resolution's `cst-node` identifies what source span to replace (for the write-back engine). When a maintainer transforms a larger enclosing form (e.g., `fix-bare-lambda` detects the lambda but transforms the enclosing call), set the resolution's `cst-node` to the enclosing form's CST node. The write-back engine uses `(or (resolution-cst-node resolution) (finding-cst-node finding))` for the source span.
+
+**Inspection is fast and frequent; resolution is slow and rare.** Inspectors run on every `lint-system` call. Maintainers run only during `:autofix t`. Design inspectors to be lightweight (no file I/O, no parsing). Maintainers can do more work (walk the CST root, compute call graphs) because they run only on the small number of findings that actually need fixing.
+
+**Prefer `syntax-resolution` over `text-resolution` for CST-level maintainers.** Syntax resolutions let the write-back engine handle position conversion and pretty-printing. Text resolutions require the maintainer to compute line/column positions and generate formatted text — which means re-reading the line vector.
+
+**Refactoring (rename, move) is a separate protocol from linting.** Cross-file operations (renaming a package, renaming a file) are not expressible as inspector/finding/maintainer. Implement them as standalone functions that walk the project, not as inspectors.
 
 ### Resource Files (`resource/`)
 

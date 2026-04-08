@@ -28,7 +28,7 @@ prepare-resolution, applies the resolution to the string, and verifies."
          (maintainer (atelier:find-maintainer 'atelier:fix-bare-lambda))
          (resolution (let ((atelier::*current-line-vector* line-vector))
                        (atelier:prepare-resolution maintainer finding))))
-    (assert-type resolution 'atelier:text-resolution)
+    (assert-type resolution 'atelier:syntax-resolution)
     (assert-eq 'atelier:fix-bare-lambda (atelier:resolution-maintainer resolution))
     (let ((result (atelier:apply-resolutions source (list resolution))))
       (assert-string=

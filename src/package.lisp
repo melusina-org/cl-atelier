@@ -113,6 +113,7 @@
    #:resolution-description
    #:resolution-replacement
    #:resolution-transform
+   #:resolution-cst-node
    #:resolution-prompt
    #:resolution-transforms
 

@@ -81,47 +81,32 @@ has source position LAMBDA-SOURCE. Returns the call node or NIL."
 (define-automatic-maintainer fix-bare-lambda
     ((finding bare-lambda-finding))
   "Extract a bare LAMBDA in a higher-order function call to a named FLET function.
-Walks the CST root to find the enclosing call, builds a FLET-wrapped form,
-and returns a TEXT-RESOLUTION spanning the full call."
+Walks the CST root to find the enclosing call and returns a SYNTAX-RESOLUTION
+whose CST-NODE is the enclosing call (not the lambda itself). The transform
+builds a FLET-wrapped form from the call's raw form."
   (let* ((lambda-cst (finding-cst-node finding))
          (lambda-source (concrete-syntax-tree:source lambda-cst))
          (call-cst (find-enclosing-call (finding-cst-root finding) lambda-source)))
     (when call-cst
       (let* ((call-form (concrete-syntax-tree:raw call-cst))
              (operator (first call-form))
-             (lambda-form (second call-form))   ; (lambda (params) body...)
-             (rest-args (cddr call-form))
-             (params (second lambda-form))
-             (body (cddr lambda-form))
-             (flet-name (generate-flet-name operator params body))
-             (flet-form `(flet ((,flet-name ,params ,@body))
-                           (,operator (function ,flet-name) ,@rest-args)))
-             ;; Derive call position first so we can use its column for pretty-printing.
-             (line-vector (or *current-line-vector*
-                              (read-file-into-line-vector (finding-file finding))))
-             (call-source (concrete-syntax-tree:source call-cst))
-             (start-lc (source-position-to-line-column (car call-source) line-vector))
-             (end-lc (source-position-to-line-column (cdr call-source) line-vector))
-             (call-column (cdr start-lc))
-             (replacement (pretty-print-form flet-form call-column))
-             ;; start-lc and end-lc were computed above alongside call-column.
-             ;; Synthetic finding spanning the full call.
-             (call-finding (make-line-finding
-                            :inspector (finding-inspector finding)
-                            :severity (finding-severity finding)
-                            :observation (finding-observation finding)
-                            :rationale (finding-rationale finding)
-                            :file (finding-file finding)
-                            :line (car start-lc)
-                            :column (cdr start-lc)
-                            :end-line (car end-lc)
-                            :end-column (cdr end-lc)
-                            :source-text (finding-source-text finding))))
-        (make-text-resolution
+             (lambda-form (second call-form))
+             (flet-name (generate-flet-name operator (second lambda-form) (cddr lambda-form))))
+        (make-syntax-resolution
          :maintainer 'fix-bare-lambda
-         :finding call-finding
+         :finding finding
          :kind :automatic
          :description (format nil "Extract lambda to FLET ~S." flet-name)
-         :replacement replacement)))))
+         :cst-node call-cst
+         :transform (flet ((build-flet-form (raw-call)
+                             (let* ((operator (first raw-call))
+                                    (lambda-form (second raw-call))
+                                    (rest-args (cddr raw-call))
+                                    (params (second lambda-form))
+                                    (body (cddr lambda-form))
+                                    (name (generate-flet-name operator params body)))
+                               `(flet ((,name ,params ,@body))
+                                  (,operator (function ,name) ,@rest-args)))))
+                     #'build-flet-form))))))
 
 ;;;; End of file `fix-bare-lambda.lisp'

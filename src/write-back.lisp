@@ -69,19 +69,22 @@ offsets. Returns (values start end replacement-string)."
     (values start end (resolution-replacement resolution))))
 
 (defmethod resolution-text-span ((resolution syntax-resolution))
-  "Derive text span from CST source positions; apply transform; pretty-print.
-The CST source cons (start . end) gives character offsets directly.
-The transform is applied to the raw form; result is pretty-printed at
-the finding's column. Returns (values start end replacement-string)."
+  "Derive text span from the resolution's CST-NODE source positions.
+The transform is applied to the node's raw form; result is pretty-printed
+at the node's column. Returns (values start end replacement-string)."
   (declare (values (integer 0) (integer 0) string))
   (let* ((finding (resolution-finding resolution))
-         (cst-node (finding-cst-node finding))
+         (cst-node (resolution-cst-node resolution))
          (source (concrete-syntax-tree:source cst-node))
          (start (car source))
          (end (cdr source))
+         (line-vector (or *current-line-vector*
+                         (read-file-into-line-vector (finding-file finding))))
+         (start-lc (source-position-to-line-column start line-vector))
+         (column (cdr start-lc))
          (new-form (funcall (resolution-transform resolution)
                             (concrete-syntax-tree:raw cst-node)))
-         (replacement (pretty-print-form new-form (finding-column finding))))
+         (replacement (pretty-print-form new-form column)))
     (values start end replacement)))
 
 
