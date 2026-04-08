@@ -97,7 +97,8 @@ and returns a TEXT-RESOLUTION spanning the full call."
              (flet-form `(flet ((,flet-name ,params ,@body))
                            (,operator (function ,flet-name) ,@rest-args)))
              ;; Derive call position first so we can use its column for pretty-printing.
-             (line-vector (read-file-into-line-vector (finding-file finding)))
+             (line-vector (or *current-line-vector*
+                              (read-file-into-line-vector (finding-file finding))))
              (call-source (concrete-syntax-tree:source call-cst))
              (start-lc (source-position-to-line-column (car call-source) line-vector))
              (end-lc (source-position-to-line-column (cdr call-source) line-vector))

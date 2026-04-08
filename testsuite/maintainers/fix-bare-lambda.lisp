@@ -11,35 +11,29 @@
 (in-package #:atelier/testsuite)
 
 (define-testcase validate-fix-bare-lambda ()
-  "Verify fix-bare-lambda extracts a bare lambda to a named FLET and writes it back.
-Writes '(mapcar (lambda (x) (1+ x)) items)' to a temp file, runs the inspector
-to obtain a real finding (with correct CST source positions), invokes
-prepare-resolution, then applies the resolution and verifies the result."
-  (uiop:with-temporary-file (:pathname p :type "lisp" :keep nil)
-    (with-open-file (s p :direction :output :if-exists :supersede
-                       :external-format :utf-8)
-      (write-string "(mapcar (lambda (x) (1+ x)) items)" s))
-    ;; Parse the file and run the inspector to get a finding with real source positions.
-    (let* ((cst-forms (atelier::parse-lisp-file p))
-           (top-form (first cst-forms))
-           (line-vector (atelier:read-file-into-line-vector p))
-           (inspector (atelier:find-inspector 'atelier:check-bare-lambda))
-           (findings
-             (let ((atelier::*current-pathname* p)
-                   (atelier::*current-line-vector* line-vector)
-                   (atelier::*current-cst-root* top-form))
-               (atelier:inspect-syntax inspector top-form)))
-           (finding (first findings))
-           (maintainer (atelier:find-maintainer 'atelier:fix-bare-lambda))
-           (resolution (atelier:prepare-resolution maintainer finding)))
-      (assert-type resolution 'atelier:text-resolution)
-      (assert-eq 'atelier:fix-bare-lambda (atelier:resolution-maintainer resolution))
-      ;; Apply the resolution and verify the file content.
-      (atelier:apply-resolutions-to-file p (list resolution))
-      (let ((result (uiop:read-file-string p :external-format :utf-8)))
-        (assert-string=
-         (format nil "(flet ((map-item (x)~%         (1+ x)))~%  (mapcar #'map-item items))")
-         result)))))
+  "Verify fix-bare-lambda extracts a bare lambda to a named FLET.
+Parses source from a string, runs the inspector in memory, invokes
+prepare-resolution, applies the resolution to the string, and verifies."
+  (let* ((source "(mapcar (lambda (x) (1+ x)) items)")
+         (cst-forms (atelier:parse-common-lisp source))
+         (top-form (first cst-forms))
+         (line-vector (atelier:string-to-line-vector source))
+         (inspector (atelier:find-inspector 'atelier:check-bare-lambda))
+         (findings
+           (let ((atelier::*current-pathname* #p"test.lisp")
+                 (atelier::*current-line-vector* line-vector)
+                 (atelier::*current-cst-root* top-form))
+             (atelier:inspect-syntax inspector top-form)))
+         (finding (first findings))
+         (maintainer (atelier:find-maintainer 'atelier:fix-bare-lambda))
+         (resolution (let ((atelier::*current-line-vector* line-vector))
+                       (atelier:prepare-resolution maintainer finding))))
+    (assert-type resolution 'atelier:text-resolution)
+    (assert-eq 'atelier:fix-bare-lambda (atelier:resolution-maintainer resolution))
+    (let ((result (atelier:apply-resolutions source (list resolution))))
+      (assert-string=
+       (format nil "(flet ((map-item (x)~%         (1+ x)))~%  (mapcar #'map-item items))")
+       result))))
 
 (define-testcase validate-fix-bare-lambda-registered ()
   "Verify fix-bare-lambda is registered in the maintainer registry."

@@ -12,6 +12,17 @@
 
 
 ;;;;
+;;;; Line Vector
+;;;;
+
+(defvar *current-line-vector* nil
+  "The line vector of the file currently being processed.
+Bound during syntax inspection and in-memory resolution application so that
+resolution-text-span can convert line/column to character offsets without
+re-reading the file.")
+
+
+;;;;
 ;;;; Write-back Engine
 ;;;;
 
@@ -47,7 +58,8 @@ finding's (line, column) and (end-line, end-column) pairs to character
 offsets. Returns (values start end replacement-string)."
   (declare (values (integer 0) (integer 0) string))
   (let* ((finding (resolution-finding resolution))
-         (line-vector (read-file-into-line-vector (finding-file finding)))
+         (line-vector (or *current-line-vector*
+                         (read-file-into-line-vector (finding-file finding))))
          (start (line-column-to-offset (finding-line finding)
                                        (finding-column finding)
                                        line-vector))
@@ -119,9 +131,22 @@ writes back atomically, returns content). RESOLUTIONS are sorted end-to-start
 and overlapping spans are silently skipped."))
 
 (defmethod apply-resolutions ((content string) (resolutions list))
-  "Apply RESOLUTIONS to CONTENT string and return the new content."
+  "Apply RESOLUTIONS to CONTENT string and return the new content.
+Binds *CURRENT-LINE-VECTOR* from CONTENT so that resolution-text-span
+can convert line/column positions without reading from the filesystem."
   (declare (values string))
-  (apply-spans-to-string content (compute-resolution-spans resolutions)))
+  (let ((*current-line-vector*
+          (coerce
+           (let ((lines nil) (start 0))
+             (loop :for pos = (position #\Newline content :start start)
+                   :while pos
+                   :do (push (subseq content start pos) lines)
+                       (setf start (1+ pos)))
+             (when (< start (length content))
+               (push (subseq content start) lines))
+             (nreverse lines))
+           'vector)))
+    (apply-spans-to-string content (compute-resolution-spans resolutions))))
 
 (defmethod apply-resolutions ((pathname pathname) (resolutions list))
   "Apply RESOLUTIONS to the file at PATHNAME. Write back atomically. Return new content."

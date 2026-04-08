@@ -14,22 +14,23 @@
   (assert-t (not (null (atelier:find-maintainer 'atelier:fix-header-line)))))
 
 (define-testcase validate-fix-header-line ()
-  "Verify fix-header-line produces a text-resolution with the correct canonical header."
-  (uiop:with-temporary-file (:pathname p :type "lisp" :keep nil)
-    (with-open-file (s p :direction :output :if-exists :supersede
-                       :external-format :utf-8)
-      (write-string ";; wrong — Test description" s)
-      (terpri s))
-    (let* ((inspector (atelier:find-inspector 'atelier:check-header-line))
-           (findings (atelier:inspect-file inspector p))
-           (finding (first findings))
-           (maintainer (atelier:find-maintainer 'atelier:fix-header-line))
-           (resolution (atelier:prepare-resolution maintainer finding)))
-      (assert-type resolution 'atelier:text-resolution)
-      ;; The replacement should be a canonical header line with extracted description
-      (let ((replacement (atelier:resolution-replacement resolution)))
-        (assert-t (not (null (search ";;;;" replacement))))
-        (assert-t (not (null (search (file-namestring p) replacement))))))))
+  "Verify fix-header-line produces a text-resolution with the correct canonical header.
+Constructs a finding directly (no file I/O needed)."
+  (let* ((finding (make-instance 'atelier:header-line-finding
+                   :inspector 'atelier:check-header-line
+                   :severity :style
+                   :observation "Wrong header."
+                   :rationale "Expected canonical header."
+                   :file #p"example.lisp"
+                   :line 1 :column 0 :end-line 1 :end-column 16
+                   :source-text ";; wrong — Test"))
+         (maintainer (atelier:find-maintainer 'atelier:fix-header-line))
+         (resolution (atelier:prepare-resolution maintainer finding)))
+    (assert-type resolution 'atelier:text-resolution)
+    (let ((replacement (atelier:resolution-replacement resolution)))
+      (assert-t (not (null (search ";;;;" replacement))))
+      (assert-t (not (null (search "example.lisp" replacement))))
+      (assert-t (not (null (search "Test" replacement)))))))
 
 (define-testcase testsuite-fix-header-line ()
   (validate-fix-header-line-registered)

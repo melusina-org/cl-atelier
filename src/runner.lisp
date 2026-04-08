@@ -48,11 +48,6 @@ Return a list of findings for this line, or NIL. LINE is a string.
 Bound during syntax inspection so INSPECT-SYNTAX methods can reference the
 full parsed structure of the file.")
 
-(defvar *current-line-vector* nil
-  "The line vector of the file currently being inspected.
-Bound during syntax inspection so SOURCE-POSITION-TO-LINE-COLUMN can convert
-CST character offsets to line/column numbers without re-reading the file.")
-
 
 ;;;;
 ;;;; Syntax Inspection Protocol
@@ -108,15 +103,15 @@ Compatibility wrapper for PARSE-COMMON-LISP on a pathname."
   "Split CONTENT string into a vector of line strings (without trailing newlines)."
   (declare (type string content)
            (values vector))
-  (coerce
-   (loop :with start = 0
-         :for pos = (position #\Newline content :start start)
-         :while pos
-         :collect (subseq content start pos)
-         :do (setf start (1+ pos))
-         :finally (when (< start (length content))
-                    (collect (subseq content start))))
-   'vector))
+  (let ((lines nil)
+        (start 0))
+    (loop :for pos = (position #\Newline content :start start)
+          :while pos
+          :do (push (subseq content start pos) lines)
+              (setf start (1+ pos)))
+    (when (< start (length content))
+      (push (subseq content start) lines))
+    (coerce (nreverse lines) 'vector)))
 
 (defun source-position-to-line-column (position line-vector)
   "Convert character POSITION to a cons (LINE . COLUMN) using LINE-VECTOR.
