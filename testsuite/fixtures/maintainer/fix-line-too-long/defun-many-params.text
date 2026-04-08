@@ -1,0 +1,15 @@
+---
+description: Defun with many parameters wrapped across lines
+inspector: check-line-length
+comparison: string
+---
+(defun process-data (database-connection output-stream error-handler validation-function transform-function filter-predicate) nil)
+---
+(defun process-data (database-connection
+                     output-stream
+                     error-handler
+                     validation-function
+                     transform-function
+                     filter-predicate)
+  nil)
+---

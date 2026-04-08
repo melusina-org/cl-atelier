@@ -1,0 +1,14 @@
+---
+description: Make-instance with long rationale string broken via concatenate
+inspector: check-line-length
+comparison: string
+---
+(make-instance 'policy-rule :name "access-control" :rationale "This rule enforces mandatory access control for all authenticated users accessing protected resources in the system")
+---
+(make-instance 'policy-rule
+  :name "access-control"
+  :rationale #.(concatenate 'string
+                 "This rule enforces mandatory access control "
+                 "for all authenticated users accessing "
+                 "protected resources in the system"))
+---

@@ -1,0 +1,13 @@
+---
+description: Loop form with long clauses wrapped to one clause per line
+inspector: check-line-length
+comparison: string
+---
+(loop :for item :in (retrieve-all-items database :status :active :owner current-user) :when (eligible-for-processing-p item) :collect (transform-item item output-format))
+---
+(loop :for item :in (retrieve-all-items database
+                                         :status :active
+                                         :owner current-user)
+      :when (eligible-for-processing-p item)
+      :collect (transform-item item output-format))
+---

@@ -1,0 +1,13 @@
+---
+description: Defmethod with many specialized parameters wrapped across lines
+inspector: check-line-length
+comparison: string
+---
+(defmethod process-request ((server http-server) (request incoming-request) (response outgoing-response) (middleware middleware-chain)) nil)
+---
+(defmethod process-request ((server http-server)
+                            (request incoming-request)
+                            (response outgoing-response)
+                            (middleware middleware-chain))
+  nil)
+---

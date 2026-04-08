@@ -61,7 +61,8 @@
 		   (:file "fix-labels-to-flet")
 		   (:file "fix-header-line")
 		   (:file "fix-footer-line")
-		   (:file "fix-project-identification")))
+		   (:file "fix-project-identification")
+		   (:file "fix-line-too-long")))
 		 (:file "main")))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
@@ -111,7 +112,8 @@
 		   (:file "fix-labels-to-flet")
 		   (:file "fix-header-line")
 		   (:file "fix-footer-line")
-		   (:file "fix-project-identification")))
+		   (:file "fix-project-identification")
+		   (:file "fix-line-too-long")))
 		 (:file "autofix")
 		 (:file "entrypoint")))))
 

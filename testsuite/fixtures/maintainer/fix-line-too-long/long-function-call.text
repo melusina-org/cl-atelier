@@ -1,0 +1,13 @@
+---
+description: Function call with many keyword args wrapped one per line
+inspector: check-line-length
+comparison: string
+---
+(register-event-handler event-manager :event-type :connection-established :handler #'handle-connection :priority 10 :once-only t)
+---
+(register-event-handler event-manager
+  :event-type :connection-established
+  :handler #'handle-connection
+  :priority 10
+  :once-only t)
+---

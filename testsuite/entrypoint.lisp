@@ -46,6 +46,7 @@
   (testsuite-fix-header-line)
   (testsuite-fix-footer-line)
   (testsuite-fix-project-identification)
+  (testsuite-fix-line-too-long)
   (testsuite-autofix)
   (testsuite-template))
 

@@ -1,0 +1,14 @@
+---
+description: Format nil call with long control string broken via concatenate
+inspector: check-line-length
+comparison: string
+---
+(format nil "Error in module ~A: the operation ~A failed with status code ~A because the resource ~A was unavailable" module op code resource)
+---
+(format nil
+  #.(concatenate 'string
+      "Error in module ~A: the operation ~A "
+      "failed with status code ~A because "
+      "the resource ~A was unavailable")
+  module op code resource)
+---

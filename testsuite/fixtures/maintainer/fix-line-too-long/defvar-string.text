@@ -1,0 +1,13 @@
+---
+description: Defvar with long initial value string broken via concatenate
+inspector: check-line-length
+comparison: string
+---
+(defvar *welcome-message* "Welcome to the application management console. Please authenticate with your credentials before proceeding.")
+---
+(defvar *welcome-message*
+  #.(concatenate 'string
+      "Welcome to the application management "
+      "console. Please authenticate with your "
+      "credentials before proceeding."))
+---

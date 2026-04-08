@@ -1,0 +1,15 @@
+---
+description: Deeply indented let binding with long string broken via concatenate
+inspector: check-line-length
+comparison: string
+---
+(let* ((message (format nil "The operation could not be completed because the requested resource was not available at this time"))) message)
+---
+(let* ((message
+         (format nil
+           #.(concatenate 'string
+               "The operation could not be completed "
+               "because the requested resource was "
+               "not available at this time"))))
+  message)
+---

@@ -180,6 +180,7 @@
    #:fix-header-line
    #:fix-footer-line
    #:fix-project-identification
+   #:fix-line-too-long
    #:inspect-file
    #:inspect-line
    #:*current-pathname*

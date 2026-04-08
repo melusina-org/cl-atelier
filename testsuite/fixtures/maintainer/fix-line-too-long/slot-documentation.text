@@ -1,0 +1,15 @@
+---
+description: Defclass slot with long documentation string broken via concatenate
+inspector: check-line-length
+comparison: string
+---
+(defclass server () ((hostname :initarg :hostname :reader server-hostname :documentation "The fully qualified domain name of the server used for establishing network connections")))
+---
+(defclass server ()
+  ((hostname :initarg :hostname
+             :reader server-hostname
+             :documentation #.(concatenate 'string
+                                "The fully qualified domain name of the "
+                                "server used for establishing network "
+                                "connections"))))
+---
