@@ -72,56 +72,77 @@ the finding's column. Returns (values start end replacement-string)."
          (replacement (pretty-print-form new-form (finding-column finding))))
     (values start end replacement)))
 
-(defun apply-resolutions-to-file (pathname resolutions)
-  "Apply RESOLUTIONS to the source file at PATHNAME.
-Reads the file into a string, converts each resolution to a text span
-via RESOLUTION-TEXT-SPAN, sorts spans by start-offset descending
-(end-to-start ordering per I17). When two consecutive spans overlap,
-the later one (lower start offset) is silently skipped — the caller is
-expected to re-inspect and retry rather than receive an error. Writes
-the non-overlapping replacements to a temporary file then renames over
-PATHNAME atomically. Returns PATHNAME."
-  (declare (type pathname pathname)
-           (type list resolutions)
-           (values pathname))
+
+;;;;
+;;;; Apply Resolutions
+;;;;
+
+(defun compute-resolution-spans (resolutions)
+  "Convert RESOLUTIONS to a sorted, non-overlapping list of text spans.
+Each span is (start end replacement). Spans are sorted by start-offset
+descending (end-to-start ordering). Overlapping spans are silently dropped."
+  (declare (type list resolutions)
+           (values list))
   (flet ((collect-span (resolution)
            (multiple-value-list (resolution-text-span resolution)))
-         (span-start (span)
-           (first span))
-         (span-end (span)
-           (second span))
-         (span-replacement (span)
-           (third span))
          (spans-overlap-p (a b)
            (> (second b) (first a))))
     (flet ((remove-overlapping-spans (sorted)
              (let ((accepted nil))
                (dolist (span sorted)
-                 (when
-                     (or (null accepted)
-                         (not (spans-overlap-p (first accepted) span)))
+                 (when (or (null accepted)
+                           (not (spans-overlap-p (first accepted) span)))
                    (push span accepted)))
                (nreverse accepted))))
       (let* ((spans (mapcar #'collect-span resolutions))
-             (sorted (sort spans #'> :key #'span-start))
-             (compatible (remove-overlapping-spans sorted)))
-        (let* ((content
-                (uiop/stream:read-file-string pathname :external-format :utf-8))
-               (result
-                (loop :with text = content
-                      :for span :in compatible
-                      :do (setf text
-                                  (concatenate 'string
-                                               (subseq text 0 (span-start span))
-                                               (span-replacement span)
-                                               (subseq text (span-end span))))
-                      :finally (return text)))
-               (tmp (uiop/stream:tmpize-pathname pathname)))
-          (with-open-file
-              (stream tmp :direction :output :if-exists :supersede
-               :external-format :utf-8)
-            (write-string result stream))
-          (uiop/filesystem:rename-file-overwriting-target tmp pathname)
-          pathname)))))
+             (sorted (sort spans #'> :key #'first)))
+        (remove-overlapping-spans sorted)))))
+
+(defun apply-spans-to-string (content spans)
+  "Apply pre-computed SPANS to CONTENT string and return the result.
+SPANS must be sorted by start-offset descending (end-to-start ordering)."
+  (declare (type string content)
+           (type list spans)
+           (values string))
+  (loop :with text = content
+        :for span :in spans
+        :do (setf text (concatenate 'string
+                                    (subseq text 0 (first span))
+                                    (third span)
+                                    (subseq text (second span))))
+        :finally (return text)))
+
+(defgeneric apply-resolutions (source resolutions)
+  (:documentation "Apply RESOLUTIONS to SOURCE and return the resulting content string.
+SOURCE is a STRING (pure in-memory transform) or a PATHNAME (reads file,
+writes back atomically, returns content). RESOLUTIONS are sorted end-to-start
+and overlapping spans are silently skipped."))
+
+(defmethod apply-resolutions ((content string) (resolutions list))
+  "Apply RESOLUTIONS to CONTENT string and return the new content."
+  (declare (values string))
+  (apply-spans-to-string content (compute-resolution-spans resolutions)))
+
+(defmethod apply-resolutions ((pathname pathname) (resolutions list))
+  "Apply RESOLUTIONS to the file at PATHNAME. Write back atomically. Return new content."
+  (declare (values string))
+  (let* ((content (uiop:read-file-string pathname :external-format :utf-8))
+         (result (apply-resolutions content resolutions))
+         (tmp (uiop:tmpize-pathname pathname)))
+    (with-open-file (stream tmp :direction :output :if-exists :supersede
+                               :external-format :utf-8)
+      (write-string result stream))
+    (uiop:rename-file-overwriting-target tmp pathname)
+    result))
+
+(defun apply-resolutions-to-file (pathname resolutions)
+  "Apply RESOLUTIONS to the source file at PATHNAME.
+Compatibility wrapper for APPLY-RESOLUTIONS on a pathname.
+Reads the file, applies resolutions, writes back atomically. Returns PATHNAME."
+  (declare (type pathname pathname)
+           (type list resolutions)
+           (values pathname))
+  (apply-resolutions pathname resolutions)
+  pathname)
 
 ;;;; End of file `write-back.lisp'

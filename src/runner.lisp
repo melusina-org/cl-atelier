@@ -73,23 +73,50 @@ by the caller.")
 ;;;; CST Helpers
 ;;;;
 
-(defun parse-lisp-file (pathname)
-  "Parse PATHNAME with Eclector and return a list of top-level CST forms.
-Return NIL if the file cannot be parsed due to non-Lisp content or reader errors.
-Reads the file into a string first so that Eclector's source positions are
-character offsets, not byte offsets. This matters for files whose headers
-contain multi-byte UTF-8 characters (©, –, ë, etc.) because file-position
-on a UTF-8 stream returns the byte position, while the line-vector
-infrastructure counts characters."
-  (declare (type pathname pathname)
-           (values list))
+(defgeneric parse-common-lisp (source)
+  (:documentation "Parse SOURCE as Common Lisp and return a list of top-level CST forms.
+Return NIL if the source cannot be parsed. SOURCE is a STRING or a PATHNAME.
+Eclector source positions are character offsets (not byte offsets)."))
+
+(defmethod parse-common-lisp ((content string))
+  "Parse CONTENT string with Eclector. Return a list of top-level CST forms, or NIL."
+  (declare (values list))
   (handler-case
-      (let* ((content (uiop:read-file-string pathname :external-format :utf-8))
-             (stream (make-string-input-stream content)))
+      (let ((stream (make-string-input-stream content)))
         (loop :for form = (eclector.concrete-syntax-tree:read stream nil :eof)
               :until (eq form :eof)
               :collect form))
     (error () nil)))
+
+(defmethod parse-common-lisp ((pathname pathname))
+  "Read PATHNAME as UTF-8 and delegate to the string method.
+Uses a string so Eclector's source positions are character offsets, not byte
+offsets. This matters for files with multi-byte UTF-8 characters (©, –, ë)."
+  (declare (values list))
+  (handler-case
+      (parse-common-lisp (uiop:read-file-string pathname :external-format :utf-8))
+    (error () nil)))
+
+(defun parse-lisp-file (pathname)
+  "Parse PATHNAME with Eclector and return a list of top-level CST forms.
+Compatibility wrapper for PARSE-COMMON-LISP on a pathname."
+  (declare (type pathname pathname)
+           (values list))
+  (parse-common-lisp pathname))
+
+(defun string-to-line-vector (content)
+  "Split CONTENT string into a vector of line strings (without trailing newlines)."
+  (declare (type string content)
+           (values vector))
+  (coerce
+   (loop :with start = 0
+         :for pos = (position #\Newline content :start start)
+         :while pos
+         :collect (subseq content start pos)
+         :do (setf start (1+ pos))
+         :finally (when (< start (length content))
+                    (collect (subseq content start))))
+   'vector))
 
 (defun source-position-to-line-column (position line-vector)
   "Convert character POSITION to a cons (LINE . COLUMN) using LINE-VECTOR.

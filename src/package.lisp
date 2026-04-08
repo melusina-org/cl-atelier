@@ -162,7 +162,9 @@
    #:pretty-print-form
 
    ;; Write-back engine
+   #:apply-resolutions
    #:apply-resolutions-to-file
+   #:compute-resolution-spans
    #:resolution-text-span
 
    ;; Concrete maintainers
@@ -225,7 +227,9 @@
 
    ;; Syntax inspection infrastructure
    #:inspect-syntax
+   #:parse-common-lisp
    #:parse-lisp-file
+   #:string-to-line-vector
    #:make-syntax-finding-from-form
    #:source-position-to-line-column
    #:*current-cst-root*
