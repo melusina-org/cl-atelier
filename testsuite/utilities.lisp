@@ -80,6 +80,38 @@ NAME is a string like \"flet-single-binding\". Extension is .text."
 
 
 ;;;;
+;;;; Fixture Auto-Discovery
+;;;;
+
+(defun discover-maintainer-fixtures ()
+  "Return an alist of (maintainer-symbol . list-of-fixture-pathnames).
+Walks testsuite/fixtures/maintainer/*/  and maps each subdirectory name
+to its .text files. The subdirectory name is interned in the ATELIER package."
+  (let ((base (merge-pathnames #p"testsuite/fixtures/maintainer/"
+                               (asdf:system-source-directory "org.melusina.atelier"))))
+    (loop :for dir :in (uiop:subdirectories base)
+          :for dir-name = (car (last (pathname-directory dir)))
+          :for name = (find-symbol (string-upcase dir-name) :atelier)
+          :for files = (directory (merge-pathnames "*.text" dir))
+          :when (and name files)
+          :collect (cons name files))))
+
+(defun read-maintainer-fixture (pathname)
+  "Read a maintainer fixture from PATHNAME.
+Returns (values inspector-name input-form expected-form) where INSPECTOR-NAME
+is interned in the ATELIER package from the front-matter inspector: field."
+  (declare (type pathname pathname))
+  (multiple-value-bind (front-matter documents)
+      (atelier:read-file-documents-with-yaml-front-matter pathname)
+    (let* ((inspector-str (cdr (assoc :inspector front-matter)))
+           (inspector-name (when inspector-str
+                             (find-symbol (string-upcase inspector-str) :atelier)))
+           (input-form (read-from-string (atelier:join-lines (first documents))))
+           (expected-form (read-from-string (atelier:join-lines (second documents)))))
+      (values inspector-name input-form expected-form))))
+
+
+;;;;
 ;;;; File Utilities
 ;;;;
 

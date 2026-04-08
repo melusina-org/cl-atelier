@@ -44,7 +44,7 @@ spurious overlapping-span errors."
 
 
 ;;;;
-;;;; Testcases
+;;;; Slow tests — file-based autofix integration
 ;;;;
 
 (define-testcase validate-lint-system-autofix ()
@@ -98,6 +98,54 @@ After autofix, trailing whitespace is removed but long lines remain."
 
 
 ;;;;
+;;;; Fast tests — fixture auto-discovery
+;;;;
+
+(define-testcase validate-one-maintainer-fixture (maintainer-name fixture-path)
+  "Validate a single maintainer fixture: parse input, run inspector+maintainer,
+apply all resolutions, compare result structurally with expected output."
+  (multiple-value-bind (inspector-name input-form expected-form)
+      (read-maintainer-fixture fixture-path)
+    (declare (ignore input-form))
+    (when inspector-name
+      (let* ((source (atelier:join-lines
+                      (first (nth-value 1
+                               (atelier:read-file-documents-with-yaml-front-matter
+                                fixture-path)))))
+             (cst-forms (atelier:parse-common-lisp source))
+             (top-form (first cst-forms))
+             (line-vector (atelier:string-to-line-vector source))
+             (inspector (atelier:find-inspector inspector-name))
+             (maintainer (atelier:find-maintainer maintainer-name)))
+        (when (and inspector maintainer top-form)
+          (let* ((findings
+                   (let ((atelier::*current-pathname* #p"fixture.lisp")
+                         (atelier::*current-line-vector* line-vector)
+                         (atelier::*current-cst-root* top-form))
+                     (atelier:inspect-syntax inspector top-form)))
+                 (resolutions
+                   (let ((atelier::*current-line-vector* line-vector))
+                     (loop :for finding :in findings
+                           :for resolution = (atelier:prepare-resolution
+                                              maintainer finding)
+                           :when resolution :collect resolution))))
+            (when resolutions
+              (let* ((result-string
+                       (atelier:apply-resolutions source resolutions))
+                     (result-form (read-from-string result-string)))
+                (assert-t (equal expected-form result-form))))))))))
+
+(define-testcase validate-maintainer-fixtures ()
+  "Run every discovered maintainer fixture as a transform test.
+Only tests syntax-level maintainers (those with an inspector: field
+pointing to a syntax inspector)."
+  (dolist (entry (discover-maintainer-fixtures))
+    (let ((maintainer-name (car entry)))
+      (dolist (fixture-path (cdr entry))
+        (validate-one-maintainer-fixture maintainer-name fixture-path)))))
+
+
+;;;;
 ;;;; Entry points
 ;;;;
 
@@ -109,6 +157,7 @@ After autofix, trailing whitespace is removed but long lines remain."
 
 (define-testcase testsuite-autofix ()
   "Run all autofix tests."
-  (validate-autofix))
+  (validate-autofix)
+  (validate-maintainer-fixtures))
 
 ;;;; End of file `autofix.lisp'

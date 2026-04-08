@@ -97,7 +97,7 @@ Two template kinds:
 
 **Comment style:** `file-comment-prefix` maps file extensions to comment prefixes: Lisp (`;;;; `), Shell/Make/Docker/Terraform (`# `), C/C++ (`// `), TeX (`% `), Autoconf (`dnl `).
 
-**Write-back engine:** `apply-resolutions-to-file` applies resolutions end-to-start via atomic write (tmpize + rename). `resolution-text-span` converts each resolution to `(start end replacement)`.
+**Write-back engine:** `apply-resolutions` is a generic function on STRING (pure in-memory transform) and PATHNAME (atomic file write). `parse-common-lisp` is a generic on STRING and PATHNAME. `string-to-line-vector` splits content for in-memory use. `resolution-text-span` converts each resolution to `(start end replacement)`.
 
 **Pretty-printer:** `*atelier-pprint-dispatch*` is an isolated dispatch table. `pretty-print-form` emits indented Lisp at a given column.
 
@@ -115,5 +115,6 @@ Two template kinds:
 - `MAPCAR`/`MAPCAN`/`REMOVE-IF` receive a named `FLET` function, never a bare `LAMBDA`.
 - `LABELS` is used only when local functions are mutually or self-recursive; otherwise use `FLET` (with nesting if needed).
 - Tests use `define-testcase` from `org.melusina.confidence`.
-- Test fixtures live in `testsuite/fixtures/{inspector,maintainer,pretty-print}/` with accessor functions `inspector-fixture`, `maintainer-fixture`, `pretty-printer-fixture`.
+- Test fixtures live in `testsuite/fixtures/{inspector,maintainer,pretty-print}/` with accessor functions `inspector-fixture`, `maintainer-fixture`, `pretty-printer-fixture`. Maintainer and pretty-printer fixtures are auto-discovered: adding a `.text` file creates a test automatically.
+- Maintainer and syntax tests use in-memory parsing (`parse-common-lisp` on string) and in-memory resolution (`apply-resolutions` on string). Only file round-trip tests (UTF-8, atomicity) touch the filesystem.
 - No SBCL-specific extensions without an explicit `#+sbcl` guard.
