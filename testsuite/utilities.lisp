@@ -45,56 +45,81 @@
   (merge-pathnames #p"testsuite/fixtures/"
                    (asdf:system-source-directory "org.melusina.atelier")))
 
+(defun fixture (kind class-name &optional (name "baseline"))
+  "Return the pathname of a test fixture.
+KIND is :INSPECTOR, :MAINTAINER, or :PRETTY-PRINTER.
+CLASS-NAME is a symbol (for inspector/maintainer) or a string (for pretty-printer).
+NAME defaults to \"baseline\".
+
+Examples:
+  (fixture :maintainer 'atelier:fix-bare-lambda)
+  (fixture :maintainer 'atelier:fix-bare-lambda \"chain\")
+  (fixture :inspector 'atelier:check-earmuffs \"bad\")
+  (fixture :pretty-printer \"flet-single-binding\")"
+  (let ((subdir (ecase kind
+                  (:inspector "inspector")
+                  (:maintainer "maintainer")
+                  (:pretty-printer "pretty-print")))
+        (class-dir (etypecase class-name
+                     (symbol (string-downcase (symbol-name class-name)))
+                     (string class-name)))
+        (extension (ecase kind
+                     (:inspector "lisp")
+                     ((:maintainer :pretty-printer) "text"))))
+    (merge-pathnames
+     (if (eq kind :pretty-printer)
+         (make-pathname :directory (list :relative "testsuite" "fixtures" subdir)
+                        :name class-dir :type extension)
+         (make-pathname :directory (list :relative "testsuite" "fixtures" subdir class-dir)
+                        :name name :type extension))
+     (asdf:system-source-directory "org.melusina.atelier"))))
+
 (defun inspector-fixture (inspector-name &optional (name "baseline"))
-  "Return the pathname of fixture NAME for INSPECTOR-NAME.
-INSPECTOR-NAME is a symbol like ATELIER:CHECK-BARE-LAMBDA.
-NAME defaults to \"baseline\". Extension is .lisp."
-  (declare (type symbol inspector-name)
-           (type string name))
-  (merge-pathnames
-   (make-pathname :directory (list :relative "testsuite" "fixtures" "inspector"
-                                   (string-downcase (symbol-name inspector-name)))
-                  :name name :type "lisp")
-   (asdf:system-source-directory "org.melusina.atelier")))
+  "Return the pathname of fixture NAME for INSPECTOR-NAME."
+  (fixture :inspector inspector-name name))
 
 (defun maintainer-fixture (maintainer-name &optional (name "baseline"))
-  "Return the pathname of fixture NAME for MAINTAINER-NAME.
-MAINTAINER-NAME is a symbol like ATELIER:FIX-BARE-LAMBDA.
-NAME defaults to \"baseline\". Extension is .text."
-  (declare (type symbol maintainer-name)
-           (type string name))
-  (merge-pathnames
-   (make-pathname :directory (list :relative "testsuite" "fixtures" "maintainer"
-                                   (string-downcase (symbol-name maintainer-name)))
-                  :name name :type "text")
-   (asdf:system-source-directory "org.melusina.atelier")))
+  "Return the pathname of fixture NAME for MAINTAINER-NAME."
+  (fixture :maintainer maintainer-name name))
 
 (defun pretty-printer-fixture (name)
-  "Return the pathname of pretty-printer fixture NAME.
-NAME is a string like \"flet-single-binding\". Extension is .text."
-  (declare (type string name))
-  (merge-pathnames
-   (make-pathname :directory '(:relative "testsuite" "fixtures" "pretty-print")
-                  :name name :type "text")
-   (asdf:system-source-directory "org.melusina.atelier")))
+  "Return the pathname of pretty-printer fixture NAME."
+  (fixture :pretty-printer name))
 
 
 ;;;;
 ;;;; Fixture Auto-Discovery
 ;;;;
 
-(defun discover-maintainer-fixtures ()
-  "Return an alist of (maintainer-symbol . list-of-fixture-pathnames).
-Walks testsuite/fixtures/maintainer/*/  and maps each subdirectory name
-to its .text files. The subdirectory name is interned in the ATELIER package."
-  (let ((base (merge-pathnames #p"testsuite/fixtures/maintainer/"
-                               (asdf:system-source-directory "org.melusina.atelier"))))
+(defun discover-fixtures (kind extension)
+  "Return an alist of (symbol . list-of-fixture-pathnames) for KIND.
+KIND is \"inspector\", \"maintainer\", or \"pretty-print\".
+Walks testsuite/fixtures/KIND/*/ and maps each subdirectory name to
+its files matching *.EXTENSION."
+  (let ((base (merge-pathnames
+               (make-pathname :directory (list :relative "testsuite" "fixtures" kind))
+               (asdf:system-source-directory "org.melusina.atelier"))))
     (loop :for dir :in (uiop:subdirectories base)
           :for dir-name = (car (last (pathname-directory dir)))
-          :for name = (find-symbol (string-upcase dir-name) :atelier)
-          :for files = (directory (merge-pathnames "*.text" dir))
-          :when (and name files)
-          :collect (cons name files))))
+          :for sym = (find-symbol (string-upcase dir-name) :atelier)
+          :for files = (directory (merge-pathnames
+                                  (make-pathname :name :wild :type extension) dir))
+          :when (and sym files)
+          :collect (cons sym files))))
+
+(defun discover-maintainer-fixtures ()
+  "Return an alist of (maintainer-symbol . list-of-fixture-pathnames)."
+  (discover-fixtures "maintainer" "text"))
+
+(defun discover-inspector-fixtures ()
+  "Return an alist of (inspector-symbol . list-of-fixture-pathnames)."
+  (discover-fixtures "inspector" "lisp"))
+
+(defun discover-pretty-printer-fixtures ()
+  "Return a list of fixture pathnames from testsuite/fixtures/pretty-print/."
+  (let ((base (merge-pathnames #p"testsuite/fixtures/pretty-print/"
+                               (asdf:system-source-directory "org.melusina.atelier"))))
+    (directory (merge-pathnames "*.text" base))))
 
 (defun read-maintainer-fixture (pathname)
   "Read a maintainer fixture from PATHNAME.

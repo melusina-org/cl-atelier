@@ -32,11 +32,7 @@ Recognises the literal token \"nil\" as the Lisp NIL value."
 
 (defun read-pretty-print-fixture (pathname)
   "Read a pretty-printer fixture from PATHNAME.
-Returns (values front-matter input-form column right-margins expected-strings).
-FRONT-MATTER is an alist. INPUT-FORM is a Lisp form read from document 0.
-COLUMN is the insertion column (integer >= 0). RIGHT-MARGINS is a list of
-(NIL or integer). EXPECTED-STRINGS is a list of strings, one per right-margin
-entry, joined from document lines."
+Returns (values front-matter input-form column right-margins expected-strings)."
   (declare (type pathname pathname)
            (values list t (integer 0) list list))
   (multiple-value-bind (front-matter documents)
@@ -57,29 +53,11 @@ entry, joined from document lines."
 
 
 ;;;;
-;;;; Testcases
+;;;; Testcase — delegates to autofix.lisp auto-discovery
 ;;;;
 
-(define-testcase validate-one-pretty-print-fixture (pathname)
-  "Validate all margin cases in the pretty-printer fixture at PATHNAME."
-  (multiple-value-bind (front-matter form column right-margins expected-strings)
-      (read-pretty-print-fixture pathname)
-    (declare (ignore front-matter))
-    (loop :for right-margin :in right-margins
-          :for expected :in expected-strings
-          :for actual = (atelier:pretty-print-form form column :right-margin right-margin)
-          :do (assert-string= expected actual))))
-
-(define-testcase validate-pretty-print-fixtures ()
-  "Validate all pretty-printer fixtures in testsuite/fixtures/pretty-print/."
-  (let ((fixture-directory
-          (merge-pathnames "testsuite/fixtures/pretty-print/"
-                           (asdf:system-source-directory "org.melusina.atelier"))))
-    (dolist (pathname (directory (merge-pathnames "*.text" fixture-directory)))
-      (validate-one-pretty-print-fixture pathname))))
-
 (define-testcase testsuite-pretty-printer ()
-  "Run all pretty-printer tests."
-  (validate-pretty-print-fixtures))
+  "Run all pretty-printer tests via fixture auto-discovery."
+  (validate-pretty-printer-fixtures))
 
 ;;;; End of file `pretty-printer.lisp'
