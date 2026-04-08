@@ -1,9 +1,11 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-07
+**Last updated:** 2026-04-08
 
 ## Now (in progress)
 
-_Nothing in progress._
+| Slice | Type | Goal addressed | Phase | Notes |
+|-------|------|----------------|-------|-------|
+| [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | Phase 1: Planned | fix-line-too-long (20 fixtures), fixed-point assertion, new CST inspectors |
 
 ## Completed
 
@@ -75,3 +77,4 @@ _Nothing in progress._
 | 2026-04-07 | Slice 005 (autofix pipeline + pretty-printer) added to Now. Resolves backlog #23 (pretty-printer decision: CL built-in pprint, not third-party) |
 | 2026-04-07 | Slice 005 completed — verdict ✅ Validated. Moved to Completed. 7 automatic maintainers delivered (target was 6). |
 | 2026-04-07 | Slice 006 (linter refinements) added and completed. Legacy system removed. SPDX headers, fixture reorg, autofix signalling, project configuration. 13 inspectors, 10 maintainers. |
+| 2026-04-08 | Slice 007 (maintainer and inspector expansion) added to Now. fix-line-too-long maintainer, fixed-point assertion, IF-to-WHEN/UNLESS + PROGN + WHEN-NOT inspectors. |
