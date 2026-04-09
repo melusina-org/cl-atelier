@@ -56,11 +56,14 @@ For the maintainer of Atelier, the internal surface gains a sharper test protoco
 - Given the risk that a maintainer may legitimately need more than one pass to converge, when such a case surfaces in the future, then the assumption `N=1` is revisited; for this slice, `N=1` is the contract and any violation is a bug.
 
 ### S4: Pretty-printer cross-population of fixed-code documents
-**As an** Atelier maintainer, **I want** every autofix-cycle fixture's "expected fixed code" document to also participate in the pretty-printer fixture test, **so that** the pretty-printer is proven to emit the canonical text for the AST produced by the maintainer.
+**As an** Atelier maintainer, **I want** every autofix-cycle fixture **whose inspector operates at the :SYNTAX level** to have its "expected fixed code" document asserted as a fixed point of `read ⟫ pretty-print-form`, **so that** the pretty-printer is the single authority on canonical text for Lisp forms — regardless of whether the maintainer emits a text-resolution or a syntax-resolution.
 
 **Acceptance criteria:**
-- Given a migrated autofix-cycle fixture, when the pretty-printer test suite runs, then the expected fixed code string is asserted to be a fixed point of `read` composed with `pretty-print-form` (reading the text to an AST and pretty-printing it back yields the same text).
-- Given the 10 existing maintainer fixtures, when this assertion runs after migration, then it holds for all 10.
+- Given a migrated autofix-cycle fixture whose inspector is a SYNTAX-INSPECTOR, when the pretty-printer test suite runs, then the expected fixed code string is asserted to be a fixed point of `read` composed with `pretty-print-form`.
+- Given a migrated autofix-cycle fixture whose inspector is a LINE-INSPECTOR, when the pretty-printer test suite runs, then the fixture is excluded from the cross-population — its expected document is a text fragment with semantically meaningful whitespace, not a canonical Lisp form.
+- Given the existing syntax-level maintainer fixtures, when this assertion runs after migration, then it holds for all of them.
+
+**Scope note:** `fix-mixed-indentation` does not get an autofix-cycle fixture at all — its expected output (e.g. `  (defvar *x* 1)` with semantically meaningful leading whitespace) does not fit the fixture format cleanly. Its behaviour is verified by the existing ad-hoc `define-testcase` at `testsuite/maintainers/fix-mixed-indentation.lisp`. Discoverable fixtures are a convenience, not a goal in themselves.
 
 ### S5: CST inspector — check-single-branch-if (IF→WHEN/UNLESS)
 **As a** CL developer, **I want** the linter to flag `(if TEST THEN nil)` as "use WHEN" and `(if TEST nil ELSE)` as "use UNLESS", **so that** my code follows idiomatic Common Lisp style.

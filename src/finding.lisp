@@ -271,6 +271,9 @@ meaningfully by parent class."
   (syntax-finding bare-loop-keyword-finding    "A LOOP form uses a bare symbol for a clause keyword instead of a keyword symbol.")
   (syntax-finding constant-naming-finding      "A DEFCONSTANT constant name lacks the +plus-surrounded+ convention.")
   (syntax-finding earmuffs-finding             "A DEFVAR or DEFPARAMETER variable name lacks the *earmuffs* convention.")
-  (syntax-finding spurious-labels-finding      "A LABELS form has no mutual or self recursion; FLET (with nesting) is the correct construct."))
+  (syntax-finding spurious-labels-finding      "A LABELS form has no mutual or self recursion; FLET (with nesting) is the correct construct.")
+  (syntax-finding single-branch-if-finding     "An IF form has a NIL branch and should be written as WHEN or UNLESS.")
+  (syntax-finding single-form-progn-finding    "A PROGN form wraps a single body form and is redundant.")
+  (syntax-finding when-not-finding             "A WHEN form tests (NOT X) and should be written as UNLESS."))
 
 ;;;; End of file `finding.lisp'

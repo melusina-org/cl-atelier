@@ -205,6 +205,9 @@
    #:header-line-finding
    #:footer-line-finding
    #:project-identification-finding
+   #:single-branch-if-finding
+   #:single-form-progn-finding
+   #:when-not-finding
 
    ;; Concrete inspectors
    #:check-file-encoding
@@ -223,6 +226,9 @@
    #:check-header-line
    #:check-footer-line
    #:check-project-identification
+   #:check-single-branch-if
+   #:check-single-form-progn
+   #:check-when-not
    #:file-comment-prefix
    #:lisp-source-file-p
    #:canonical-project-identification-text

@@ -1,8 +1,13 @@
 ---
 description: DEFCONSTANT constant name gains plus markers
 inspector: check-constant-naming
+finding: constant-naming-finding
+maintainer: fix-constant-naming
+resolution: text-resolution
 ---
 (defconstant wrong-name 42)
+---
+(:cst-node-raw wrong-name :severity :style)
 ---
 (defconstant +wrong-name+ 42)
 ---

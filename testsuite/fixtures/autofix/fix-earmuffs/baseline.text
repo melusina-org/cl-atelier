@@ -1,8 +1,13 @@
 ---
 description: DEFVAR variable name gains earmuffs
 inspector: check-earmuffs
+finding: earmuffs-finding
+maintainer: fix-earmuffs
+resolution: text-resolution
 ---
 (defvar wrong-name 42)
+---
+(:cst-node-raw wrong-name :severity :style)
 ---
 (defvar *wrong-name* 42)
 ---

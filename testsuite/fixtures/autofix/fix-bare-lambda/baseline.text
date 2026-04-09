@@ -1,8 +1,13 @@
 ---
 description: Bare lambda extracted to named FLET function
 inspector: check-bare-lambda
+finding: bare-lambda-finding
+maintainer: fix-bare-lambda
+resolution: syntax-resolution
 ---
 (mapcar (lambda (x) (1+ x)) items)
+---
+(:severity :style)
 ---
 (flet ((map-item (x)
          (1+ x)))

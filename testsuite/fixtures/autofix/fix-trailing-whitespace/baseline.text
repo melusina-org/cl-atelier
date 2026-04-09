@@ -1,0 +1,13 @@
+---
+description: Trailing whitespace stripped from line
+inspector: check-trailing-whitespace
+finding: trailing-whitespace-finding
+maintainer: fix-trailing-whitespace
+resolution: text-resolution
+---
+(defvar *x* 1)   
+---
+(:line 1 :column 14 :end-line 1 :end-column 17 :severity :style)
+---
+(defvar *x* 1)
+---

@@ -1,0 +1,15 @@
+---
+description: Bare LOOP clause keyword replaced with keyword symbol
+inspector: check-loop-keywords
+finding: bare-loop-keyword-finding
+maintainer: fix-bare-loop-keywords
+resolution: text-resolution
+---
+(loop for item in items when (valid-item-p item) collect (transform-item item))
+---
+(:cst-node-raw for :severity :style)
+---
+(loop :for item :in items
+      :when (valid-item-p item)
+      :collect (transform-item item))
+---

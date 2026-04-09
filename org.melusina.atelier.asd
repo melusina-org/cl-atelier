@@ -47,7 +47,10 @@
 		   (:file "check-labels-for-flet")
 		   (:file "check-header-line")
 		   (:file "check-footer-line")
-		   (:file "check-project-identification")))
+		   (:file "check-project-identification")
+		   (:file "check-single-branch-if")
+		   (:file "check-single-form-progn")
+		   (:file "check-when-not")))
 		 (:file "pretty-printer")
 		 (:file "write-back")
 		 (:module "maintainers"
@@ -98,7 +101,10 @@
 		   (:file "check-labels-for-flet")
 		   (:file "check-header-line")
 		   (:file "check-footer-line")
-		   (:file "check-project-identification")))
+		   (:file "check-project-identification")
+		   (:file "check-single-branch-if")
+		   (:file "check-single-form-progn")
+		   (:file "check-when-not")))
 		 (:file "pretty-printer")
 		 (:file "write-back")
 		 (:module "maintainers"

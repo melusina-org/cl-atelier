@@ -15,6 +15,7 @@
    #:define-assertion
    #:assert-t
    #:assert-eq
+   #:assert-equal
    #:assert-set-equal
    #:assert-string=
    #:assert-type)

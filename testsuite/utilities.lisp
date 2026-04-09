@@ -47,25 +47,25 @@
 
 (defun fixture (kind class-name &optional (name "baseline"))
   "Return the pathname of a test fixture.
-KIND is :INSPECTOR, :MAINTAINER, or :PRETTY-PRINTER.
-CLASS-NAME is a symbol (for inspector/maintainer) or a string (for pretty-printer).
+KIND is :INSPECTOR, :AUTOFIX, or :PRETTY-PRINTER.
+CLASS-NAME is a symbol (for inspector/autofix) or a string (for pretty-printer).
 NAME defaults to \"baseline\".
 
 Examples:
-  (fixture :maintainer 'atelier:fix-bare-lambda)
-  (fixture :maintainer 'atelier:fix-bare-lambda \"chain\")
+  (fixture :autofix 'atelier:fix-bare-lambda)
+  (fixture :autofix 'atelier:fix-bare-lambda \"chain\")
   (fixture :inspector 'atelier:check-earmuffs \"bad\")
   (fixture :pretty-printer \"flet-single-binding\")"
   (let ((subdir (ecase kind
                   (:inspector "inspector")
-                  (:maintainer "maintainer")
+                  (:autofix "autofix")
                   (:pretty-printer "pretty-print")))
         (class-dir (etypecase class-name
                      (symbol (string-downcase (symbol-name class-name)))
                      (string class-name)))
         (extension (ecase kind
                      (:inspector "lisp")
-                     ((:maintainer :pretty-printer) "text"))))
+                     ((:autofix :pretty-printer) "text"))))
     (merge-pathnames
      (if (eq kind :pretty-printer)
          (make-pathname :directory (list :relative "testsuite" "fixtures" subdir)
@@ -78,9 +78,10 @@ Examples:
   "Return the pathname of fixture NAME for INSPECTOR-NAME."
   (fixture :inspector inspector-name name))
 
-(defun maintainer-fixture (maintainer-name &optional (name "baseline"))
-  "Return the pathname of fixture NAME for MAINTAINER-NAME."
-  (fixture :maintainer maintainer-name name))
+(defun autofix-cycle-fixture (maintainer-name &optional (name "baseline"))
+  "Return the pathname of autofix-cycle fixture NAME for MAINTAINER-NAME.
+Resolves against testsuite/fixtures/autofix/."
+  (fixture :autofix maintainer-name name))
 
 (defun pretty-printer-fixture (name)
   "Return the pathname of pretty-printer fixture NAME."
@@ -107,9 +108,20 @@ its files matching *.EXTENSION."
           :when (and sym files)
           :collect (cons sym files))))
 
-(defun discover-maintainer-fixtures ()
-  "Return an alist of (maintainer-symbol . list-of-fixture-pathnames)."
-  (discover-fixtures "maintainer" "text"))
+(defun discover-autofix-cycle-fixtures ()
+  "Return an alist of (maintainer-symbol . list-of-fixture-pathnames).
+Walks testsuite/fixtures/autofix/*/ and maps each subdirectory name to its
+.text files. If the autofix/ directory does not yet exist (pre-migration),
+returns NIL rather than signalling.
+
+Fixtures whose subdirectory name cannot be interned as an existing symbol
+in :ATELIER are silently skipped — this allows the in-progress
+fix-line-too-long directory to be carried along without being exercised."
+  (let ((base (merge-pathnames
+               (make-pathname :directory '(:relative "testsuite" "fixtures" "autofix"))
+               (asdf:system-source-directory "org.melusina.atelier"))))
+    (when (uiop:directory-exists-p base)
+      (discover-fixtures "autofix" "text"))))
 
 (defun discover-inspector-fixtures ()
   "Return an alist of (inspector-symbol . list-of-fixture-pathnames)."
@@ -121,19 +133,74 @@ its files matching *.EXTENSION."
                                (asdf:system-source-directory "org.melusina.atelier"))))
     (directory (merge-pathnames "*.text" base))))
 
-(defun read-maintainer-fixture (pathname)
-  "Read a maintainer fixture from PATHNAME.
-Returns (values inspector-name input-form expected-form) where INSPECTOR-NAME
-is interned in the ATELIER package from the front-matter inspector: field."
-  (declare (type pathname pathname))
-  (multiple-value-bind (front-matter documents)
-      (atelier:read-file-documents-with-yaml-front-matter pathname)
-    (let* ((inspector-str (cdr (assoc :inspector front-matter)))
-           (inspector-name (when inspector-str
-                             (find-symbol (string-upcase inspector-str) :atelier)))
-           (input-form (read-from-string (atelier:join-lines (first documents))))
-           (expected-form (read-from-string (atelier:join-lines (second documents)))))
-      (values inspector-name input-form expected-form))))
+(define-condition autofix-cycle-fixture-error (error)
+  ((pathname
+    :initarg :pathname
+    :reader autofix-cycle-fixture-error-pathname
+    :type pathname
+    :documentation "The fixture file that failed to load.")
+   (reason
+    :initarg :reason
+    :reader autofix-cycle-fixture-error-reason
+    :type string
+    :documentation "A human-readable description of why the fixture failed to load."))
+  (:report (lambda (condition stream)
+             (format stream "Failed to load autofix-cycle fixture ~A: ~A"
+                     (autofix-cycle-fixture-error-pathname condition)
+                     (autofix-cycle-fixture-error-reason condition))))
+  (:documentation
+   "Signalled when an autofix-cycle fixture cannot be loaded, either because
+its front-matter is missing a mandatory field or because its body does not
+contain exactly three documents."))
+
+(defun read-autofix-cycle-fixture (pathname)
+  "Read an autofix-cycle fixture from PATHNAME.
+
+An autofix-cycle fixture declares the complete diagnostic cycle
+(INSPECTOR, FINDING, MAINTAINER, RESOLUTION) in its YAML front-matter,
+followed by exactly three body documents:
+
+  1. Input source code.
+  2. Expected finding slot values as a plist.
+  3. Expected fixed code.
+
+Returns (values FRONT-MATTER INPUT-SOURCE EXPECTED-FINDING-SLOTS
+EXPECTED-FIXED-CODE) where:
+
+  FRONT-MATTER is the raw alist returned by
+    ATELIER:READ-FILE-DOCUMENTS-WITH-YAML-FRONT-MATTER — it contains at
+    least the keys :DESCRIPTION, :INSPECTOR, :FINDING, :MAINTAINER,
+    :RESOLUTION as strings.
+
+  INPUT-SOURCE is the first document as a single string.
+
+  EXPECTED-FINDING-SLOTS is the second document parsed as a plist via
+    READ-FROM-STRING. It may be NIL (empty plist) to skip slot checks.
+
+  EXPECTED-FIXED-CODE is the third document as a single string.
+
+Signals AUTOFIX-CYCLE-FIXTURE-ERROR when the front-matter is missing any
+of the mandatory symbol fields (INSPECTOR, FINDING, MAINTAINER, RESOLUTION)
+or when the body does not contain exactly three documents."
+  (declare (type pathname pathname)
+           (values list string t string))
+  (flet ((fixture-error (reason)
+           (error 'autofix-cycle-fixture-error
+                  :pathname pathname
+                  :reason reason)))
+    (multiple-value-bind (front-matter documents)
+        (atelier:read-file-documents-with-yaml-front-matter pathname)
+      (dolist (key '(:inspector :finding :maintainer :resolution))
+        (unless (cdr (assoc key front-matter))
+          (fixture-error (format nil "front-matter missing mandatory field ~S" key))))
+      (unless (= 3 (length documents))
+        (fixture-error (format nil "body must contain exactly 3 documents, found ~D"
+                               (length documents))))
+      (let* ((input-source (atelier:join-lines (first documents)))
+             (expected-finding-slots
+               (read-from-string (atelier:join-lines (second documents))))
+             (expected-fixed-code (atelier:join-lines (third documents))))
+        (values front-matter input-source expected-finding-slots expected-fixed-code)))))
 
 
 ;;;;

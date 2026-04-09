@@ -1,8 +1,0 @@
----
-description: Tab-indented line corrected to spaces (style :spaces)
-inspector: check-mixed-indentation
----
-	(defvar *x* 1)
----
-  (defvar *x* 1)
----

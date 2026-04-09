@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `org.melusina.atelier` is a Common Lisp developer toolbox providing:
 - **Project scaffolding** via a template system (`new-lisp-project`, `new-lisp-file`)
-- **A linter** with 13 inspectors, 10 automatic maintainers, autofix, and pretty-printer
+- **A linter** with 16 inspectors, 10 automatic maintainers, autofix, and pretty-printer
 - **License management** (MIT, GPL, CeCILL, Proprietary) with SPDX identifiers
 
 ## Common Commands (REPL)
@@ -83,10 +83,10 @@ Two template kinds:
 
 **Resolution hierarchy:** `resolution` > `text-resolution` (replacement string) | `syntax-resolution` (CST transform function + optional `cst-node` for transform target) | `agent-resolution` (LLM prompt) | `composite-resolution` (ordered list).
 
-**Inspector registry:** `*inspectors*` hash table. `define-file-inspector`, `define-line-inspector`, `define-syntax-inspector` macros. 13 inspectors:
+**Inspector registry:** `*inspectors*` hash table. `define-file-inspector`, `define-line-inspector`, `define-syntax-inspector` macros. 16 inspectors:
 - File: `check-file-encoding`, `check-spdx-license-header`, `check-header-line`, `check-footer-line`, `check-project-identification`
 - Line: `check-trailing-whitespace`, `check-line-length`, `check-mixed-indentation`
-- Syntax (CST): `check-earmuffs`, `check-constant-naming`, `check-bare-lambda`, `check-loop-keywords`, `check-labels-for-flet`
+- Syntax (CST): `check-earmuffs`, `check-constant-naming`, `check-bare-lambda`, `check-loop-keywords`, `check-labels-for-flet`, `check-single-branch-if`, `check-single-form-progn`, `check-when-not`
 
 **Maintainer registry:** `*maintainers*` hash table with superseding partial order. `define-automatic-maintainer` macro. 10 maintainers:
 - `fix-trailing-whitespace`, `fix-mixed-indentation`, `fix-earmuffs`, `fix-constant-naming`, `fix-bare-loop-keywords`, `fix-bare-lambda`, `fix-labels-to-flet`, `fix-header-line`, `fix-footer-line`, `fix-project-identification`
@@ -127,6 +127,9 @@ Two template kinds:
 - `MAPCAR`/`MAPCAN`/`REMOVE-IF` receive a named `FLET` function, never a bare `LAMBDA`.
 - `LABELS` is used only when local functions are mutually or self-recursive; otherwise use `FLET` (with nesting if needed).
 - Tests use `define-testcase` from `org.melusina.confidence`.
-- Test fixtures live in `testsuite/fixtures/{inspector,maintainer,pretty-print}/` with accessor functions `inspector-fixture`, `maintainer-fixture`, `pretty-printer-fixture`. Maintainer and pretty-printer fixtures are auto-discovered: adding a `.text` file creates a test automatically.
+- Test fixtures live in `testsuite/fixtures/{inspector,autofix,pretty-print}/` with accessor functions `inspector-fixture`, `autofix-cycle-fixture`, `pretty-printer-fixture`. Autofix-cycle and pretty-printer fixtures are auto-discovered: adding a `.text` file creates a test automatically.
+- **Autofix-cycle fixtures** (`testsuite/fixtures/autofix/<maintainer>/<case>.text`) exercise the full diagnostic cycle `(inspector, finding, maintainer, resolution)`. The YAML front-matter declares all four symbol fields as mandatory; the body contains exactly three `---`-separated documents: input source, expected finding slot values as a plist, and expected fixed code. Validated by `validate-one-autofix-cycle-fixture` which asserts the primary outcome plus **self-idempotency at N=1** — re-running the `(inspector, maintainer)` pair on the result must yield the same result. See `testsuite/autofix.lisp` and `product/slice/007-*/references/linter-convergence.md` for the rationale.
+- **Pretty-printer cross-population**: every autofix-cycle fixture whose inspector operates at the `:syntax` level has its expected fixed code document asserted as a `read ⟫ pretty-print-form` fixed point. This keeps the pretty-printer as the single authority on canonical Lisp text, so syntax-level text-resolution maintainers must emit what the pretty-printer would produce from the same AST. Line-inspector fixtures are excluded from this cross-population.
+- Maintainers that do not fit the discoverable-fixture format (e.g. `fix-mixed-indentation`, whose expected output has semantically meaningful leading whitespace) are tested via ad-hoc `define-testcase` under `testsuite/maintainers/`. Discoverable fixtures are a convenience, not a goal.
 - Maintainer and syntax tests use in-memory parsing (`parse-common-lisp` on string) and in-memory resolution (`apply-resolutions` on string). Only file round-trip tests (UTF-8, atomicity) touch the filesystem.
 - No SBCL-specific extensions without an explicit `#+sbcl` guard.
