@@ -1,11 +1,11 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-08
+**Last updated:** 2026-04-09
 
 ## Now (in progress)
 
 | Slice | Type | Goal addressed | Phase | Notes |
 |-------|------|----------------|-------|-------|
-| [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | Phase 1: Planned | fix-line-too-long (20 fixtures), fixed-point assertion, new CST inspectors |
+| [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | Phase 1: Planned | Autofix-cycle fixture redesign, self-idempotency assertion, three new CST inspectors. fix-line-too-long removed from scope. |
 
 ## Completed
 
@@ -38,6 +38,8 @@
 | Common Lisp code formatter (#22) | G4 | Depends on pretty-printer decision (#23). |
 | CLI thin wrapper (#25) | G2, G4 | After linter and formatter are solid. |
 | Documentation generation (#26) | G6 | |
+| fix-line-too-long maintainer | G2, G4 | Removed from slice 007. Design open: text-vs-CST comparison for string-breaking fixtures (`#.(concatenate 'string …)`) needs resolution before implementation. Skeleton and 20 fixtures already committed. |
+| Pipeline idempotency (`lint-system :autofix t` whole-file fixed point) | G2, G3 | Stronger property than per-maintainer self-idempotency. Required for safe pre-commit hooks and CI gates. Depends on understanding cross-maintainer interactions; may require inspector ordering guarantees or explicit max-pass limits. See `slice/007-.../references/linter-convergence.md` for how Ruff and ESLint handle this. |
 
 ## Considering (may or may not happen — feedback welcome)
 
@@ -78,3 +80,4 @@
 | 2026-04-07 | Slice 005 completed — verdict ✅ Validated. Moved to Completed. 7 automatic maintainers delivered (target was 6). |
 | 2026-04-07 | Slice 006 (linter refinements) added and completed. Legacy system removed. SPDX headers, fixture reorg, autofix signalling, project configuration. 13 inspectors, 10 maintainers. |
 | 2026-04-08 | Slice 007 (maintainer and inspector expansion) added to Now. fix-line-too-long maintainer, fixed-point assertion, IF-to-WHEN/UNLESS + PROGN + WHEN-NOT inspectors. |
+| 2026-04-09 | Slice 007 rescoped: fix-line-too-long removed (design open, returned to Later). Slice now focuses on autofix-cycle fixture redesign, self-idempotency assertion (N=1), and three new CST inspectors. Pipeline idempotency added to Later as a long-term goal. Idempotency added as design principle #7 in definition.md. |

@@ -188,6 +188,21 @@ need one isolated tool should use the single-purpose alternative.
 6. **SPDX for licenses.** License identification uses SPDX identifiers
    throughout templates and file headers. No custom license name strings.
 
+7. **Idempotency of autofix.** Every MAINTAINER is self-idempotent:
+   applying an `(inspector, maintainer)` pair twice to the same input
+   yields the same AST as applying it once. Non-idempotent maintainers
+   are bugs, not features. This is the current guarantee, enforced in
+   the test harness for every fixture. **Pipeline idempotency** — the
+   stronger property that running the whole `lint-system :autofix t`
+   pipeline over a whole file twice yields the same file as running
+   it once — is a long-term goal: it is the contract a pre-commit hook
+   or CI step needs in order to avoid gratuitous re-diffs. Reaching it
+   requires understanding cross-maintainer interactions and is tracked
+   on the roadmap.
+   *Example: a fix-earmuffs maintainer that rewrites `foo` to `*foo*`
+   must not, on a second pass, rewrite `*foo*` to `**foo**`. A test
+   fixture asserts the fixed point after one application.*
+
 ## Diagnostic Schema
 
 This section is the authoritative design record for the
