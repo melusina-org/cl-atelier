@@ -1,11 +1,11 @@
 # Slice 008: Remove line-length inspector and fix-line-too-long maintainer
 
-**Status:** Planned
+**Status:** Complete
 **Type:** Maintenance
 **Goal addressed:** None — scope cleanup
 **Backlog items:** fix-line-too-long (previously "Later")
-**Planned start / end:** 2026-04-09 / —
-**Actual end:**
+**Planned start / end:** 2026-04-09 / 2026-04-09
+**Actual end:** 2026-04-09
 **Implementation phases:**
   - Phase 1: `product/slice/008-remove-line-length-inspector/implementation-1.md` — Planned
 

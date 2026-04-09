@@ -16,6 +16,7 @@ _Nothing in progress._
 | [005-autofix-pipeline](slice/005-autofix-pipeline/slice.md) | Bet | G2, G4 | ✅ |
 | [006-linter-refinements](slice/006-linter-refinements/slice.md) | Bet | G2 | ✅ |
 | [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | ✅ |
+| [008-remove-line-length-inspector](slice/008-remove-line-length-inspector/slice.md) | Maintenance | — | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
@@ -81,3 +82,4 @@ _Nothing in progress._
 | 2026-04-09 | Slice 007 rescoped: fix-line-too-long removed (design open, returned to Later). Slice now focuses on autofix-cycle fixture redesign, self-idempotency assertion (N=1), and three new CST inspectors. Pipeline idempotency added to Later as a long-term goal. Idempotency added as design principle #7 in definition.md. |
 | 2026-04-09 | Slice 007 completed — verdict ✅ Supported. Moved to Completed. Delivered: `testsuite/fixtures/autofix/` directory with new 4-part fixture format; 5 migrated maintainer fixtures; 3 new diagnostic-only CST inspectors (check-single-branch-if, check-single-form-progn, check-when-not); N=1 self-idempotency invariant; pretty-printer fixed-point cross-population for syntax-inspector fixtures. Unanticipated: surfaced and fixed a latent `*current-line-vector*` defvar load-order bug that had been masked by stale fasls since slice 003–004. 299/299 tests passing in clean SBCL subprocess. 16 inspectors, 10 maintainers. |
 | 2026-04-09 | Slice 008 planned: remove `check-line-length` inspector, `fix-line-too-long` maintainer, `line-too-long-finding` class, three testcases, and twenty carried-over fixtures. Rationale: adopt the gofmt position — the pretty-printer is Atelier's single authority on canonical Lisp text; a separate line-length reporter adds noise without correctness. Research at `product/reference/line-length-research.md`. |
+| 2026-04-09 | Slice 008 completed — verdict ✅. Moved to Completed. 15 inspectors, 10 maintainers. 295/295 tests passing in fresh SBCL subprocess (baseline 299; four assertions removed across three testcases). Invariant I7 established ("Atelier does not police line length") — recommended for promotion to design principle #8 in `definition.md` at the next Steward revision. |
