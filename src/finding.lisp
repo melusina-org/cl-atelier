@@ -261,7 +261,6 @@ meaningfully by parent class."
 (define-findings
   (file-finding   encoding-finding             "A file is not valid UTF-8.")
   (file-finding   spdx-license-header-finding  "A file has a missing or incorrect SPDX license identifier.")
-  (line-finding   line-too-long-finding        "A source line exceeds the maximum length.")
   (line-finding   mixed-indentation-finding    "A source line uses the wrong indentation character.")
   (line-finding   trailing-whitespace-finding  "A source line has trailing whitespace.")
   (line-finding   header-line-finding          "A file lacks the canonical header line.")

@@ -115,8 +115,9 @@ Walks testsuite/fixtures/autofix/*/ and maps each subdirectory name to its
 returns NIL rather than signalling.
 
 Fixtures whose subdirectory name cannot be interned as an existing symbol
-in :ATELIER are silently skipped — this allows the in-progress
-fix-line-too-long directory to be carried along without being exercised."
+in :ATELIER are silently skipped — this gives an in-progress maintainer
+directory a safe landing place that will start being exercised as soon as
+the corresponding symbol exists."
   (let ((base (merge-pathnames
                (make-pathname :directory '(:relative "testsuite" "fixtures" "autofix"))
                (asdf:system-source-directory "org.melusina.atelier"))))

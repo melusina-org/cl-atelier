@@ -38,7 +38,6 @@
 		  ((:file "check-file-encoding")
 		   (:file "check-spdx-license-header")
 		   (:file "check-trailing-whitespace")
-		   (:file "check-line-length")
 		   (:file "check-mixed-indentation")
 		   (:file "check-earmuffs")
 		   (:file "check-constant-naming")
@@ -64,8 +63,7 @@
 		   (:file "fix-labels-to-flet")
 		   (:file "fix-header-line")
 		   (:file "fix-footer-line")
-		   (:file "fix-project-identification")
-		   (:file "fix-line-too-long")))
+		   (:file "fix-project-identification")))
 		 (:file "main")))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
@@ -92,7 +90,6 @@
 		  ((:file "check-file-encoding")
 		   (:file "check-spdx-license-header")
 		   (:file "check-trailing-whitespace")
-		   (:file "check-line-length")
 		   (:file "check-mixed-indentation")
 		   (:file "check-labels-for-flet")
 		   (:file "check-header-line")

@@ -44,7 +44,6 @@ Inspectors examine source files and produce findings. There are
 
 **Line-level** — work over lines as strings:
 - `check-trailing-whitespace` — trailing spaces or tabs
-- `check-line-length` — lines exceeding the configured maximum
 - `check-mixed-indentation` — tabs vs. spaces consistency
 
 **Syntax-level** — analyse parsed structure via Eclector's CST reader:
@@ -127,7 +126,7 @@ Linter configuration is declared as ASDF components in the system definition:
 
 ```lisp
 (:indentation-style :spaces
- :disabled-inspectors (check-line-length)
+ :disabled-inspectors (check-earmuffs)
  :severity-overrides ((check-trailing-whitespace . :error))
  :maintainer-overrides ((fix-labels-to-flet . :interactive)))
 ```

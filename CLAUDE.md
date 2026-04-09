@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `org.melusina.atelier` is a Common Lisp developer toolbox providing:
 - **Project scaffolding** via a template system (`new-lisp-project`, `new-lisp-file`)
-- **A linter** with 16 inspectors, 10 automatic maintainers, autofix, and pretty-printer
+- **A linter** with 15 inspectors, 10 automatic maintainers, autofix, and pretty-printer
 - **License management** (MIT, GPL, CeCILL, Proprietary) with SPDX identifiers
 
 ## Common Commands (REPL)
@@ -83,9 +83,9 @@ Two template kinds:
 
 **Resolution hierarchy:** `resolution` > `text-resolution` (replacement string) | `syntax-resolution` (CST transform function + optional `cst-node` for transform target) | `agent-resolution` (LLM prompt) | `composite-resolution` (ordered list).
 
-**Inspector registry:** `*inspectors*` hash table. `define-file-inspector`, `define-line-inspector`, `define-syntax-inspector` macros. 16 inspectors:
+**Inspector registry:** `*inspectors*` hash table. `define-file-inspector`, `define-line-inspector`, `define-syntax-inspector` macros. 15 inspectors:
 - File: `check-file-encoding`, `check-spdx-license-header`, `check-header-line`, `check-footer-line`, `check-project-identification`
-- Line: `check-trailing-whitespace`, `check-line-length`, `check-mixed-indentation`
+- Line: `check-trailing-whitespace`, `check-mixed-indentation`
 - Syntax (CST): `check-earmuffs`, `check-constant-naming`, `check-bare-lambda`, `check-loop-keywords`, `check-labels-for-flet`, `check-single-branch-if`, `check-single-form-progn`, `check-when-not`
 
 **Maintainer registry:** `*maintainers*` hash table with superseding partial order. `define-automatic-maintainer` macro. 10 maintainers:

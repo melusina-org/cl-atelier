@@ -181,7 +181,6 @@
    #:fix-header-line
    #:fix-footer-line
    #:fix-project-identification
-   #:fix-line-too-long
    #:inspect-file
    #:inspect-line
    #:*current-pathname*
@@ -195,7 +194,6 @@
    #:encoding-finding
    #:spdx-license-header-finding
    #:trailing-whitespace-finding
-   #:line-too-long-finding
    #:mixed-indentation-finding
    #:earmuffs-finding
    #:constant-naming-finding
@@ -213,7 +211,6 @@
    #:check-file-encoding
    #:check-spdx-license-header
    #:check-trailing-whitespace
-   #:check-line-length
    #:check-mixed-indentation
    #:read-file-header
    #:check-earmuffs

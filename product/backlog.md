@@ -25,7 +25,7 @@
 | 13 | MCP tool: remove exported symbols not present in :export clause | New capability | Maintainer requirement 2026-04-05 | M | Depends on #5. Requires package definition inspection. |
 | 14 | MCP tool: CLOS FIND-CLASS introspection | New capability | Maintainer requirement 2026-04-05 | S | Depends on #5. |
 | 15 | MCP tool: CLOS FIND-METHOD and REMOVE-METHOD | New capability | Maintainer requirement 2026-04-05 | S | Depends on #14. |
-| 16 | Linter: line-level inspectors for CL (trailing whitespace, line length, mixed indentation) | Completion | Vision session 2026-04-05 | S | Validates line-finding + text-resolution + write-back pipeline. |
+| 16 | Linter: line-level inspectors for CL (trailing whitespace, mixed indentation) | Completion | Vision session 2026-04-05 | S | Validates line-finding + text-resolution + write-back pipeline. Line-length check removed in slice 008 — see `product/reference/line-length-research.md`. |
 | 17 | Linter: CST-level inspectors for CL (earmuffs convention, function body length) | New capability | Vision session 2026-04-05 | M | Validates syntax-finding + Eclector integration + syntax-resolution write-back. Blocked on #22. |
 | 18 | Linter: ShellCheck wrapper inspector (LINE-FINDING / REGION-FINDING) | New capability | Vision session 2026-04-05 | S | Wraps ShellCheck output into shared finding pipeline. |
 | 19 | Linter: Elisp byte-compiler and package-lint wrapper inspectors | New capability | Vision session 2026-04-05 | S | |
@@ -63,3 +63,4 @@
 |------|--------|
 | 2026-04-05 | Initial backlog from vision session and README analysis |
 | 2026-04-05 | Added: REGION-FINDING to #1; ASDF project-configuration and linter-configuration to #3; Elisp to #4 and #27; MCP tools #8-#15 (image restart, system reload, unexported symbol removal, CLOS introspection); ShellCheck/Elisp/Terraform wrapper inspectors #18-#20; LLM-driven maintainer #21; CFFI and Terraform ASDF components #30-#31 |
+| 2026-04-09 | Slice 008: removed line-length check and `fix-line-too-long` maintainer. Item #16 reworded to drop "line length". Rationale: Atelier adopts the gofmt position — the pretty-printer is the single authority on canonical Lisp text, and a separate line-length reporter adds noise without correctness. See `product/reference/line-length-research.md`. |

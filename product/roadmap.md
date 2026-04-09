@@ -1,5 +1,5 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-09
+**Last updated:** 2026-04-09 (slice 008 planning)
 
 ## Now (in progress)
 
@@ -37,7 +37,6 @@ _Nothing in progress._
 | Common Lisp code formatter (#22) | G4 | Depends on pretty-printer decision (#23). |
 | CLI thin wrapper (#25) | G2, G4 | After linter and formatter are solid. |
 | Documentation generation (#26) | G6 | |
-| fix-line-too-long maintainer | G2, G4 | Removed from slice 007. Design open: text-vs-CST comparison for string-breaking fixtures (`#.(concatenate 'string …)`) needs resolution before implementation. Skeleton and 20 fixtures already committed. |
 | Pipeline idempotency (`lint-system :autofix t` whole-file fixed point) | G2, G3 | Stronger property than per-maintainer self-idempotency. Required for safe pre-commit hooks and CI gates. Depends on understanding cross-maintainer interactions; may require inspector ordering guarantees or explicit max-pass limits. See `slice/007-.../references/linter-convergence.md` for how Ruff and ESLint handle this. |
 
 ## Considering (may or may not happen — feedback welcome)
@@ -81,3 +80,4 @@ _Nothing in progress._
 | 2026-04-08 | Slice 007 (maintainer and inspector expansion) added to Now. fix-line-too-long maintainer, fixed-point assertion, IF-to-WHEN/UNLESS + PROGN + WHEN-NOT inspectors. |
 | 2026-04-09 | Slice 007 rescoped: fix-line-too-long removed (design open, returned to Later). Slice now focuses on autofix-cycle fixture redesign, self-idempotency assertion (N=1), and three new CST inspectors. Pipeline idempotency added to Later as a long-term goal. Idempotency added as design principle #7 in definition.md. |
 | 2026-04-09 | Slice 007 completed — verdict ✅ Supported. Moved to Completed. Delivered: `testsuite/fixtures/autofix/` directory with new 4-part fixture format; 5 migrated maintainer fixtures; 3 new diagnostic-only CST inspectors (check-single-branch-if, check-single-form-progn, check-when-not); N=1 self-idempotency invariant; pretty-printer fixed-point cross-population for syntax-inspector fixtures. Unanticipated: surfaced and fixed a latent `*current-line-vector*` defvar load-order bug that had been masked by stale fasls since slice 003–004. 299/299 tests passing in clean SBCL subprocess. 16 inspectors, 10 maintainers. |
+| 2026-04-09 | Slice 008 planned: remove `check-line-length` inspector, `fix-line-too-long` maintainer, `line-too-long-finding` class, three testcases, and twenty carried-over fixtures. Rationale: adopt the gofmt position — the pretty-printer is Atelier's single authority on canonical Lisp text; a separate line-length reporter adds noise without correctness. Research at `product/reference/line-length-research.md`. |

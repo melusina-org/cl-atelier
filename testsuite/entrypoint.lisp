@@ -27,7 +27,6 @@
   (testsuite-check-file-encoding)
   (testsuite-check-spdx-license-header)
   (testsuite-check-trailing-whitespace)
-  (testsuite-check-line-length)
   (testsuite-check-mixed-indentation)
   (testsuite-check-labels-for-flet)
   (testsuite-check-header-line)
