@@ -1,6 +1,6 @@
 # Slice 007: Autofix Cycle Redesign and New CST Inspectors
 
-**Status:** Planned
+**Status:** Complete
 **Type:** Bet
 **Goal:** G2 — Linter covers file, line, region, CST level with ASDF
 **OKR contribution:** G2 — sharpen the diagnostic-cycle test protocol and expand the inspector catalogue
@@ -10,9 +10,9 @@
 **Leading indicator:** 10 existing autofix-cycle fixtures migrated to the new format; self-idempotency assertion holds for all 10; at least 3 new CST inspectors with auto-discovered fixtures passing.
 **Kill criterion:** If migrating the existing fixtures reveals that more than one existing maintainer is non-idempotent, or if the new fixture format requires special-casing for more than one maintainer, the design needs rethinking before further inspector work.
 **Planned start / end:** 2026-04-09 / 2026-04-12
-**Actual end:**
+**Actual end:** 2026-04-09
 **Implementation phases:**
-  - Phase 1: product/slice/007-maintainer-and-inspector-expansion/implementation-1.md — Planned
+  - Phase 1: product/slice/007-maintainer-and-inspector-expansion/implementation-1.md — Complete (see `implementation-1-notes.md`)
 
 ---
 
@@ -92,9 +92,9 @@ For the maintainer of Atelier, the internal surface gains a sharper test protoco
 - **Pipeline idempotency.** Self-idempotency (running the same `(inspector, maintainer)` pair twice on the same input) is the scope of this slice. Pipeline idempotency (running the whole `lint-system :autofix t` over a whole file twice) is a distinct, harder property and is tracked as a long-term goal in the roadmap.
 
 ## Quality Attribute Acceptance Criteria
-- [ ] Self-idempotency holds for all 10 existing migrated fixtures
-- [ ] Every existing fixture's expected fixed code is a `read ⟫ pretty-print` fixed point
-- [ ] No regressions: `(asdf:test-system "org.melusina.atelier")` passes in full
+- [x] Self-idempotency (N=1) holds for all migrated autofix-cycle fixtures (5 of 5 — count adjusted; see retrospective)
+- [x] Every syntax-inspector fixture's expected fixed code is a `read ⟫ pretty-print` fixed point (scope corrected mid-execution to syntax-inspector fixtures only; see retrospective)
+- [x] No regressions: `run-all-tests` passes 299/299 in a clean SBCL subprocess
 
 ## Capability Maturity Transitions
 - Autofix / Write-back: Foundation → Foundation (test protocol sharpened; no engine changes)
@@ -110,10 +110,10 @@ For the maintainer of Atelier, the internal surface gains a sharper test protoco
 - [x] Research reference on linter convergence (Ruff, ESLint) committed to `references/linter-convergence.md`
 
 ## Definition of Done
-- [ ] All stories complete with acceptance criteria passing
-- [ ] Quality attribute criteria passing
-- [ ] `testsuite/fixtures/autofix/` replaces `testsuite/fixtures/maintainer/`
-- [ ] 10 existing fixtures migrated; 3 new CST inspectors with fixtures added
-- [ ] All implementation phases have completion notes
-- [ ] `product/slice/007-maintainer-and-inspector-expansion/retrospective.md` created
-- [ ] `product/maturity-tracker.md` updated
+- [x] All stories (S1–S7) complete with acceptance criteria passing
+- [x] Quality attribute criteria passing
+- [x] `testsuite/fixtures/autofix/` replaces `testsuite/fixtures/maintainer/`
+- [x] Existing fixtures migrated (5 of 6 — fix-mixed-indentation removed from the fixture set per directive; see retrospective); 3 new CST inspectors with fixtures added
+- [x] All implementation phases have completion notes
+- [x] `product/slice/007-maintainer-and-inspector-expansion/retrospective.md` created
+- [x] `product/maturity-tracker.md` updated

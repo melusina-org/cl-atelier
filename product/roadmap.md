@@ -3,9 +3,7 @@
 
 ## Now (in progress)
 
-| Slice | Type | Goal addressed | Phase | Notes |
-|-------|------|----------------|-------|-------|
-| [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | Phase 1: Planned | Autofix-cycle fixture redesign, self-idempotency assertion, three new CST inspectors. fix-line-too-long removed from scope. |
+_Nothing in progress._
 
 ## Completed
 
@@ -17,6 +15,7 @@
 | [004-cst-inspectors](slice/004-cst-inspectors/slice.md) | Bet | G2 | ✅ |
 | [005-autofix-pipeline](slice/005-autofix-pipeline/slice.md) | Bet | G2, G4 | ✅ |
 | [006-linter-refinements](slice/006-linter-refinements/slice.md) | Bet | G2 | ✅ |
+| [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
@@ -81,3 +80,4 @@
 | 2026-04-07 | Slice 006 (linter refinements) added and completed. Legacy system removed. SPDX headers, fixture reorg, autofix signalling, project configuration. 13 inspectors, 10 maintainers. |
 | 2026-04-08 | Slice 007 (maintainer and inspector expansion) added to Now. fix-line-too-long maintainer, fixed-point assertion, IF-to-WHEN/UNLESS + PROGN + WHEN-NOT inspectors. |
 | 2026-04-09 | Slice 007 rescoped: fix-line-too-long removed (design open, returned to Later). Slice now focuses on autofix-cycle fixture redesign, self-idempotency assertion (N=1), and three new CST inspectors. Pipeline idempotency added to Later as a long-term goal. Idempotency added as design principle #7 in definition.md. |
+| 2026-04-09 | Slice 007 completed — verdict ✅ Supported. Moved to Completed. Delivered: `testsuite/fixtures/autofix/` directory with new 4-part fixture format; 5 migrated maintainer fixtures; 3 new diagnostic-only CST inspectors (check-single-branch-if, check-single-form-progn, check-when-not); N=1 self-idempotency invariant; pretty-printer fixed-point cross-population for syntax-inspector fixtures. Unanticipated: surfaced and fixed a latent `*current-line-vector*` defvar load-order bug that had been masked by stale fasls since slice 003–004. 299/299 tests passing in clean SBCL subprocess. 16 inspectors, 10 maintainers. |
