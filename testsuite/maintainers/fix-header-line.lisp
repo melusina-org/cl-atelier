@@ -10,9 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-fix-header-line-registered ()
-  (assert-t (not (null (atelier:find-maintainer 'atelier:fix-header-line)))))
-
 (define-testcase validate-fix-header-line ()
   "Verify fix-header-line produces a text-resolution with the correct canonical header.
 Constructs a finding directly (no file I/O needed)."
@@ -33,7 +30,6 @@ Constructs a finding directly (no file I/O needed)."
       (assert-t (not (null (search "Test" replacement)))))))
 
 (define-testcase testsuite-fix-header-line ()
-  (validate-fix-header-line-registered)
   (validate-fix-header-line))
 
 ;;;; End of file `fix-header-line.lisp'

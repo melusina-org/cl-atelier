@@ -21,32 +21,30 @@
   (testsuite-maintainer)
   (testsuite-runner)
   (testsuite-asdf)
+  ;; Inspector tests not covered by fixture auto-discovery
+  ;; (temporary files, synthetic inputs, helper unit tests, or shared
+  ;; testsuite/fixtures/ root files rather than testsuite/fixtures/inspector/).
   (testsuite-check-file-encoding)
   (testsuite-check-spdx-license-header)
   (testsuite-check-trailing-whitespace)
   (testsuite-check-line-length)
   (testsuite-check-mixed-indentation)
-  (testsuite-check-earmuffs)
-  (testsuite-check-constant-naming)
-  (testsuite-check-bare-lambda)
-  (testsuite-check-loop-keywords)
   (testsuite-check-labels-for-flet)
   (testsuite-check-header-line)
   (testsuite-check-footer-line)
   (testsuite-check-project-identification)
   (testsuite-pretty-printer)
   (testsuite-write-back)
-  (testsuite-fix-trailing-whitespace)
+  ;; Maintainer tests not covered by autofix-cycle fixture auto-discovery.
+  ;; fix-mixed-indentation is tested ad-hoc (see slice 007 rationale);
+  ;; fix-header-line and fix-footer-line assert generated replacement content
+  ;; on synthetic findings; fix-labels-to-flet keeps helper unit tests
+  ;; and an end-to-end pipeline test because no autofix-cycle fixture exists
+  ;; for it yet.
   (testsuite-fix-mixed-indentation)
-  (testsuite-fix-earmuffs)
-  (testsuite-fix-constant-naming)
-  (testsuite-fix-bare-loop-keywords)
-  (testsuite-fix-bare-lambda)
   (testsuite-fix-labels-to-flet)
   (testsuite-fix-header-line)
   (testsuite-fix-footer-line)
-  (testsuite-fix-project-identification)
-  (testsuite-fix-line-too-long)
   (testsuite-autofix)
   (testsuite-template))
 

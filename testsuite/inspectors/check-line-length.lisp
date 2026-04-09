@@ -10,11 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-check-line-length-registered ()
-  "Verify that CHECK-LINE-LENGTH is registered."
-  (assert-t (not (null (member 'atelier:check-line-length
-                               (atelier:list-inspectors))))))
-
 (define-testcase validate-check-line-length-short ()
   "Verify that a file with short lines produces no findings."
   (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
@@ -65,7 +60,6 @@
         (delete-file temporary-path)))))
 
 (define-testcase testsuite-check-line-length ()
-  (validate-check-line-length-registered)
   (validate-check-line-length-short)
   (validate-check-line-length-long)
   (validate-check-line-length-skips-definitions))

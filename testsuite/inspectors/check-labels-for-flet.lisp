@@ -65,48 +65,16 @@
                (even-p 4)))))
 
 
-;;;;
-;;;; Inspector Tests
-;;;;
-
-(define-testcase validate-check-labels-for-flet-registered ()
-  "Verify that CHECK-LABELS-FOR-FLET is registered in the inspector registry."
-  (assert-t (not (null (member 'atelier:check-labels-for-flet
-                               (atelier:list-inspectors))))))
-
-(define-testcase validate-check-labels-for-flet-violation ()
-  "Verify that a LABELS with acyclic call graph produces a SPURIOUS-LABELS-FINDING."
-  (let ((fixture-path (inspector-fixture 'atelier:check-labels-for-flet "spurious")))
-    (unless (probe-file fixture-path)
-      (format t "~&SKIP validate-check-labels-for-flet-violation: ~A not found.~%"
-              fixture-path)
-      (return-from validate-check-labels-for-flet-violation nil))
-    (let* ((inspector (atelier:find-inspector 'atelier:check-labels-for-flet))
-           (findings (atelier:inspect-file inspector fixture-path)))
-      (assert-t (not (null findings)))
-      (assert-t (typep (first findings) 'atelier:spurious-labels-finding)))))
-
-(define-testcase validate-check-labels-for-flet-mutual-recursion-clean ()
-  "Verify that a LABELS with mutual recursion produces no finding."
-  (let ((fixture-path (inspector-fixture 'atelier:check-labels-for-flet "necessary")))
-    (unless (probe-file fixture-path)
-      (format t "~&SKIP validate-check-labels-for-flet-mutual-recursion-clean: ~A not found.~%"
-              fixture-path)
-      (return-from validate-check-labels-for-flet-mutual-recursion-clean nil))
-    (let* ((inspector (atelier:find-inspector 'atelier:check-labels-for-flet))
-           (findings (atelier:inspect-file inspector fixture-path)))
-      (assert-t (null findings)))))
-
 (define-testcase testsuite-check-labels-for-flet ()
+  "Unit tests for the call-graph helpers used by check-labels-for-flet.
+The inspector itself is exercised by fixture auto-discovery
+(testsuite/fixtures/inspector/check-labels-for-flet/{spurious,necessary}.lisp)."
   (validate-collect-calls-no-locals)
   (validate-collect-calls-direct-call)
   (validate-collect-calls-function-reference)
   (validate-collect-calls-skips-quote)
   (validate-labels-no-cycle-dag)
   (validate-labels-self-recursion-detected)
-  (validate-labels-mutual-recursion-detected)
-  (validate-check-labels-for-flet-registered)
-  (validate-check-labels-for-flet-violation)
-  (validate-check-labels-for-flet-mutual-recursion-clean))
+  (validate-labels-mutual-recursion-detected))
 
 ;;;; End of file `check-labels-for-flet.lisp'

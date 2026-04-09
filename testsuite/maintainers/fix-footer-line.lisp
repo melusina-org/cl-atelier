@@ -10,9 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-fix-footer-line-registered ()
-  (assert-t (not (null (atelier:find-maintainer 'atelier:fix-footer-line)))))
-
 (define-testcase validate-fix-footer-line ()
   "Verify fix-footer-line produces a text-resolution with the correct canonical footer.
 Constructs a finding directly (no file I/O needed)."
@@ -34,7 +31,6 @@ Constructs a finding directly (no file I/O needed)."
       (assert-t (not (null (search "`" replacement)))))))
 
 (define-testcase testsuite-fix-footer-line ()
-  (validate-fix-footer-line-registered)
   (validate-fix-footer-line))
 
 ;;;; End of file `fix-footer-line.lisp'

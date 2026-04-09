@@ -12,6 +12,20 @@
 
 
 ;;;;
+;;;; Dynamic Context
+;;;;
+
+(defvar *current-line-vector* nil
+  "The line vector of the file currently being processed.
+Bound during syntax inspection and in-memory resolution application so that
+line/column can be converted to character offsets without re-reading the
+source file. Defined here (not in write-back.lisp) because runner.lisp is
+loaded first in the ASDF :serial order; if the symbol is not yet known as
+SPECIAL when runner.lisp is compiled, its LET bindings become lexical and
+the variable is not visible to functions that read it dynamically.")
+
+
+;;;;
 ;;;; Inspection Protocol
 ;;;;
 

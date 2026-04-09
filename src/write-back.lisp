@@ -12,19 +12,13 @@
 
 
 ;;;;
-;;;; Line Vector
-;;;;
-
-(defvar *current-line-vector* nil
-  "The line vector of the file currently being processed.
-Bound during syntax inspection and in-memory resolution application so that
-resolution-text-span can convert line/column to character offsets without
-re-reading the file.")
-
-
-;;;;
 ;;;; Write-back Engine
 ;;;;
+
+;;; *CURRENT-LINE-VECTOR* is defined in runner.lisp (the first file in the load
+;;; order that uses it). Both runner and write-back share the same dynamic
+;;; variable to convert line/column to character offsets without re-reading
+;;; the source file.
 
 (defun line-column-to-offset (line column line-vector)
   "Convert a 1-based LINE number and 0-based COLUMN to a character offset.

@@ -10,10 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-check-project-identification-registered ()
-  (assert-t (not (null (member 'atelier:check-project-identification
-                               (atelier:list-inspectors))))))
-
 (define-testcase validate-check-project-identification-correct ()
   "Verify no finding for a file with correct project identification."
   (let ((atelier::*project-configuration*
@@ -63,7 +59,6 @@
         (assert-t (null findings))))))
 
 (define-testcase testsuite-check-project-identification ()
-  (validate-check-project-identification-registered)
   (validate-check-project-identification-correct)
   (validate-check-project-identification-missing)
   (validate-check-project-identification-no-config))

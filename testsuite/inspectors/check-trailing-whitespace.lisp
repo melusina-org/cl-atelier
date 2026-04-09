@@ -10,11 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-check-trailing-whitespace-registered ()
-  "Verify that CHECK-TRAILING-WHITESPACE is registered."
-  (assert-t (not (null (member 'atelier:check-trailing-whitespace
-                               (atelier:list-inspectors))))))
-
 (define-testcase validate-check-trailing-whitespace-clean ()
   "Verify that a file without trailing whitespace produces no findings."
   (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
@@ -57,7 +52,6 @@
         (delete-file temporary-path)))))
 
 (define-testcase testsuite-check-trailing-whitespace ()
-  (validate-check-trailing-whitespace-registered)
   (validate-check-trailing-whitespace-clean)
   (validate-check-trailing-whitespace-dirty))
 

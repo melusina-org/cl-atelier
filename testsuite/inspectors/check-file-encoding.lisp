@@ -10,11 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-check-file-encoding-registered ()
-  "Verify that CHECK-FILE-ENCODING is registered in the inspector registry."
-  (assert-t (not (null (member 'atelier:check-file-encoding
-                               (atelier:list-inspectors))))))
-
 (define-testcase validate-check-file-encoding-valid ()
   "Verify that a valid UTF-8 file produces no findings."
   (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
@@ -50,7 +45,6 @@
         (delete-file temporary-path)))))
 
 (define-testcase testsuite-check-file-encoding ()
-  (validate-check-file-encoding-registered)
   (validate-check-file-encoding-valid)
   (validate-check-file-encoding-invalid))
 

@@ -10,10 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-check-footer-line-registered ()
-  (assert-t (not (null (member 'atelier:check-footer-line
-                               (atelier:list-inspectors))))))
-
 (define-testcase validate-check-footer-line-correct ()
   "Verify no finding for a file with a correct canonical footer."
   (uiop:with-temporary-file (:pathname p :type "lisp" :keep nil)
@@ -38,7 +34,6 @@
       (assert-t (typep (first findings) 'atelier:footer-line-finding)))))
 
 (define-testcase testsuite-check-footer-line ()
-  (validate-check-footer-line-registered)
   (validate-check-footer-line-correct)
   (validate-check-footer-line-violation))
 

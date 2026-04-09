@@ -10,11 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-check-mixed-indentation-registered ()
-  "Verify that CHECK-MIXED-INDENTATION is registered."
-  (assert-t (not (null (member 'atelier:check-mixed-indentation
-                               (atelier:list-inspectors))))))
-
 (define-testcase validate-check-mixed-indentation-clean ()
   "Verify that a spaces-only file produces no findings with default config."
   (let* ((fixture-path (merge-pathnames "valid-with-spdx.lisp"
@@ -85,7 +80,6 @@
         (delete-file temporary-path)))))
 
 (define-testcase testsuite-check-mixed-indentation ()
-  (validate-check-mixed-indentation-registered)
   (validate-check-mixed-indentation-clean)
   (validate-check-mixed-indentation-tabs)
   (validate-indentation-style-configuration))

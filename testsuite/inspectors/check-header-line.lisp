@@ -10,10 +10,6 @@
 
 (in-package #:atelier/testsuite)
 
-(define-testcase validate-check-header-line-registered ()
-  (assert-t (not (null (member 'atelier:check-header-line
-                               (atelier:list-inspectors))))))
-
 (define-testcase validate-check-header-line-correct-lisp ()
   "Verify no finding for a Lisp file with a correct canonical header."
   (uiop:with-temporary-file (:pathname p :type "lisp" :keep nil)
@@ -90,7 +86,6 @@
   (assert-t (null (atelier:file-comment-prefix #p"readme.md"))))
 
 (define-testcase testsuite-check-header-line ()
-  (validate-check-header-line-registered)
   (validate-file-comment-prefix)
   (validate-check-header-line-correct-lisp)
   (validate-check-header-line-violation-lisp)
