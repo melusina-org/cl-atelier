@@ -1,13 +1,13 @@
 # Slice 009: MCP server skeleton for `org.melusina.atelier/mcp`
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** New capability
 **Goal addressed:** G5 — MCP server exposes REPL evaluation, debugger and image lifecycle, CLOS introspection, and rename refactorings
 **Backlog items:** #5 (MCP server skeleton)
 **Planned start / end:** 2026-04-10 / TBD
 **Actual end:** —
 **Implementation phases:**
-  - Phase 1: `product/slice/009-mcp-skeleton/implementation-1.md` — Planned
+  - Phase 1: `product/slice/009-mcp-skeleton/implementation-1.md` — In Progress
 
 ---
 
@@ -15,7 +15,7 @@
 
 After this slice, an MCP-aware client (Claude Desktop, Cursor, or any MCP host) can launch `org.melusina.atelier/mcp` as a stdio subprocess and discover Atelier as an MCP server. The server exposes a small but real surface:
 
-- **Tools** the agent can invoke: `atelier.ping`, `atelier.list-inspectors`, `atelier.list-maintainers`, `atelier.list-systems`.
+- **Tools** the agent can invoke: `atelier:probe-environment`, `atelier:list-inspectors`, `atelier:list-maintainers`, `atelier:list-systems`, `atelier:inspector-detail`, `atelier:maintainer-detail` (six total).
 - **Resources** the agent can read: the Atelier inspector and maintainer registries, the ASDF source-registry's view of available systems, and the live session transcript in three views (sexp, JSON, Markdown).
 
 What this slice **does not** ship: child Lisp images, eval, SWANK transport, package/symbol introspection, the debugger, refactorings, the linter passthrough. Those are slices 010–016. This slice is the foundation everything else is scaffolded onto.
@@ -52,22 +52,24 @@ Two design choices are worth surfacing for the user up-front:
 
 **Acceptance criteria:**
 - Given a recorded MCP `initialize` request frame, when fed to `atelier/mcp:serve-stdio` via a string-input-stream, then the server responds with a valid `initialize` result declaring `tools` and `resources` capabilities and the server name `"org.melusina.atelier/mcp"`.
-- Given the handshake has completed and a `notifications/initialized` notification has been sent, when a `tools/list` request arrives, then the server returns the registered tool list (4 tools: `atelier.ping`, `atelier.list-inspectors`, `atelier.list-maintainers`, `atelier.list-systems`), each with `name`, `description`, and JSON-Schema `inputSchema`.
-- Given the handshake has completed, when a `resources/list` request arrives, then the server returns the registered resource list including all seven URIs declared in S4–S6.
+- Given the handshake has completed and a `notifications/initialized` notification has been sent, when a `tools/list` request arrives, then the server returns the registered tool list (6 tools: `atelier:probe-environment`, `atelier:list-inspectors`, `atelier:list-maintainers`, `atelier:list-systems`, `atelier:inspector-detail`, `atelier:maintainer-detail`), each with `name`, `description`, and JSON-Schema `inputSchema`.
+- Given the handshake has completed, when a `resources/list` request arrives, then the server returns the registered resource list including all eight URIs declared in S4–S6.
 - Given a malformed JSON-RPC frame, when received, then the server responds with a JSON-RPC error of code `-32700` (parse error) and does not crash.
 - Given an unknown method, when received, then the server responds with `-32601` (method not found) and does not crash.
 
-### S3 — Tool registry and four trivial tools
+### S3 — Tool registry and six tools
 
-**In order to** add a new MCP tool in a later slice, **a** developer **can** call `(atelier/mcp:register-tool ...)` from any loaded system and have the tool appear in `tools/list` without any other registration step.
+**In order to** add a new MCP tool in a later slice, **a** developer **can** write a `define-tool` form in any loaded system and have the tool appear in `tools/list` without any other registration step.
 
 **Acceptance criteria:**
-- Given `register-tool` is called with a name, description, input schema, and handler function, when the tool is invoked via `tools/call`, then the handler is called with the parsed arguments and its return value is wrapped in a valid `tools/call` result.
-- Given the tool `atelier.ping` is registered with no arguments, when `tools/call` invokes it, then the result content is the string `"pong"` and the response includes the server's wall-clock time.
-- Given the tool `atelier.list-inspectors` is registered, when invoked, then the result is a JSON array of objects, each with at minimum the keys `name`, `severity`, `description`, derived by walking `(atelier:list-inspectors)`.
-- Given the tool `atelier.list-maintainers` is registered, when invoked, then the result is a JSON array of objects with at minimum `name`, `kind`, `reacts-to`, `supersedes`, `maturity`, derived by walking `(atelier:list-maintainers)`.
-- Given the tool `atelier.list-systems` is registered, when invoked, then the result is a JSON array of ASDF system names visible to the source registry, obtained without loading any system.
-- Given a tool handler signals an error, when caught by the dispatcher, then the JSON-RPC response is a `tools/call` error result (not a JSON-RPC protocol error) carrying the condition's printed representation, and the server continues serving subsequent requests.
+- Given `define-tool` is used to declare a tool (name derived from the symbol's home package with the `/mcp` suffix stripped, combined with the symbol name via `:`), when the tool is invoked via `tools/call`, then the handler method specialized on the generated class is called with the parsed arguments and its return value is wrapped in a valid `tools/call` result.
+- Given the tool `atelier:probe-environment` is registered with no arguments, when `tools/call` invokes it, then the result content is a JSON object carrying `lisp-implementation-type`, `lisp-implementation-version`, `machine-instance`, `machine-type`, `machine-version`, `software-type`, `software-version`, `short-site-name`, `long-site-name`.
+- Given the tool `atelier:list-inspectors` is registered, when invoked, then the result is a JSON array of objects, each with at minimum the keys `name`, `severity`, `description`, derived by walking `(atelier:list-inspectors)`.
+- Given the tool `atelier:list-maintainers` is registered, when invoked, then the result is a JSON array of objects with at minimum `name`, `kind`, `reacts-to`, `supersedes`, `maturity`, derived by walking `(atelier:list-maintainers)`.
+- Given the tool `atelier:list-systems` is registered, when invoked, then the result is a JSON array of ASDF system names visible to the source registry, obtained without loading any system.
+- Given the tool `atelier:inspector-detail` is registered with a `name` argument, when invoked with a known inspector name, then the result is a JSON object carrying that inspector's full metadata (name, severity, finding class hierarchy ancestors, languages, full docstring).
+- Given the tool `atelier:maintainer-detail` is registered with a `name` argument, when invoked with a known maintainer name, then the result is a JSON object carrying that maintainer's full metadata.
+- Given a tool handler signals an error, when caught by the dispatcher, then the JSON-RPC response is a `tools/call` result with `isError: true` (not a JSON-RPC protocol error) carrying the condition's printed representation, and the server continues serving subsequent requests.
 
 ### S4 — Resource registry and the Atelier registry resources
 
@@ -120,7 +122,7 @@ Two design choices are worth surfacing for the user up-front:
 - Given the system `org.melusina.atelier/test/mcp` is loaded, when `(asdf:test-system "org.melusina.atelier/mcp")` is run, then it dispatches to the testsuite and reports zero failures.
 - Given a fixture file `test/mcp/fixtures/initialize-request.json` containing a recorded MCP `initialize` frame, when fed to `serve-stdio` via a string-input-stream, then the response matches `test/mcp/fixtures/initialize-response.json` modulo the server-version field and the timestamp field.
 - Given the handshake fixture has been replayed, when followed by a `tools/list` request, then the response contains exactly the four tools declared in S3.
-- Given the handshake fixture has been replayed, when followed by a `resources/list` request, then the response contains exactly the seven resources declared in S4–S6.
+- Given the handshake fixture has been replayed, when followed by a `resources/list` request, then the response contains exactly the eight resources declared in S4–S6.
 - Given the test runs in a fresh SBCL subprocess (per INV-4), when it completes, then the pass count delta from the pre-slice baseline is exactly the number of new assertions added in this slice (Tactician to predict a *range*, not a tight count, per the slice-008 calibration lesson).
 
 ## Quality Criteria
@@ -148,7 +150,7 @@ Two design choices are worth surfacing for the user up-front:
 - [ ] All eight stories complete with acceptance criteria passing
 - [ ] Quality criteria passing
 - [ ] Full test suite passes in fresh SBCL subprocess (per INV-4)
-- [ ] Manual MCP-client smoke test recorded: launch `atelier-mcp` (or `(atelier/mcp:serve-stdio)`) from an MCP client, observe successful handshake, list tools, list resources, invoke `atelier.ping`, read `atelier://inspectors`, read `lisp://transcript/<session-id>.md`
+- [ ] Manual MCP-client smoke test recorded: launch `(atelier/mcp:serve-two-way-stream)` from an MCP client, observe successful handshake, list tools, list resources, invoke `atelier:probe-environment`, read `atelier://inspectors`, read `lisp://transcript/<session-id>.md`
 - [ ] All implementation phases have completion notes
 - [ ] `product/slice/009-mcp-skeleton/retrospective.md` created
 - [ ] `product/backlog.md` updated (item #5 marked delivered for the skeleton; new items added for the slice 010–016 track; rejected items recorded; under-consideration items recorded)
@@ -159,6 +161,8 @@ Two design choices are worth surfacing for the user up-front:
 ---
 
 ## Notes for the Tactician
+
+**Historical — superseded by `implementation-1.md`.** The planning interview resolved all eight questions below. Key outcomes: tool naming is **colon-separated** (`atelier:ping`, not `atelier.ping`) with the `/mcp` package suffix stripped when deriving names from symbols; JSON library is **`com.inuoe.jzon`**; MCP spec version **`"2024-11-05"`**; transcript file location is **`(uiop:xdg-state-home "atelier/mcp/transcripts/")`**; `image-connection` ships the three minimal generics only, with `uiop:process-info` composition for slice 010; the unified `define-tool` macro handles tool, resource, and dual-exposed definitions via an optional `(:resource ...)` option. Retained below as slice history.
 
 Several questions need answering during the planning interview that I deliberately did **not** pin in the slice scope:
 
