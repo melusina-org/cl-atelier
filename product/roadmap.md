@@ -1,9 +1,11 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-09 (slice 008 planning)
+**Last updated:** 2026-04-10 (slice 009 planning)
 
 ## Now (in progress)
 
-_Nothing in progress._
+| Slice | Type | Goal addressed | Description |
+|-------|------|----------------|-------------|
+| [009-mcp-skeleton](slice/009-mcp-skeleton/slice.md) | New capability | G5 | MCP server skeleton: `org.melusina.atelier/mcp` system, `#:atelier/mcp` package, JSON-RPC over stdio, tool/resource registries, sexp-canonical transcript with JSON and Markdown views, abstract `image-connection` class, four trivial tools, seven resources. No child image, no eval, no SWANK. |
 
 ## Completed
 
@@ -22,16 +24,18 @@ _Nothing in progress._
 
 | Item | Type | Goal addressed | Notes |
 |------|------|----------------|-------|
-| Line-level and CST-level CL inspectors (backlog #16, #17) | New capability | G2 | Validates full write-back pipeline. Pretty-printer decision needed before #17. |
-| MCP server skeleton + REPL evaluation tool (backlog #5, #6) | New capability | G5 | Parallel track once schema is stable. Requires MCP design session to complete first. |
+| 010 — MCP child image, eval, package/symbol introspection (backlog #6) | New capability | G5 | Spawns SBCL child via `socketpair(2)` to in-image SWANK. Adds `closer-mop` dependency. Lint+autofix runs before every eval. Ships `lisp://packages/...` resources. |
+| 011 — MCP debugger and restarts (backlog #7) | New capability | G5 | Live sldb-equivalent over the slice-010 transport. |
+| 012 — MCP ASDF + Quicklisp + Confidence test runner (backlog #8) | New capability | G5 | `asdf-operate`, `quickload`, `where-is-system`, `system-apropos`, plus Confidence integration via the `define-testcase` symbol-property convention. |
 
 ## Later (probable but not yet scheduled)
 
 | Item | Goal addressed | Notes |
 |------|----------------|-------|
-| MCP: debugger restarts, image restart, system reload (#7, #8, #9) | G5 | Requires live debugger state accessible from MCP. |
-| MCP: rename refactoring tools (#10, #11, #12) | G5 | Depends on composite-resolution pipeline being solid. |
-| MCP: remove unexported symbols, CLOS introspection (#13, #14, #15) | G5 | |
+| 013 — MCP documentation: describe/apropos/hyperspec (with X3J13 issues), source-location, compile-with-notes, disassemble, macroexpand (#9) | G5 | CLHS available locally via MacPorts; X3J13 issue documents exposed as `lisp://hyperspec/issues/<id>` resources. |
+| 014 — MCP xref + inspector + trace + `who-tests`/`run-impacted` (#10) | G5 | `who-tests` filters xref callers to those carrying the Confidence testcase property — differentiator over generic Lisp MCP servers. |
+| 015 — MCP refactorings: rename-symbol, rename-package, rename-system, unintern, unexport, remove-method, **lint-passthrough** (#11) | G5 | Lint-passthrough is the bridge between MCP server and Atelier linter. |
+| 016 — MCP domain diagnostics: CFFI, bordeaux-threads, SBCL profiling (#12) | G5 | SBCL profiling is `#+sbcl`. |
 | LLM-driven maintainer for any finding class (#21) | G3 | First-class MAINTAINER kind; structured prompt derived from observation + rationale + source context. |
 | Line-level and CST-level CL inspectors (#16, #17) | G2 | Validates full write-back pipeline. Pretty-printer decision (#23) needed before #17. |
 | ShellCheck, Elisp, and Terraform wrapper inspectors (#18, #19, #20) | G2 | External tools integrated via REGION-FINDING / LINE-FINDING. |
@@ -44,6 +48,8 @@ _Nothing in progress._
 
 | Item | Open question |
 |------|---------------|
+| Web transcript viewer for MCP sessions (#32) | What concrete story needs HTML beyond what an MCP client renders from Markdown? If a story arrives, build as a separate `org.melusina.atelier/mcp/transcript-viewer` system; do not pull Hunchentoot into core `/mcp`. |
+| SQLite project index of Lisp systems and findings (#33) | What story requires persistence that ASDF source-registry and Quicklisp local-projects do not provide? Revisit after slice 014 (xref) when persistence patterns become clearer. |
 | Code coverage (#28) | sb-cover is SBCL-only. Is portability required? |
 | Profiling (#29) | Same portability question. |
 | ASDF:COMPONENT for CFFI bridges (#30) | Scope: one source file, one .so, reload into image. Primary motivation is linting C/C++ through shared pipeline and driving compile+reload from ASDF. |
@@ -60,6 +66,7 @@ _Nothing in progress._
 | Complex C/C++ build graphs | CFFI bridge pattern only (one file, one .so). |
 | Language support beyond CL, Elisp, Shell, HCL | Requires explicit scope expansion. |
 | Editor plugins (now) | Atelier exposes MCP; editor integration is the editor's concern for now. |
+| Secret management / SSH key handling in MCP server (R6) | The MCP server inherits user privileges; adding a credential store buys nothing and adds attack surface. Per tech stack: identity over secrets. Decided 2026-04-10. |
 
 ## Revision History
 
@@ -83,3 +90,4 @@ _Nothing in progress._
 | 2026-04-09 | Slice 007 completed — verdict ✅ Supported. Moved to Completed. Delivered: `testsuite/fixtures/autofix/` directory with new 4-part fixture format; 5 migrated maintainer fixtures; 3 new diagnostic-only CST inspectors (check-single-branch-if, check-single-form-progn, check-when-not); N=1 self-idempotency invariant; pretty-printer fixed-point cross-population for syntax-inspector fixtures. Unanticipated: surfaced and fixed a latent `*current-line-vector*` defvar load-order bug that had been masked by stale fasls since slice 003–004. 299/299 tests passing in clean SBCL subprocess. 16 inspectors, 10 maintainers. |
 | 2026-04-09 | Slice 008 planned: remove `check-line-length` inspector, `fix-line-too-long` maintainer, `line-too-long-finding` class, three testcases, and twenty carried-over fixtures. Rationale: adopt the gofmt position — the pretty-printer is Atelier's single authority on canonical Lisp text; a separate line-length reporter adds noise without correctness. Research at `product/reference/line-length-research.md`. |
 | 2026-04-09 | Slice 008 completed — verdict ✅. Moved to Completed. 15 inspectors, 10 maintainers. 295/295 tests passing in fresh SBCL subprocess (baseline 299; four assertions removed across three testcases). Invariant I7 established ("Atelier does not police line length") — recommended for promotion to design principle #8 in `definition.md` at the next Steward revision. |
+| 2026-04-10 | MCP design session. Slice 009 (MCP skeleton) added to Now. Slice 010–016 sketched in Next/Later as the MCP track. Backlog items #6–#12 rewritten to map onto the slice plan; items #13–#15 marked subsumed. Rejected: secret management in MCP server (R6). Under consideration: Hunchentoot-based web transcript viewer (#32), SQLite project index (#33). Architectural decisions: standalone `atelier-mcp` binary, `socketpair(2)` transport for slice 010, SWANK as in-image backend, sexp-canonical transcript with derived JSON and Markdown views, no Hunchentoot, no secret store, no SQLite. |
