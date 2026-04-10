@@ -115,4 +115,70 @@
   ((:module "libexec/lisp"
     :components ((:file "development")))))
 
+(asdf:defsystem #:org.melusina.atelier/mcp
+  :description "MCP server skeleton for Atelier."
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:alexandria
+	       #:uiop
+	       #:com.inuoe.jzon
+	       #:org.melusina.atelier)
+  :components
+  ((:module "src/mcp"
+    :serial t
+    :components ((:file "package")
+		 (:file "conditions")
+		 (:file "protocol-version")
+		 (:file "json-util")
+		 (:file "tool-name")
+		 (:file "input-schema")
+		 (:file "uri-template")
+		 (:file "tool")
+		 (:file "message")
+		 (:file "define-tool")
+		 (:file "transcript-render")
+		 (:file "transcript")
+		 (:file "image-connection")
+		 (:file "dispatcher")
+		 (:file "server")
+		 (:module "tools"
+		  :serial t
+		  :components ((:file "probe-environment")
+			       (:file "list-inspectors")
+			       (:file "list-maintainers")
+			       (:file "list-systems")
+			       (:file "inspector-detail")
+			       (:file "maintainer-detail")
+			       (:file "transcript-resources")))))))
+
+(asdf:defsystem #:org.melusina.atelier/testsuite/mcp
+  :description "Testsuite for org.melusina.atelier/mcp."
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:org.melusina.atelier/mcp
+	       #:org.melusina.atelier/testsuite
+	       #:org.melusina.confidence)
+  :components
+  ((:module "testsuite/mcp"
+    :serial t
+    :components ((:file "package")
+		 (:file "utilities")
+		 (:file "jzon-round-trip")
+		 (:file "tool-name-derivation")
+		 (:file "input-schema-derivation")
+		 (:file "uri-template")
+		 (:file "define-tool-macro")
+		 (:file "message-parsing")
+		 (:file "dispatcher")
+		 (:file "protocol-handshake")
+		 (:file "tool-invocation")
+		 (:file "resource-read")
+		 (:file "image-connection")
+		 (:file "transcript-encoding")
+		 (:file "transcript-filesystem")
+		 (:file "transcript-torn-write")
+		 (:file "registry-counts")
+		 (:file "fresh-sbcl-load")
+		 (:file "entrypoint")))))
+
 ;;;; End of file `org.melusina.atelier.asd'
