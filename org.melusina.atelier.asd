@@ -120,6 +120,7 @@
   :author "Michaël Le Barbier"
   :license "MIT License"
   :depends-on (#:alexandria
+	       #:bordeaux-threads
 	       #:uiop
 	       #:com.inuoe.jzon
 	       #:org.melusina.atelier)

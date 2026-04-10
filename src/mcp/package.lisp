@@ -93,9 +93,14 @@
    ;; Transcript
    #:transcript
    #:make-transcript
+   #:transcript-session-id
+   #:transcript-path
+   #:transcript-next-seq
    #:write-transcript-entry
    #:read-transcript
    #:read-transcript-entries
+   #:sexp-to-json-entries
+   #:sexp-to-markdown-entries
    ;; Image connection
    #:image-connection
    #:connection-id
