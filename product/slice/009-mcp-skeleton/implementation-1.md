@@ -536,10 +536,89 @@ For `implementation-1-notes.md` to record this phase complete, all of the follow
 - [ ] All 12 acceptance criteria verified as listed.
 - [ ] Fresh SBCL `asdf:test-system "org.melusina.atelier/mcp"` — zero failures, zero new skips outside declared conditions.
 - [ ] Fresh SBCL `asdf:test-system "org.melusina.atelier"` — zero regression in the existing Atelier suite.
-- [ ] Manual MCP-client smoke test recorded: launch `(atelier/mcp:serve-two-way-stream)` from an MCP client (or simulate with a hand-crafted stdio driver), observe: initialize handshake, `tools/list` returning 6 tools, `resources/list` returning 8 resources, `tools/call` of `atelier:probe-environment`, `resources/read` of `atelier://inspectors`, `resources/read` of `lisp://transcript/<session-id>.md`. Screenshots or transcripts retained in the implementation notes.
+- [ ] Manual MCP-client smoke test recorded: launch `(atelier/mcp:serve-two-way-stream)` from an MCP client (or simulate with a hand-crafted stdio driver), observe: initialize handshake, `tools/list` returning 6 tools, `resources/list` returning 3 concrete resources, `resources/templates/list` returning 5 templates, `tools/call` of `atelier:probe-environment`, `resources/read` of `atelier://inspectors`, `resources/read` of `lisp://transcript/<session-id>.md`. Screenshots or transcripts retained in the implementation notes.
 - [ ] Manual S5 AC3 smoke test: add a directory to ASDF source registry during a session, re-read `lisp://systems`, verify new system appears. Result recorded.
 - [ ] Reviewer's R1 audit (every exported symbol traces to an AC) passes.
-- [ ] Reviewer's R8 audit (zero SWANK references, no concrete `image-connection` subclass, registry counts exactly 6 + 8) passes.
+- [ ] Reviewer's R8 audit (zero SWANK references, no concrete `image-connection` subclass, registry counts exactly 6 tools + 3 concrete resources + 5 templates) passes.
 - [ ] INV-11 template grep: zero matches.
-- [ ] CLAUDE.md updated with MCP server section stating 6 tools and 8 resources, `(atelier/mcp:serve-two-way-stream)` entry point.
-- [ ] slice.md tool/resource lists updated to reflect 6 + 8 (step 55, or earlier at step 6).
+- [ ] CLAUDE.md updated with MCP server section stating 6 tools, 3 concrete resources, 5 resource templates, `(atelier/mcp:serve-two-way-stream)` entry point.
+- [ ] slice.md tool/resource lists updated to reflect the split.
+
+---
+
+## Plan Amendments
+
+### Amendment 1 — 2026-04-10 — `resources/templates/list` split
+
+**Trigger:** during step 2 (writing `references/mcp-protocol.md`), the MCP 2024-11-05 spec was fetched and revealed that concrete resources and templated resources are listed via **two distinct methods**:
+
+- `resources/list` returns an array of `{uri, name, description?, mimeType?}` — **concrete, fixed-URI resources only**.
+- `resources/templates/list` returns an array of `{uriTemplate, name, description?, mimeType?}` — URI-templated resources with placeholders.
+
+The original plan assumed a single `resources/list` method returning all 8 URIs together.
+
+**Impact:** the 8 resources declared in slice 009 split as **3 concrete + 5 templated**.
+
+| Split | Count | URIs |
+|---|---|---|
+| Concrete (`resources/list`) | 3 | `atelier://inspectors`, `atelier://maintainers`, `lisp://systems` |
+| Templated (`resources/templates/list`) | 5 | `atelier://inspectors/{name}`, `atelier://maintainers/{name}`, `lisp://transcript/{session-id}.sexp`, `lisp://transcript/{session-id}.json`, `lisp://transcript/{session-id}.md` |
+
+**Consequent changes to the original plan:**
+
+1. **New method class** in `src/mcp/message.lisp` (step 21): `resources-templates-list-request`. The `method-to-class` table gains the `"resources/templates/list"` mapping. **Seven** request/notification classes total (was six).
+
+2. **Two registries on the resource side** in `src/mcp/tool.lisp` (step 20), replacing the single `*resource-registry*`:
+   - `*concrete-resource-registry*` — keyed by URI string
+   - `*template-resource-registry*` — keyed by URI template string
+
+   `register-tool` on a `resource-tool` instance inserts into exactly one of them depending on whether the `(:uri ...)` form contains `{...}` placeholders. The URI template parsing in `src/mcp/uri-template.lisp` (step 18) is the classifier.
+
+   The public helper functions become: `list-concrete-resources`, `list-template-resources`, `find-concrete-resource-by-uri`, `find-template-resource-by-template`, `match-resource-uri` (tries concrete first, then templates).
+
+3. **New dispatcher method** in `src/mcp/dispatcher.lisp` (step 30): `handle-message` specializing on `resources-templates-list-request`. It walks `*template-resource-registry*` and emits `{uriTemplate, name, description, mimeType}` entries.
+
+4. **Adjusted dispatcher method** for `resources-list-request`: it walks only `*concrete-resource-registry*` (previously walked the unified registry).
+
+5. **Adjusted `resources-read-request` dispatcher**: URI matching order is (a) concrete registry lookup → (b) template registry walk with `match-uri-against-template` for each. This is the same behavior as originally planned; only the data sources change.
+
+6. **New fixture** under `testsuite/mcp/fixtures/`: `resources-templates-list-request.json`. Used by the handshake test (step 33).
+
+7. **Revised test in `testsuite/mcp/protocol-handshake.lisp`** (step 33):
+   - `validate-resources-list-returns-three-concrete-resources` (renamed from `validate-resources-list-returns-eight-resources`)
+   - NEW: `validate-resources-templates-list-returns-five-templates`
+
+8. **Revised test in `testsuite/mcp/registry-counts.lisp`** (step 48): asserts `(length (list-tools))` = **6**, `(length (list-concrete-resources))` = **3**, `(length (list-template-resources))` = **5**.
+
+9. **Revised test in `testsuite/mcp/resource-read.lisp`** (step 47): adds assertions that URIs with placeholders get routed through template matching, not concrete lookup.
+
+10. **Revised acceptance criterion AC3** (in implementation-1.md AC section, and in slice.md S2 AC3):
+    > Initialize handshake over a string-stream round-trips correctly against the recorded fixtures; `tools/list` returns exactly **6** tools; `resources/list` returns exactly **3** concrete resources; `resources/templates/list` returns exactly **5** templates.
+
+11. **Revised acceptance criterion AC6** (implementation-1.md):
+    > The 3 concrete resources and 5 templates listed in Phase Scope are all registered in their respective registries, match incoming URIs via the dispatcher's concrete-then-templates lookup order, and return content of the declared MIME type. Unknown inspector/maintainer names produce in-band errors; unknown URIs produce `-32002` protocol errors.
+
+12. **Revised R8 mitigation** (risk register): the phase-closure audit asserts *exactly 6 tools, 3 concrete resources, and 5 templates*.
+
+13. **Revised R11** (MCP spec-version negotiation): refined with the exact rule the spec mandates — "server MUST respond with the same version if it supports the requested one, otherwise with another version it supports." Slice 009 only supports `"2024-11-05"` and always responds with it regardless of the client's request.
+
+14. **New MCP-specific error code** at the dispatcher level: `-32002` Resource not found. Added to the error code table in `conditions.lisp` (step 8) and `dispatcher.lisp` (step 30). The `resource-not-found` condition class maps to this code.
+
+15. **Methods served increased from 6 to 7**: `initialize`, `notifications/initialized`, `tools/list`, `tools/call`, `resources/list`, `resources/templates/list`, `resources/read`. The `method-to-class` table in `src/mcp/message.lisp` (step 21) carries 7 entries.
+
+**What does NOT change:**
+
+- The total tool count (6) is unchanged.
+- The total resource count (8) is unchanged — just split across two methods.
+- The unified `define-tool` macro is unchanged — the `(:uri ...)` option with placeholders is already the classifier; the registration side gets the two-registry logic transparently.
+- Step count in the table grows by approximately +2 (one new fixture, the renamed fixture; the source file additions are absorbed into existing steps). Call it **~57 steps** now instead of 55. The table itself is not rewritten — each amendment's effect is applied in the relevant step when that step is reached.
+- Pass-count delta prediction range (50–100) is unchanged; the amendment adds ~4 assertions (split test, template-list fixture test, registry-split assertions), absorbed within the range.
+- Invariants INV-1 to INV-11 carry forward unchanged. No new invariants introduced by this amendment.
+
+**Why it's safe:** the amendment is a protocol-level refinement, not an architectural change. The unified `define-tool` macro already distinguishes templates from concrete URIs (via the `{...}` placeholder test) for compile-time validation; the amendment simply wires that distinction through to registration and dispatch. No redesign of the class hierarchy, no new generic, no new condition types beyond what `conditions.lisp` already exposes.
+
+**Reviewer note at phase closure:** verify that (a) no code uses a unified `*resource-registry*` symbol anywhere; (b) the method-to-class table has exactly 7 entries; (c) the `resources/templates/list` method round-trips against its fixture; (d) `resources/read` still finds both kinds via the same `match-resource-uri` entry point.
+
+### Amendment 2 — reserved
+
+(Future amendments append here. Every amendment carries a date, trigger, impact, and explicit list of changes so the plan's narrative stays durable.)

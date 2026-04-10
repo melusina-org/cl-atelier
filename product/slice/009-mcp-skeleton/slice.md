@@ -53,7 +53,8 @@ Two design choices are worth surfacing for the user up-front:
 **Acceptance criteria:**
 - Given a recorded MCP `initialize` request frame, when fed to `atelier/mcp:serve-stdio` via a string-input-stream, then the server responds with a valid `initialize` result declaring `tools` and `resources` capabilities and the server name `"org.melusina.atelier/mcp"`.
 - Given the handshake has completed and a `notifications/initialized` notification has been sent, when a `tools/list` request arrives, then the server returns the registered tool list (6 tools: `atelier:probe-environment`, `atelier:list-inspectors`, `atelier:list-maintainers`, `atelier:list-systems`, `atelier:inspector-detail`, `atelier:maintainer-detail`), each with `name`, `description`, and JSON-Schema `inputSchema`.
-- Given the handshake has completed, when a `resources/list` request arrives, then the server returns the registered resource list including all eight URIs declared in S4–S6.
+- Given the handshake has completed, when a `resources/list` request arrives, then the server returns exactly **3** concrete resources (`atelier://inspectors`, `atelier://maintainers`, `lisp://systems`), each with `uri`, `name`, `description`, `mimeType`.
+- Given the handshake has completed, when a `resources/templates/list` request arrives, then the server returns exactly **5** URI templates (`atelier://inspectors/{name}`, `atelier://maintainers/{name}`, `lisp://transcript/{session-id}.sexp`, `lisp://transcript/{session-id}.json`, `lisp://transcript/{session-id}.md`), each with `uriTemplate`, `name`, `description`, `mimeType`. Per MCP 2024-11-05 spec, concrete and templated resources are listed via distinct methods.
 - Given a malformed JSON-RPC frame, when received, then the server responds with a JSON-RPC error of code `-32700` (parse error) and does not crash.
 - Given an unknown method, when received, then the server responds with `-32601` (method not found) and does not crash.
 
@@ -122,7 +123,7 @@ Two design choices are worth surfacing for the user up-front:
 - Given the system `org.melusina.atelier/test/mcp` is loaded, when `(asdf:test-system "org.melusina.atelier/mcp")` is run, then it dispatches to the testsuite and reports zero failures.
 - Given a fixture file `test/mcp/fixtures/initialize-request.json` containing a recorded MCP `initialize` frame, when fed to `serve-stdio` via a string-input-stream, then the response matches `test/mcp/fixtures/initialize-response.json` modulo the server-version field and the timestamp field.
 - Given the handshake fixture has been replayed, when followed by a `tools/list` request, then the response contains exactly the four tools declared in S3.
-- Given the handshake fixture has been replayed, when followed by a `resources/list` request, then the response contains exactly the eight resources declared in S4–S6.
+- Given the handshake fixture has been replayed, when followed by a `resources/list` request, then the response contains exactly the 3 concrete resources declared in S5; when followed by a `resources/templates/list` request, then the response contains exactly the 5 templates declared in S4 and S6.
 - Given the test runs in a fresh SBCL subprocess (per INV-4), when it completes, then the pass count delta from the pre-slice baseline is exactly the number of new assertions added in this slice (Tactician to predict a *range*, not a tight count, per the slice-008 calibration lesson).
 
 ## Quality Criteria
