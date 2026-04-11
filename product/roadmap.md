@@ -1,11 +1,9 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-10 (slice 009 planning)
+**Last updated:** 2026-04-11 (slice 009 closure)
 
 ## Now (in progress)
 
-| Slice | Type | Goal addressed | Description |
-|-------|------|----------------|-------------|
-| [009-mcp-skeleton](slice/009-mcp-skeleton/slice.md) | New capability | G5 | MCP server skeleton: `org.melusina.atelier/mcp` system, `#:atelier/mcp` package, JSON-RPC over stdio, tool/resource registries, sexp-canonical transcript with JSON and Markdown views, abstract `image-connection` class, four trivial tools, seven resources. No child image, no eval, no SWANK. |
+_Nothing in progress._
 
 ## Completed
 
@@ -19,6 +17,7 @@
 | [006-linter-refinements](slice/006-linter-refinements/slice.md) | Bet | G2 | ✅ |
 | [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | ✅ |
 | [008-remove-line-length-inspector](slice/008-remove-line-length-inspector/slice.md) | Maintenance | — | ✅ |
+| [009-mcp-skeleton](slice/009-mcp-skeleton/slice.md) | New capability | G5 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
@@ -91,3 +90,4 @@
 | 2026-04-09 | Slice 008 planned: remove `check-line-length` inspector, `fix-line-too-long` maintainer, `line-too-long-finding` class, three testcases, and twenty carried-over fixtures. Rationale: adopt the gofmt position — the pretty-printer is Atelier's single authority on canonical Lisp text; a separate line-length reporter adds noise without correctness. Research at `product/reference/line-length-research.md`. |
 | 2026-04-09 | Slice 008 completed — verdict ✅. Moved to Completed. 15 inspectors, 10 maintainers. 295/295 tests passing in fresh SBCL subprocess (baseline 299; four assertions removed across three testcases). Invariant I7 established ("Atelier does not police line length") — recommended for promotion to design principle #8 in `definition.md` at the next Steward revision. |
 | 2026-04-10 | MCP design session. Slice 009 (MCP skeleton) added to Now. Slice 010–016 sketched in Next/Later as the MCP track. Backlog items #6–#12 rewritten to map onto the slice plan; items #13–#15 marked subsumed. Rejected: secret management in MCP server (R6). Under consideration: Hunchentoot-based web transcript viewer (#32), SQLite project index (#33). Architectural decisions: standalone `atelier-mcp` binary, `socketpair(2)` transport for slice 010, SWANK as in-image backend, sexp-canonical transcript with derived JSON and Markdown views, no Hunchentoot, no secret store, no SQLite. |
+| 2026-04-11 | Slice 009 completed — verdict ✅ Supported. Moved to Completed. 6 tools, 3 concrete resources, 5 templates delivered via unified `define-tool` macro (17 helpers, each ≤25 lines). 184/184 MCP assertions + 295/295 base atelier assertions = 479/479 green in one fresh SBCL subprocess run. Plan amendment 1 during execution (`resources/list`/`resources/templates/list` split per spec) handled cleanly via append-not-rewrite protocol. Five new invariants (INV-12 to INV-16) proposed for Reviewer promotion. INV-4 upgraded from discipline to enforced suite property via subprocess-load test. |

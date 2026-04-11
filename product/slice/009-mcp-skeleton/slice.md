@@ -1,13 +1,13 @@
 # Slice 009: MCP server skeleton for `org.melusina.atelier/mcp`
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** New capability
 **Goal addressed:** G5 — MCP server exposes REPL evaluation, debugger and image lifecycle, CLOS introspection, and rename refactorings
 **Backlog items:** #5 (MCP server skeleton)
-**Planned start / end:** 2026-04-10 / TBD
-**Actual end:** —
+**Planned start / end:** 2026-04-10 / 2026-04-11
+**Actual end:** 2026-04-11
 **Implementation phases:**
-  - Phase 1: `product/slice/009-mcp-skeleton/implementation-1.md` — In Progress
+  - Phase 1: `product/slice/009-mcp-skeleton/implementation-1.md` — Complete
 
 ---
 
