@@ -62,3 +62,31 @@ Running record of where plans over- or under-estimated effort, pass counts, or o
 **When reviewing a plan, ask:** *What unit am I counting, and is that the unit the reality will be measured in?* If you can be wrong by a factor of 2 because of a definitional misalignment, the criterion is brittle.
 
 **Preferred style for numeric acceptance criteria:** prefer *invariants* over *tight numbers*. "Full regression passes with zero failures and zero new skips; pass count does not decrease by more than N" is a stronger criterion than "pass count = 296," because the former survives counting-unit errors and the latter does not.
+
+## Slice 009 — MCP server skeleton
+
+**Planned phases:** 1 — **Actual phases:** 1
+**Leading indicator:** planned "50–100 new assertions" (expressed as a range, following slice 008's lesson), actual **184 assertions**. Plan low by a factor of ~2 on the upper end.
+**Effort surprises:**
+- 9 reworks in Phase 2, 5 of them documented CL surprises (jzon null/false overloading, `assert-t` vs `assert-t*` strictness, plist reversal via `nreverse`, `defclass` initarg rejection on notification classes, `prin1` keyword case). Each caught in one test cycle — low individual cost, significant cumulative cost.
+- Plan Amendment 1 during step 2 (writing `references/mcp-protocol.md`): the MCP spec revealed that `resources/list` and `resources/templates/list` are distinct methods, requiring one additional class, one additional dispatcher method, one additional fixture, and an adjusted acceptance criterion. Handled via the append-not-rewrite amendment protocol.
+- `define-tool` macro decomposition into 17 helper functions each ≤25 lines was forced by a standing "no function over 25 lines" guideline. In hindsight this made the macro dramatically more testable and more robust to rework — every rework touched exactly one helper.
+
+**Quantitative miss (assertion count):**
+- Predicted range: 50–100.
+- Actual: 184 (+84% above upper bound).
+- Root cause: the plan counted testcases (~40) and multiplied by 1.25–2.5 assertions each. Reality: thorough testcases bundled 3–6 assertions each (per-method dispatcher checks, per-field shape assertions, cross-cutting registry counts, compile-time rejection checks). The multiplier was under-predicted by ~2×.
+
+**Category pattern update** (slice 009 adds a fifth data point to the "counting the wrong unit" hypothesis):
+
+| Slice | Wrong unit | Right unit |
+|---|---|---|
+| 002 | Inspectors (plan said ≥3) | Stories-shipping-inspectors (2 in the story list) |
+| 007 | Registered maintainers (plan said 10) | Maintainers-with-discoverable-fixtures (6 in reality) |
+| 008 | Testcases (plan said 3) | Assertions inside the testcases (4 in reality) |
+| 009 | Assertions × 1.25–2.5 factor | Assertions × 3–6 factor for test-heavy slices |
+| 001 | A-priori API surface count | *There is no right unit for foundation slices — use functional criteria* |
+
+**Revised guidance for test-heavy slices** (slices where the primary deliverable is new test infrastructure *and* new source code tested by it): predict assertion counts as `testcases × 3–6`, not `testcases × 1–2`. A thoroughly-tested new subsystem tends toward the upper end; a slice that only adds a handful of testcases for an existing subsystem tends toward the lower end.
+
+**Non-surprise:** the base atelier testsuite held at 295/295 throughout slice 009 development. The consolidated `asdf:test-system "org.melusina.atelier/testsuite"` invocation now runs 479 assertions (295 base + 184 MCP) in one call and completes in a few seconds in a fresh SBCL subprocess. The base suite's regression discipline carried over unchanged.

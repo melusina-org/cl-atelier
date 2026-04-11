@@ -69,3 +69,20 @@ What was reworked, why, and what could have prevented it. The most direct learni
 **Effort cost:** Zero code rework. The friction was in the phase-review phase, where the Reviewer had to mark AC3 as "met in spirit, literal value corrected."
 **Preventable?** Yes: acceptance criteria on pass counts should be a *range* or *relative invariant* ("pass count decreases by at most N"), not a tight integer that assumes the plan's counting unit is correct.
 **Lesson:** *Tight numeric acceptance criteria are only as good as the unit you counted.* Prefer "no new failures, no new skips, pass count does not decrease by more than X" over "pass count = Y."
+
+## Slice 009, Phase 1: nine reworks, five of them documented CL surprises
+
+**What was reworked:** Nine separate small issues during Phase 2 execution, each caught within one test cycle:
+1. `%parse-define-tool-clauses` built a plist and `nreverse`'d it, which reverses pairs too, producing `(value key value key)`. Fixed by building via a hash-table and flattening on exit.
+2. `parse-mcp-message` passed `:id nil` to `(make-instance 'initialized-notification ...)`; the notification class has no `id` slot, so the initarg was rejected. Fixed by building the initarg list conditionally.
+3. `%lispify-handler-result` first-cut returned `+json-null+` for any `nil`, meaning `maintainer-supersedes` (empty list) encoded as JSON `null`. Fixed by reserving `cl:null` as the explicit null marker and mapping `nil` to `#()` (empty vector → JSON array).
+4. `%alist-shape-p` first-cut accepted `(cons-whose-car-is-cons ...)` and misclassified a list-of-alists as an alist. Fixed by checking that every entry has an atomic car.
+5. `uiop:xdg-state-home` does not exist in the UIOP shipped with the running image. Fixed with a local `%xdg-state-home-base` shim.
+6. Fresh-SBCL subprocess `--eval` form failed at reader time because `asdf:*central-registry*` is read before `(require :asdf)` executes. Fixed by splitting into multiple `--eval` forms and using `find-symbol` to avoid reader-time package resolution.
+7. Confidence `assert-t` is strict (expects literal `T`, not generalised boolean). 16 assertions used it with `search`, `fboundp`, `probe-file`, producing false failures on generalised truthy values. Fixed by importing `assert-t*` and switching the affected assertions.
+8. Test harness forgot to rebind `*package*` to `#:atelier/mcp` when reading a `define-tool` form from a string, producing tool names like `cl-user:ping` instead of `atelier:ping`. Fixed by the `(let ((*package* ...)) ...)` wrapping pattern.
+9. Transcript raw-read test asserted `":marker"` in the written file, but `prin1` prints keywords in uppercase. Fixed by updating the assertion to `":MARKER"`.
+**Trigger for each:** Five of the nine (items 2, 3, 4, 7, 9) are CL-language or library-specific surprises that were already documented in `MEMORY.md` or in the Common Lisp skill reference files. The knowledge existed; it was skimmed but not internalised before Phase 2 began.
+**Effort cost:** Low per rework (each was one edit + one re-run), significant cumulative cost (9 round-trips through the Maker test cycle).
+**Preventable?** Most of them, yes. The append-not-rewrite amendment protocol caught the one real "plan vs. reality" gap (the resources/templates/list spec split) cleanly. But the CL-surprise reworks are a pattern worth watching: the existence of a knowledge file is not enough; the Maker must re-read it before the Phase 2 step it applies to, not skim it during planning and hope to remember.
+**Lesson:** See `patterns.md:"Skim-then-code does not work for documented CL surprises"`. The concrete rule is: *before Phase 2 begins, re-read `product/knowledge/MEMORY.md` and every `references/<library>.md` for the slice's dependencies. Not skim — read.* If you cannot name three CL surprises your code is likely to touch, you haven't re-read the knowledge.

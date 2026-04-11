@@ -66,6 +66,36 @@ Numbering is global and continuous across all slices.
 **Invariant:** `(atelier:lint-system "...")` without `:autofix t` must never modify any file on disk. It walks the source tree, runs inspectors, emits findings to `*standard-output*`, and returns. `:autofix t` is the only switch that enables write-back, and even then the `linter-configuration`'s per-maintainer disposition (`:auto`, `:interactive`, `:skip`) and the `resolution-proposed` signalling protocol give the caller a chance to veto each resolution.
 **Rationale:** Slice 005 made autofix opt-in as a safety contract: a developer running `lint-system` to inspect an unfamiliar project must be able to do so without risking changes. A future convenience that silently enables autofix would break this contract and is disallowed.
 
+## INV-12: MCP handler return convention is MIME-type driven
+
+**Discovered:** slice 009, phase 1
+**Invariant:** MCP tool and resource handlers return Lisp data structures (alists, plists, lists, numbers, strings) for `:application/json` MIME types, and strings directly for `text/*` MIME types. The dispatcher owns the encoding envelope; handlers never call `jzon:stringify` themselves. The distinction is driven by the `:mime-type` clause in the `define-tool` form, not by the handler's return type.
+**Rationale:** Slice 009 first tried the asymmetric design where tool handlers returned Lisp data and resource handlers returned pre-encoded strings; the unification via the `(:resource ...)` dual-expose option collapsed this asymmetry into a single return convention. The macro's expansion is simpler, the handler bodies are shorter, and swapping JSON libraries becomes a one-file change.
+
+## INV-13: `image-connection` generic signatures are stable across slices
+
+**Discovered:** slice 009, phase 1
+**Invariant:** The generic function signatures on `image-connection` (`connection-eval`, `connection-shutdown`, `connection-alive-p`) are stable. Subsequent slices may *add* generics (e.g., `connection-interrupt`, `connection-backtrace`) but must not *change* the existing ones. Breaking changes require a new slice with its own risk review and an entry in this file marking the old invariant as superseded.
+**Rationale:** Slice 009 ships only the abstract class with no concrete subclass. Slice 010 will add `swank-connection` as the first concrete subclass. If the three signatures drift between slice 009 and slice 010 the protocol breaks before it is used by any real consumer. Pinning them as an invariant makes the drift risk visible and forces future slices to extend rather than mutate.
+
+## INV-14: Every `define-tool` form traces to an exported symbol with an acceptance criterion
+
+**Discovered:** slice 009, phase 1
+**Invariant:** Every concrete `define-tool` form in the source tree corresponds to exactly one exported symbol in `#:atelier/mcp` (or a downstream `<name>/mcp` package), and that symbol is referenced by at least one acceptance criterion in some slice. No tool is exported "just in case." The Reviewer audits this at the phase closure of any slice that adds or removes tools.
+**Rationale:** Slice 009 started with 85 exports in `#:atelier/mcp`, which is a large surface for a foundation slice and the #1 risk (R1, "hallucinated requirements"). The audit confirmed zero orphans only because every slot and every generic was introduced with a named story. Making this durable is how Atelier avoids the anti-pattern that turns foundation slices into architecture astronauts' playgrounds.
+
+## INV-15: Transcript entries are written atomically per entry
+
+**Discovered:** slice 009, phase 1
+**Invariant:** The MCP transcript write protocol is `(prin1 entry stream) (terpri stream) (finish-output stream)`, in that order, per entry. Each entry is a plist serialisable by `read`. A process killed mid-write leaves a file readable up to the last complete entry; a torn tail on the last line is silently skipped by the reader. Any future transcript-adjacent code (trace log, audit stream, replay file) must follow the same per-entry flush discipline.
+**Rationale:** Slice 009's acceptance criterion S6.6 ("kill -9 mid-session leaves the file readable up to the last fully-written entry") is the user-visible contract. The three-step write protocol is what makes it true: without the per-entry `finish-output`, buffered output means a killed process can leave a plausible-looking but truncated entry.
+
+## INV-16: Tests that call `define-tool` rebind the registries via `with-isolated-registries`
+
+**Discovered:** slice 009, phase 1
+**Invariant:** Any test that invokes `define-tool` or `register-tool` at runtime must wrap its body in `(atelier/testsuite/mcp:with-isolated-registries ...)`, which dynamically rebinds `*tool-registry*`, `*concrete-resource-registry*`, `*template-resource-registry*`, `*input-schema-cache*`, and `*input-schema-source*` to fresh empty hash-tables. No test is allowed to mutate the global production registries persistently. This is the hard fix for the test-registry pollution pattern documented in `patterns.md`; slice 009 does not inherit the "TEST" package heuristic used for inspectors/maintainers.
+**Rationale:** Slice 005's retrospective noted that `*inspectors*` and `*maintainers*` were polluted by tests that registered entries then didn't clean them up. The mitigation was a soft filter (`production-resolution-p` excludes maintainers from packages containing `"TEST"`). Slice 009 took the hard fix as a given from day one, and it costs 5 lines of macro plus one import line in every test file. The pattern is portable — when slice 010+ extends the inspector/maintainer side of things, the same approach should replace the `"TEST"` heuristic there too.
+
 ## INV-11: Templates under `resource/template/` are API consumers
 
 **Discovered:** slice 001 (discovered late); reinforced by the `#:atelier` nickname bug in slice 006
