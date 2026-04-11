@@ -1,9 +1,11 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-11 (slice 009 closure)
+**Last updated:** 2026-04-11 (slice 010 planned)
 
 ## Now (in progress)
 
-_Nothing in progress._
+| Slice | Type | Goal addressed | Description |
+|-------|------|----------------|-------------|
+| [010-editor-foundation-and-mcp-eval](slice/010-editor-foundation-and-mcp-eval/slice.md) | New capability | G5 | Create `org.melusina.atelier/editor` (standalone system, package `atelier/editor`) with the `form` record and `canonicalize-form`. MCP server grows the first adapter layer: concrete `swank-socket-connection`, `eval-form`, package/symbol introspection, testsuite runner. First down-payment on the projectional editor track. |
 
 ## Completed
 
@@ -23,9 +25,8 @@ _Nothing in progress._
 
 | Item | Type | Goal addressed | Notes |
 |------|------|----------------|-------|
-| 010 — MCP child image, eval, package/symbol introspection (backlog #6) | New capability | G5 | Spawns SBCL child via `socketpair(2)` to in-image SWANK. Adds `closer-mop` dependency. Lint+autofix runs before every eval. Ships `lisp://packages/...` resources. |
 | 011 — MCP debugger and restarts (backlog #7) | New capability | G5 | Live sldb-equivalent over the slice-010 transport. |
-| 012 — MCP ASDF + Quicklisp + Confidence test runner (backlog #8) | New capability | G5 | `asdf-operate`, `quickload`, `where-is-system`, `system-apropos`, plus Confidence integration via the `define-testcase` symbol-property convention. |
+| 012 — MCP ASDF + Quicklisp + Confidence test runner (backlog #8) | New capability | G5 | `asdf-operate`, `quickload`, `where-is-system`, `system-apropos`, plus Confidence integration via the `define-testcase` symbol-property convention. Slice 010 already ships a minimal testsuite runner; 012 extends it. |
 
 ## Later (probable but not yet scheduled)
 
@@ -91,3 +92,4 @@ _Nothing in progress._
 | 2026-04-09 | Slice 008 completed — verdict ✅. Moved to Completed. 15 inspectors, 10 maintainers. 295/295 tests passing in fresh SBCL subprocess (baseline 299; four assertions removed across three testcases). Invariant I7 established ("Atelier does not police line length") — recommended for promotion to design principle #8 in `definition.md` at the next Steward revision. |
 | 2026-04-10 | MCP design session. Slice 009 (MCP skeleton) added to Now. Slice 010–016 sketched in Next/Later as the MCP track. Backlog items #6–#12 rewritten to map onto the slice plan; items #13–#15 marked subsumed. Rejected: secret management in MCP server (R6). Under consideration: Hunchentoot-based web transcript viewer (#32), SQLite project index (#33). Architectural decisions: standalone `atelier-mcp` binary, `socketpair(2)` transport for slice 010, SWANK as in-image backend, sexp-canonical transcript with derived JSON and Markdown views, no Hunchentoot, no secret store, no SQLite. |
 | 2026-04-11 | Slice 009 completed — verdict ✅ Supported. Moved to Completed. 6 tools, 3 concrete resources, 5 templates delivered via unified `define-tool` macro (17 helpers, each ≤25 lines). 184/184 MCP assertions + 295/295 base atelier assertions = 479/479 green in one fresh SBCL subprocess run. Plan amendment 1 during execution (`resources/list`/`resources/templates/list` split per spec) handled cleanly via append-not-rewrite protocol. Five new invariants (INV-12 to INV-16) proposed for Reviewer promotion. INV-4 upgraded from discipline to enforced suite property via subprocess-load test. |
+| 2026-04-11 | Slice 010 (editor foundation and MCP eval) planned and moved to Now. Design direction for the projectional editor committed in `product/reference/projectional-editor-design.md` and extended the MCP in-scope bullet of `product/definition.md`. Editor extracted from the start as standalone system `org.melusina.atelier/editor` (package `atelier/editor`); MCP server becomes one adapter among possible future consumers. Editor tests under `testsuite/editor/` (package `atelier/testsuite/editor`) inside the consolidated `org.melusina.atelier/testsuite`, mirroring slice 009's MCP test organisation — no independent test system. Slice scope: 11 stories covering the system + `form` record + `canonicalize-form` + concrete `swank-socket-connection` + six MCP tools + testsuite runner. Item 010 removed from the Next column. |
