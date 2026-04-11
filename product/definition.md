@@ -1,6 +1,6 @@
 # System Definition: Atelier
 **Repository:** https://github.com/melusina-org/cl-atelier
-**Last updated:** 2026-04-05
+**Last updated:** 2026-04-11
 
 ## Purpose
 
@@ -45,6 +45,54 @@ not five.
   refactoring (rename symbol, rename package, rename system, remove
   unexported symbols, CLOS class and method inspection and manipulation)
   through the Model Context Protocol.
+
+- **Projectional editor for managed Lisp files** — a standalone
+  capability delivered as the ASDF system
+  `org.melusina.atelier/editor` (package `atelier/editor`), separate
+  from the MCP server and reusable by any future adapter (CLI, Emacs
+  integration, web UI, CI tool). The editor's file-writing surface
+  does not accept text edits. It accepts **forms**: a caller sends
+  `(defun foo …)` or an `update-form` instruction, and the editor owns
+  file layout, `in-package`, header and footer banners, topological
+  ordering, `eval-when` wrapping for compile-order correctness,
+  `defpackage` export set maintenance, and `defsystem` `:depends-on`
+  graph updates. Every write runs the full linter and maintainer
+  pipeline, so output is canonical and lint-clean by construction. The
+  MCP server is one adapter: its tools are thin wrappers over
+  `atelier/editor:canonicalize-form`, `atelier/editor:add-form`,
+  `atelier/editor:update-form`, and the rest of the editor API. The
+  advantages this buys are:
+  - **Token efficiency** — an `update-form` call costs a few hundred
+    tokens; a text edit of the enclosing file costs thousands. Long
+    agent sessions compound this into real savings in cost and context
+    window.
+  - **Canonical output by construction** — earmuffs, constant naming,
+    LOOP keyword style, header, footer, SPDX line — none are the
+    agent's concern. The server would not write output that violates
+    them.
+  - **Topological correctness by construction** — DEFUN-before-use,
+    DEFMACRO helper `eval-when`, cross-file compile order, package
+    exports, and ASDF `:depends-on` edges are server responsibilities.
+    "It loads on my machine" fails as a class of failure.
+  - **One protocol, not two** — the finding/resolution schema used by
+    the linter, formatter, and documentation generator is also what the
+    projectional editor emits when a write produces diagnostics. The
+    agent reads one schema; the CI script reads the same one.
+  - **No lock-in** — the on-disk artefact is always a valid `.lisp`
+    file readable by any editor. If the MCP server is unavailable, the
+    user edits the file directly.
+
+  See `product/reference/projectional-editor-design.md` for the full
+  design contract, including the system layering (`atelier/editor`
+  never depends on `atelier/mcp`; the dependency arrow always points
+  from adapter to domain). The projectional editor is a track: slice
+  010 creates the `org.melusina.atelier/editor` system, ships the
+  `form` record, and ships the `canonicalize-form` primitive; slice
+  015 ships file-level form CRUD and the `defpackage` / `defsystem`
+  structural APIs. Tests live under `testsuite/editor/` (package
+  `atelier/testsuite/editor`) inside the consolidated
+  `org.melusina.atelier/testsuite`, mirroring the slice 009 pattern
+  for MCP tests — no independent test system.
 
 - **ASDF integration:**
   - atelier:linter-op — invoke the linter via
@@ -405,3 +453,5 @@ additional configuration.
 | 2026-04-05 | Initial draft bootstrapped from README and maintainer vision statement |
 | 2026-04-05 | Applied maintainer corrections: SLIME/SLY and Quicklisp/OCICL moved to aspirational; ASDF linter-op added; MCP repositioned; CLI as thin wrapper with CI first-class |
 | 2026-04-05 | Added: Elisp as targeted language; MELPA to aspirational publication targets; REGION-FINDING to finding hierarchy; ShellCheck/Elisp/Terraform external tool inspectors; LLM-driven maintainers; ASDF components for project and linter configuration; editor plugins as aspirational; CFFI bridge and Terraform ASDF components (C4 stack model) as aspirational; new MCP tools; purpose statement names the three finding-producing tools explicitly |
+| 2026-04-11 | Added: projectional editor for managed Lisp files as an MCP scope item, with advantages (token efficiency, canonical output, topological correctness, one protocol, no lock-in). Full design contract lives in `product/reference/projectional-editor-design.md`. Slice 010 ships the `form` record and `canonicalize-form`; slice 015 ships file-level form CRUD. |
+| 2026-04-11 | Projectional editor extracted as a standalone system `org.melusina.atelier/editor` (package `atelier/editor`) from the start, rather than nesting it under the MCP server. The MCP server becomes one adapter among possible future consumers (CLI, Emacs, web, CI). Editor tests live under `testsuite/editor/` in package `atelier/testsuite/editor` inside the consolidated `org.melusina.atelier/testsuite`, mirroring slice 009's MCP test organisation — no independent test system. |
