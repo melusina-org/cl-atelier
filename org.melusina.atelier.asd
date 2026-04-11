@@ -66,55 +66,6 @@
 		   (:file "fix-project-identification")))
 		 (:file "main")))))
 
-(asdf:defsystem #:org.melusina.atelier/testsuite
-  :description "Testsuite for an atelier for Lisp developers"
-  :author "Michaël Le Barbier"
-  :depends-on (#:alexandria
-	       #:org.melusina.atelier
-	       #:org.melusina.confidence)
-  :components
-  ((:module "testsuite"
-    :components ((:file "package")
-		 (:file "utilities")
-		 (:file "parameter")
-		 (:file "license")
-		 (:file "template")
-		 (:file "finding")
-		 (:file "resolution")
-		 (:file "inspector")
-		 (:file "maintainer")
-		 (:file "runner")
-		 (:file "asdf")
-		 (:module "inspectors"
-		  :components
-		  ((:file "check-file-encoding")
-		   (:file "check-spdx-license-header")
-		   (:file "check-trailing-whitespace")
-		   (:file "check-mixed-indentation")
-		   (:file "check-labels-for-flet")
-		   (:file "check-header-line")
-		   (:file "check-footer-line")
-		   (:file "check-project-identification")))
-		 (:file "pretty-printer")
-		 (:file "write-back")
-		 (:module "maintainers"
-		  :components
-		  ((:file "fix-mixed-indentation")
-		   (:file "fix-labels-to-flet")
-		   (:file "fix-header-line")
-		   (:file "fix-footer-line")))
-		 (:file "autofix")
-		 (:file "entrypoint")))))
-
-(asdf:defsystem #:org.melusina.atelier/development
-  :description "Development tools for Atelier"
-  :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:org.melusina.atelier)
-  :components
-  ((:module "libexec/lisp"
-    :components ((:file "development")))))
-
 (asdf:defsystem #:org.melusina.atelier/mcp
   :description "MCP server skeleton for Atelier."
   :author "Michaël Le Barbier"
@@ -152,34 +103,75 @@
 			       (:file "maintainer-detail")
 			       (:file "transcript-resources")))))))
 
-(asdf:defsystem #:org.melusina.atelier/testsuite/mcp
-  :description "Testsuite for org.melusina.atelier/mcp."
+(asdf:defsystem #:org.melusina.atelier/testsuite
+  :description "Testsuite for an atelier for Lisp developers"
   :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:org.melusina.atelier/mcp
-	       #:org.melusina.atelier/testsuite
+  :depends-on (#:alexandria
+	       #:org.melusina.atelier
+	       #:org.melusina.atelier/mcp
 	       #:org.melusina.confidence)
   :components
-  ((:module "testsuite/mcp"
-    :serial t
+  ((:module "testsuite"
     :components ((:file "package")
 		 (:file "utilities")
-		 (:file "jzon-round-trip")
-		 (:file "tool-name-derivation")
-		 (:file "input-schema-derivation")
-		 (:file "uri-template")
-		 (:file "define-tool-macro")
-		 (:file "message-parsing")
-		 (:file "dispatcher")
-		 (:file "protocol-handshake")
-		 (:file "tool-invocation")
-		 (:file "resource-read")
-		 (:file "image-connection")
-		 (:file "transcript-encoding")
-		 (:file "transcript-filesystem")
-		 (:file "transcript-torn-write")
-		 (:file "registry-counts")
-		 (:file "fresh-sbcl-load")
+		 (:file "parameter")
+		 (:file "license")
+		 (:file "template")
+		 (:file "finding")
+		 (:file "resolution")
+		 (:file "inspector")
+		 (:file "maintainer")
+		 (:file "runner")
+		 (:file "asdf")
+		 (:module "inspectors"
+		  :components
+		  ((:file "check-file-encoding")
+		   (:file "check-spdx-license-header")
+		   (:file "check-trailing-whitespace")
+		   (:file "check-mixed-indentation")
+		   (:file "check-labels-for-flet")
+		   (:file "check-header-line")
+		   (:file "check-footer-line")
+		   (:file "check-project-identification")))
+		 (:file "pretty-printer")
+		 (:file "write-back")
+		 (:module "maintainers"
+		  :components
+		  ((:file "fix-mixed-indentation")
+		   (:file "fix-labels-to-flet")
+		   (:file "fix-header-line")
+		   (:file "fix-footer-line")))
+		 (:file "autofix")
+		 (:module "mcp"
+		  :serial t
+		  :components ((:file "package")
+			       (:file "utilities")
+			       (:file "jzon-round-trip")
+			       (:file "tool-name-derivation")
+			       (:file "input-schema-derivation")
+			       (:file "uri-template")
+			       (:file "define-tool-macro")
+			       (:file "message-parsing")
+			       (:file "dispatcher")
+			       (:file "protocol-handshake")
+			       (:file "tool-invocation")
+			       (:file "resource-read")
+			       (:file "image-connection")
+			       (:file "transcript-encoding")
+			       (:file "transcript-filesystem")
+			       (:file "transcript-torn-write")
+			       (:file "registry-counts")
+			       (:file "fresh-sbcl-load")
+			       (:file "entrypoint")))
 		 (:file "entrypoint")))))
+
+(asdf:defsystem #:org.melusina.atelier/development
+  :description "Development tools for Atelier"
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:org.melusina.atelier)
+  :components
+  ((:module "libexec/lisp"
+    :components ((:file "development")))))
 
 ;;;; End of file `org.melusina.atelier.asd'

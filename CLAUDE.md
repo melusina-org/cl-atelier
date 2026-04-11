@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Project scaffolding** via a template system (`new-lisp-project`, `new-lisp-file`)
 - **A linter** with 15 inspectors, 10 automatic maintainers, autofix, and pretty-printer
 - **License management** (MIT, GPL, CeCILL, Proprietary) with SPDX identifiers
+- **MCP server** (slice 009) — `org.melusina.atelier/mcp` exposes Atelier state over the Model Context Protocol via stdio with 6 tools, 3 concrete resources, and 5 URI-templated resources. Entry point: `(atelier/mcp:serve-two-way-stream)`.
 
 ## Common Commands (REPL)
 
@@ -46,6 +47,8 @@ Lint with autofix:
 | `org.melusina.atelier` | Main system: scaffolding, linter, inspectors, maintainers, pretty-printer |
 | `org.melusina.atelier/testsuite` | Test suite (uses `org.melusina.confidence`) |
 | `org.melusina.atelier/development` | Dev helpers: `lint`, `reload` |
+| `org.melusina.atelier/mcp` | MCP server skeleton: stdio JSON-RPC, 6 tools + 3 concrete resources + 5 templates. Depends on `com.inuoe.jzon` and `bordeaux-threads`. |
+| `org.melusina.atelier/testsuite/mcp` | MCP test suite |
 
 ## Architecture
 
