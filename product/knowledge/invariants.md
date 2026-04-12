@@ -101,3 +101,57 @@ Numbering is global and continuous across all slices.
 **Discovered:** slice 001 (discovered late); reinforced by the `#:atelier` nickname bug in slice 006
 **Invariant:** The files under `resource/template/*.text` generate new projects that reference Atelier symbols, ASDF system names, and package nicknames. They are a hidden but real consumer of the public API. Any slice that renames an exported symbol, changes an ASDF system name, or adjusts the `#:atelier` nickname must update the templates in the same commit. A grep over `resource/template/` is a mandatory step in any API-rename slice.
 **Rationale:** Slice 001 discovered the coupling late — a rename to a template-referenced symbol broke the generator. Slice 006 hit a variant: `resource/template/LISP-ASDF.text` used `#:atelier` (the package nickname) as an ASDF dependency name, which is a distinct namespace from CL package names. The fix was one character per template, but only because grep found the references. Every future API-touching slice must assume templates are in scope until proven otherwise.
+
+## INV-17: Editor loads without MCP dependencies
+
+**Discovered:** slice 010, phase 1
+**Invariant:** `org.melusina.atelier/editor` loads in a fresh SBCL without pulling in `com.inuoe.jzon`, `bordeaux-threads`, `closer-mop`, or the `atelier/mcp` package. Enforced by a subprocess test.
+**Rationale:** The editor is a standalone library usable by any adapter (MCP, CLI, Emacs integration). If it depends on MCP infrastructure, every consumer inherits those dependencies.
+
+## INV-18: toplevel-form body is Eclector CST preserving reader conditionals
+
+**Discovered:** slice 010, phase 1
+**Invariant:** The `toplevel-form` body slot holds an Eclector CST with `#+`/`#-` preserved as `skipped-cst` and `annotated-cons-cst` nodes. Converting to s-expression is a lossy operation available via `toplevel-form-ast`.
+**Rationale:** The write path copies non-matching `#+`/`#-` branches verbatim from the original source text using the CST's source ranges. Without structural preservation, cross-platform code would lose branches for non-matching features.
+
+## INV-19: normalize-toplevel-form is idempotent
+
+**Discovered:** slice 010, phase 1
+**Invariant:** Applying `normalize-toplevel-form` twice yields the same text as applying it once. Enforced by every canonicalize fixture.
+**Rationale:** If normalization is not idempotent, re-saving a file produces spurious diffs. This is the editor's fixed-point contract.
+
+## INV-20: Round-trip write(read(write(read(s)))) = write(read(s))
+
+**Discovered:** slice 010, phase 1
+**Invariant:** For any string `s` accepted by `read-toplevel-form-from-string`, the round-trip `write(read(write(read(s)))) = write(read(s))` holds. Enforced by fixtures.
+**Rationale:** The write path must be a fixed point — reading its own output and writing again must produce the same text.
+
+## INV-21: child-connection spawns, connects via SWANK, shuts down cleanly
+
+**Discovered:** slice 010, phase 2
+**Invariant:** `child-connection` spawns a child SBCL via `uiop:launch-program`, reads a port from its stdout, connects via SWANK over TCP, and shuts down cleanly via `connection-shutdown`. A background drain thread prevents stdout pipe deadlock. No orphan SBCL processes after shutdown. Enforced by child-dependent tests and orphan check.
+**Rationale:** Orphan processes waste resources and confuse process-level tests. The drain thread is essential because the child writes compilation messages to stdout (merged with stderr via `:error-output :output`) after the port is read.
+
+## INV-22: canonicalize-form MCP tool runs in parent, no child needed
+
+**Discovered:** slice 010, phase 2
+**Invariant:** The `canonicalize-form` MCP tool calls `normalize-toplevel-form` entirely in the parent MCP image. No child connection is created or used. Enforced by a test that runs with `*current-server*` nil.
+**Rationale:** Canonicalization is a pure editor operation. It should not require a running child SBCL.
+
+## INV-23: eval-form captures stdout via SWANK :write-string
+
+**Discovered:** slice 010, phase 2
+**Invariant:** `eval-form` returns captured stdout from the child eval via SWANK `:write-string` messages accumulated during the eval cycle. Enforced by output-capture test.
+**Rationale:** The agent needs to see output from `(format t ...)` calls in evaluated forms.
+
+## INV-24: SWANK debug auto-abort lifecycle
+
+**Discovered:** slice 010, phase 2
+**Invariant:** When SWANK enters the debugger during eval: (1) the server sends `:debug` (with condition text), (2) then `:debug-activate` (debugger ready), (3) the client sends `invoke-nth-restart-for-emacs` to abort, (4) the server sends `:return` for the abort's continuation ID, (5) the original eval's `:return` **never arrives**. The client must track the abort-id separately and signal error when its `:return` arrives. Encoded in SWANK exploratory tests.
+**Rationale:** This non-obvious lifecycle caused a blocking hang in slice 010. The original eval's `:return` does not arrive after abort — this is SWANK's behavior, not a bug.
+
+## INV-25: run-tests-fresh uses separate SBCL, not session child
+
+**Discovered:** slice 010, phase 2
+**Invariant:** `run-tests-fresh` spawns a separate SBCL subprocess via `uiop:run-program` (synchronous, captures output). The session child is untouched. Enforced by test.
+**Rationale:** Fresh-start testing must be hermetic — no compiled state from prior evals.

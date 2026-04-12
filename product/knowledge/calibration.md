@@ -90,3 +90,23 @@ Running record of where plans over- or under-estimated effort, pass counts, or o
 **Revised guidance for test-heavy slices** (slices where the primary deliverable is new test infrastructure *and* new source code tested by it): predict assertion counts as `testcases × 3–6`, not `testcases × 1–2`. A thoroughly-tested new subsystem tends toward the upper end; a slice that only adds a handful of testcases for an existing subsystem tends toward the lower end.
 
 **Non-surprise:** the base atelier testsuite held at 295/295 throughout slice 009 development. The consolidated `asdf:test-system "org.melusina.atelier/testsuite"` invocation now runs 479 assertions (295 base + 184 MCP) in one call and completes in a few seconds in a fresh SBCL subprocess. The base suite's regression discipline carried over unchanged.
+
+## Slice 010 — Editor foundation and MCP eval
+
+**Planned phases:** 2 — **Actual phases:** 2
+**Phase 1 prediction:** 50–150 assertions — **Actual:** 104. Within range.
+**Phase 2 prediction:** 40–80 assertions — **Actual:** 40. At the low end.
+**Total new assertions:** 144 (104 + 40). Combined suite: 623/623.
+**Effort surprises:**
+- Phase 1: 5 reworks. The write-path rework (Reviewer feedback changing the architecture from CST reconstruction to verbatim source copy) was the largest single rework in the slice. Cost: 89 lines removed, 32 added. High-value — the resulting design is simpler and correct.
+- Phase 2: 5 reworks. Three of five were SWANK-protocol surprises discovered during integration. Creating exploratory test systems (`testsuite/input-output`, `testsuite/swank`) was the turning point — all remaining issues were diagnosed in one test run each after the exploratory systems existed.
+
+**Category pattern update:**
+
+| Slice | Wrong unit | Right unit |
+|---|---|---|
+| 010 P2 | "40–80 assertions" (correct range) | Actual 40 — slow tests produce 1–2 assertions each vs Phase 1's fast tests at 3–5 each |
+
+**Observation:** Slow tests (child spawn, SWANK eval) produce fewer assertions per testcase than fast tests (pure functions, in-memory parsing). When a phase is dominated by slow tests, the assertion count trends toward the low end of the range. The range prediction was correct; the distribution within the range is predictable from the test-category mix.
+
+**Timing:** Phase 2 child-dependent tests take ~80s total (one child spawn ≈ 20s, eval/introspection ≈ 5s, run-tests-fresh ≈ 30s, run-tests-in-child ≈ 20s, shutdown+orphan ≈ 5s). This is the first slice where test runtime is a material factor.

@@ -86,3 +86,43 @@ What was reworked, why, and what could have prevented it. The most direct learni
 **Effort cost:** Low per rework (each was one edit + one re-run), significant cumulative cost (9 round-trips through the Maker test cycle).
 **Preventable?** Most of them, yes. The append-not-rewrite amendment protocol caught the one real "plan vs. reality" gap (the resources/templates/list spec split) cleanly. But the CL-surprise reworks are a pattern worth watching: the existence of a knowledge file is not enough; the Maker must re-read it before the Phase 2 step it applies to, not skim it during planning and hope to remember.
 **Lesson:** See `patterns.md:"Skim-then-code does not work for documented CL surprises"`. The concrete rule is: *before Phase 2 begins, re-read `product/knowledge/MEMORY.md` and every `references/<library>.md` for the slice's dependencies. Not skim — read.* If you cannot name three CL surprises your code is likely to touch, you haven't re-read the knowledge.
+
+## Slice 010, Phase 1: write-path architecture rework
+
+**What was reworked:** The original write path (`write-toplevel-form-to-string`) reconstructed output by pretty-printing matching CST branches and appending skipped `#+`/`#-` regions. This lost the `#+sbcl` prefix on matching branches because Eclector evaluates `#+` transparently. Reviewer wrote tests asserting `(search "#+sbcl" output)` which failed.
+**Trigger:** Reviewer feedback. Tests explicitly checked for feature-guard preservation.
+**Effort cost:** Significant — 89 lines removed, 32 added. But the resulting design is simpler: copy the body's source range verbatim from the original string when `source-text` is available.
+**Preventable?** Partly. The CST-to-text reconstruction approach assumed Eclector's CST retained the `#+` prefix on matching branches, which it doesn't (it evaluates `#+` at read time). An exploratory test of Eclector's behavior would have caught this before the write-path design was committed.
+**Lesson:** *When your design depends on what a library preserves or discards, write a test for that assumption before building on it.*
+
+## Slice 010, Phase 2: interactive-eval does not work for CL clients
+
+**What was reworked:** `swank-eval` initially used `swank:interactive-eval` (exported, 3 args: STRING LINES WIDTH). This entered the debugger because the function depends on Emacs echo-area state. Fixed: use `swank:eval-and-grab-output` (1 arg: STRING, returns `("output" "result")`).
+**Trigger:** First SWANK eval test entered the debugger immediately.
+**Effort cost:** Minor — 1 edit. But the diagnosis required creating the SWANK exploratory test system.
+**Preventable?** Yes, by testing the SWANK function in isolation before wiring it into production code.
+**Lesson:** *Never use an API function in production before verifying its behavior in an exploratory test.* Especially true for internal or semi-documented APIs like SWANK.
+
+## Slice 010, Phase 2: pipe deadlock from child stderr
+
+**What was reworked:** `make-child-connection` used `:error-output :stream` (separate pipe). The child's stderr pipe buffer filled with compilation messages, blocking the child before it could print the port to stdout. Three iterations: (1) `:error-output nil` (discard — user rejected), (2) `:error-output :output` (merge — still deadlocks after port is read), (3) `:error-output :output` + background drain thread (final fix).
+**Trigger:** Full test suite hung indefinitely. Diagnosed via I/O exploratory tests.
+**Effort cost:** 3 iterations. The I/O exploratory test system was created during this rework and immediately proved its value.
+**Preventable?** Yes, by understanding pipe buffer behavior upfront. The I/O exploratory tests now encode this knowledge permanently.
+**Lesson:** *Any `uiop:launch-program` with `:output :stream` must drain all streams, not just the one you're reading.* Create an I/O exploratory test before designing the pipe architecture.
+
+## Slice 010, Phase 2: SWANK debug auto-abort blocks
+
+**What was reworked:** After sending `invoke-nth-restart-for-emacs` to abort the debugger, the code waited for the original eval's `:return` (continuation ID 1). This never arrives — SWANK only sends `:return` for the abort restart's continuation ID (2). Fixed: track `abort-id` separately; when its `:return` arrives, signal error with captured condition text.
+**Trigger:** `validate-swank-eval-error` test timed out. Diagnosed via SWANK exploratory tests.
+**Effort cost:** Restructured the `swank-eval` message loop. Medium effort.
+**Preventable?** Yes, by testing the debug lifecycle in an exploratory test before building the auto-abort handler.
+**Lesson:** *SWANK's debug lifecycle is non-obvious: the original eval's :return does not arrive after abort.* This is now documented in INV-24 and tested in `testsuite/swank/wire-protocol.lisp`.
+
+## Slice 010, Phase 2: sb-ext not portable
+
+**What was reworked:** `swank-protocol.lisp` used `sb-ext:string-to-octets` and `sb-ext:octets-to-string`. User feedback: "avoid SB-EXT, use well-established libraries." Fixed: replaced with `flexi-streams:string-to-octets` / `flexi-streams:octets-to-string`. Added `flexi-streams` to MCP dependencies.
+**Trigger:** User review feedback.
+**Effort cost:** Mechanical — find-and-replace + dependency addition.
+**Preventable?** Yes, by defaulting to portable libraries from the start.
+**Lesson:** *Default to portable well-established libraries (flexi-streams, alexandria, bordeaux-threads, closer-mop, usocket) instead of implementation-specific extensions.* SB-EXT is a convenience; portability is a design principle.

@@ -66,3 +66,24 @@ Patterns observed across slices that are likely to recur. Each entry names a sig
 **Pattern:** A deletion-slice plan predicts the post-slice pass count by counting removed `define-testcase` forms, treating each as one assertion. Reality: `define-testcase` can contain any number of `assert-*` forms, and the actual pass-count delta is the sum of those assertions across all removed testcases. Slice 008's plan predicted 299 → 296 (delta 3); reality was 299 → 295 (delta 4) because `validate-check-line-length-long` held two assertions.
 **Signal:** A plan that counts testcases by name and predicts a pass-count delta equal to the count.
 **Mitigation:** When predicting pass-count deltas for test removal, grep for `assert-*` forms *inside* the removed testcases and sum those, not the testcases themselves. Better: predict a *range* and verify the actual number in the Reviewer phase completion audit rather than bake a tight number into an acceptance criterion.
+
+## Pipe deadlock when spawning child processes
+
+**Discovered:** slice 010, phase 2
+**Pattern:** `uiop:launch-program` with `:output :stream` and `:error-output :stream` creates two pipes. If the parent reads only stdout (e.g., waiting for a port number) and the child writes extensively to stderr (compilation messages, ASDF output), the stderr pipe buffer fills (~64KB on macOS) and the child blocks. The parent is waiting for stdout data that the child can never produce because it's blocked on stderr. Classic pipe deadlock.
+**Signal:** A `make-child-connection` or similar process-spawning function that reads from one stream while ignoring the other. Especially likely when the child compiles systems (produces many stderr lines).
+**Mitigation:** Either merge stderr into stdout (`:error-output :output`) and drain the combined stream after reading what you need, or spawn a background thread to drain the unused stream. The I/O exploratory tests in `testsuite/input-output/pipe-behavior.lisp` encode the exact behavior.
+
+## SWANK functions designed for Emacs may not work for CL clients
+
+**Discovered:** slice 010, phase 2
+**Pattern:** SWANK exports functions like `interactive-eval` that appear general-purpose but depend on Emacs-specific state (echo-area line count, buffer width) or have undocumented requirements (`*buffer-package*` must be bound). Using them from a CL client produces debugger entries or wrong results. The reliable function for programmatic eval is `swank:eval-and-grab-output` (takes a single string, returns `("captured-output" "result")`). The debug protocol also has a non-obvious lifecycle: after invoking an abort restart, the original eval's `:return` never arrives — only the abort restart's `:return` does.
+**Signal:** Using a SWANK function without first verifying its behavior via an exploratory test against a real SWANK server.
+**Mitigation:** Create exploratory tests (like `testsuite/swank/wire-protocol.lisp`) that verify each SWANK function's exact behavior before using it in production code. Prefer `eval-and-grab-output` over `interactive-eval` for programmatic clients.
+
+## Exploratory test systems prevent ad-hoc debugging loops
+
+**Discovered:** slice 010, phase 2
+**Pattern:** When integrating with an external system (SWANK, UNIX pipes), the natural impulse is to write throwaway ad-hoc test scripts in `/tmp/`. Each iteration produces knowledge that is immediately lost. The knowledge gap resurfaces the next time the code is touched. Slice 010 spent ~3 iterations debugging pipe deadlock and ~3 iterations debugging SWANK debug handling via throwaway scripts before creating the exploratory test systems, which immediately exposed both root causes in a single run.
+**Signal:** More than one `/tmp/test-*.lisp` file for the same subsystem in the same session.
+**Mitigation:** After the first ad-hoc test, create a permanent exploratory test system (`org.melusina.atelier/testsuite/<topic>`). Write assertions about the external system's behavior, not about your code. The tests encode learning, not correctness.
