@@ -112,58 +112,66 @@
    evaluation abort."
   (declare (ignore timeout))
   (let ((id (%next-continuation-id connection))
-        (output (make-string-output-stream)))
+        (output (make-string-output-stream))
+        (debug-condition nil)
+        (abort-id nil))
     ;; Send :emacs-rex with eval-and-grab-output (SWANK package not in parent)
     (swank-send-raw connection
                     (format nil "(:emacs-rex (swank:eval-and-grab-output ~S) ~S t ~D)"
                             form-string package id))
-    ;; Read messages until we get :return with our ID
+    ;; Read messages until we get a conclusive response.
+    ;; Normal path: :return with our ID.
+    ;; Error path: :debug → auto-abort → :return with abort-id → signal error.
     (loop
       (let ((message (swank-receive connection)))
         (unless (consp message)
           (error "Unexpected SWANK message: ~S" message))
         (case (first message)
           (:return
-           ;; (:return (:ok (OUTPUT RESULT)) ID)  or  (:return (:abort TEXT) ID)
            (let ((value (second message))
                  (ret-id (third message)))
-             (when (eql ret-id id)
-               (let ((extra-output (get-output-stream-string output)))
-                 (cond
-                   ((and (consp value) (eq (first value) :ok))
-                    ;; value is (:ok ("captured-output" "result"))
-                    (let ((payload (second value)))
-                      (let ((captured (if (consp payload) (first payload) ""))
-                            (result (if (consp payload) (second payload) (princ-to-string payload))))
-                        (return (values result
-                                        (concatenate 'string extra-output captured))))))
-                   ((and (consp value) (eq (first value) :abort))
-                    (error "Evaluation aborted: ~A" (second value)))
-                   (t
-                    (error "Unexpected :return value: ~S" value)))))))
+             (cond
+               ;; Normal return for our eval
+               ((eql ret-id id)
+                (let ((extra-output (get-output-stream-string output)))
+                  (cond
+                    ((and (consp value) (eq (first value) :ok))
+                     (let ((payload (second value)))
+                       (let ((captured (if (consp payload) (first payload) ""))
+                             (result (if (consp payload) (second payload)
+                                         (princ-to-string payload))))
+                         (return (values result
+                                         (concatenate 'string extra-output captured))))))
+                    ((and (consp value) (eq (first value) :abort))
+                     (error "Evaluation aborted: ~A" (second value)))
+                    (t
+                     (error "Unexpected :return value: ~S" value)))))
+               ;; Return for our abort restart — the original eval is done
+               ((and abort-id (eql ret-id abort-id))
+                (error "Evaluation aborted: ~A"
+                       (or debug-condition "unknown condition")))
+               ;; Unrelated return — ignore
+               (t nil))))
           (:write-string
-           ;; (:write-string STRING TARGET)
            (write-string (second message) output))
           (:ping
-           ;; (:ping THREAD TAG) → respond with :emacs-pong
            (swank-send connection
                        `(:emacs-pong ,(second message) ,(third message))))
           (:debug
-           ;; Auto-abort: invoke restart 0 (ABORT)
            ;; (:debug THREAD LEVEL CONDITION RESTARTS FRAMES CONTS)
-           (let ((level (third message))
-                 (condition-info (fourth message)))
-             ;; Send abort restart
-             (let ((abort-id (%next-continuation-id connection)))
-               (swank-send-raw connection
-                               (format nil "(:emacs-rex (swank:invoke-nth-restart-for-emacs ~D 0) ~S t ~D)"
-                                       level package abort-id)))
-             ;; Record condition for error reporting
-             (let ((condition-text (if (consp condition-info)
-                                       (format nil "~{~A~^ ~}" condition-info)
-                                       (princ-to-string condition-info))))
-               (write-string condition-text output))))
-          (:debug-activate nil)
+           ;; Record condition text; wait for :debug-activate to send abort
+           (let ((condition-info (fourth message)))
+             (setf debug-condition
+                   (if (consp condition-info)
+                       (format nil "~{~A~^ ~}" condition-info)
+                       (princ-to-string condition-info)))))
+          (:debug-activate
+           ;; Debugger ready — send abort restart
+           (let ((level (third message)))
+             (setf abort-id (%next-continuation-id connection))
+             (swank-send-raw connection
+                             (format nil "(:emacs-rex (swank:invoke-nth-restart-for-emacs ~D 0) ~S t ~D)"
+                                     level package abort-id))))
           (:debug-return nil)
           (:new-features nil)
           (:indentation-update nil)
