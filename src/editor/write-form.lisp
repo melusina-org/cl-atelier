@@ -114,9 +114,7 @@ is non-default. Return the string as-is if the situations are the default
           (null eval-when-situations))
       form-string
       (let ((situations-string
-              (format nil "(~{~S~^ ~})"
-                      (mapcar #'string-upcase
-                              (mapcar #'symbol-name eval-when-situations)))))
+              (format nil "(~{~S~^ ~})" eval-when-situations)))
         (format nil "(eval-when ~A~%  ~A)"
                 situations-string form-string))))
 

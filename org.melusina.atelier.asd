@@ -162,6 +162,11 @@
 		 (:module "editor"
 		  :serial t
 		  :components ((:file "package")
+			       (:file "eclector-capability")
+			       (:file "lint-string")
+			       (:file "toplevel-form")
+			       (:file "write-form")
+			       (:file "normalize")
 			       (:file "entrypoint")))
 		 (:module "mcp"
 		  :serial t
