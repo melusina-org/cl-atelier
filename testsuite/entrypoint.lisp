@@ -46,6 +46,7 @@
   (testsuite-fix-footer-line)
   (testsuite-autofix)
   (testsuite-template)
+  (atelier/testsuite/editor:run-all-editor-tests)
   (atelier/testsuite/mcp:run-mcp-tests))
 
 ;;;; End of file `entrypoint.lisp'

@@ -66,6 +66,22 @@
 		   (:file "fix-project-identification")))
 		 (:file "main")))))
 
+(asdf:defsystem #:org.melusina.atelier/editor
+  :description "Projectional editor for managed Common Lisp files."
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:org.melusina.atelier)
+  :components
+  ((:module "src/editor"
+    :serial t
+    :components ((:file "package")
+		 (:file "conditions")
+		 (:file "toplevel-form")
+		 (:file "eclector-client")
+		 (:file "read-form")
+		 (:file "write-form")
+		 (:file "canonicalize")))))
+
 (asdf:defsystem #:org.melusina.atelier/mcp
   :description "MCP server skeleton for Atelier."
   :author "Michaël Le Barbier"
@@ -108,6 +124,7 @@
   :author "Michaël Le Barbier"
   :depends-on (#:alexandria
 	       #:org.melusina.atelier
+	       #:org.melusina.atelier/editor
 	       #:org.melusina.atelier/mcp
 	       #:org.melusina.confidence)
   :components
@@ -142,6 +159,10 @@
 		   (:file "fix-header-line")
 		   (:file "fix-footer-line")))
 		 (:file "autofix")
+		 (:module "editor"
+		  :serial t
+		  :components ((:file "package")
+			       (:file "entrypoint")))
 		 (:module "mcp"
 		  :serial t
 		  :components ((:file "package")
