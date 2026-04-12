@@ -84,7 +84,11 @@
     :type (or swank-connection null)
     :initform nil
     :documentation "The SWANK protocol connection to the child.")
-)
+   (stdout-drain-thread
+    :initarg :stdout-drain-thread
+    :initform nil
+    :documentation "Background thread draining child stdout to prevent
+     pipe deadlock. Started after the port is read."))
   (:documentation
    "A connection to a child SBCL image via SWANK over TCP.
     Created by MAKE-CHILD-CONNECTION, which spawns SBCL, loads the
@@ -167,6 +171,15 @@
             (error 'child-image-spawn-failed
                    :reason (format nil "Invalid port from child: ~S" port-line)
                    :message (format nil "Invalid port from child: ~S" port-line)))
+          ;; Drain child stdout in background to prevent pipe deadlock.
+          ;; After reading the port, the child may continue writing
+          ;; compilation messages to stdout (merged with stderr).
+          (bordeaux-threads:make-thread
+           (lambda ()
+             (ignore-errors
+               (loop :for line := (read-line child-stdout nil nil)
+                     :while line)))
+           :name "atelier/mcp child stdout drain")
           ;; Connect to SWANK
           (let ((swank-conn (handler-case
                                 (%connect-with-retry "127.0.0.1" port :retries 10 :delay 0.5)
@@ -180,6 +193,17 @@
                            :process-info process-info
                            :port port
                            :swank-conn swank-conn))))))
+
+(defun %start-stdout-drain (stream)
+  "Start a background thread that reads and discards lines from STREAM.
+   Prevents pipe deadlock when the child writes to stdout after the
+   parent has read the port number."
+  (bordeaux-threads:make-thread
+   (lambda ()
+     (ignore-errors
+       (loop :for line := (read-line stream nil nil)
+             :while line)))
+   :name "atelier/mcp stdout drain"))
 
 (defun %connect-with-retry (host port &key (retries 10) (delay 0.5))
   "Try to connect to HOST:PORT, retrying on failure."
