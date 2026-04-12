@@ -535,3 +535,98 @@ round-trip.
 - [ ] `references/prior-art.md` and `references/form-record-decisions.md` committed.
 - [ ] Eclector C2/C3 decision recorded in `form-record-decisions.md`.
 - [ ] Any plan deviations documented via the append-not-rewrite amendment protocol.
+
+---
+
+## Amendment 1 — Eclector probe results and C2 write path
+
+**Trigger:** Step 1 (Eclector capability probe) completed 2026-04-12. A
+standalone SBCL subprocess ran three probes against Eclector's CST reader.
+
+**Findings:**
+
+1. **`make-skipped-input-result` works.** A custom `skipped-cst` subclass of
+   `cst:atom-cst` (with a `reason` slot carrying `(cons context feature-expr)`)
+   is returned from our override. The node is pushed into the parent's children
+   list by `note-skipped-input`.
+
+2. **`make-expression-result` must be overridden (`:around`).** The default
+   `cst-client` method passes all children to `cst:reconstruct`, which does not
+   know how to handle `skipped-cst` nodes (fails with "no applicable method for
+   `cst:consp`"). The fix: an `:around` method on our custom client that filters
+   `skipped-cst` nodes out of the children before calling `call-next-method`,
+   then annotates the resulting `cons-cst` via `change-class` to an
+   `annotated-cons-cst` subclass carrying the skipped nodes. Validated: the
+   annotated nodes survive the tree walk and their source ranges are correct.
+
+3. **Source ranges are correct and usable.** The skipped node's `(cst:source s)`
+   returns `(start . end)` character offsets into the original input string.
+   `(subseq input start end)` recovers the exact text of the skipped region,
+   including the `#+`/`#-` prefix: e.g., `"#-sbcl :no"` or
+   `"#-sbcl (handle :reader conn-handle)"`.
+
+4. **C3 does NOT exist.** The `concrete-syntax-tree` package exports
+   `unparse-lambda-list`, `unparse-parameter`, `unparse-parameter-group` — these
+   are lambda-list-specific, not general CST-to-text. No general unparse path
+   exists in Eclector or the CST library. **We build C2.**
+
+**Impact on the plan:**
+
+### New classes (step 10, `eclector-client.lisp`)
+
+- `skipped-cst` — subclass of `cst:atom-cst`, slots: `reason`, `skipped-children`.
+- `annotated-cons-cst` — subclass of `cst:cons-cst`, slot: `skipped-nodes`.
+- `preserving-cst-client` — subclass of `eclector.concrete-syntax-tree:cst-client`.
+  Two methods: `make-skipped-input-result` (returns `skipped-cst`) and
+  `make-expression-result :around` (filters skipped nodes, annotates result).
+
+### `toplevel-form` needs access to the original source string
+
+The C2 write path must copy non-matching `#+`/`#-` branches verbatim from the
+original source string using the skipped node's source range. This means
+`write-toplevel-form-to-string` needs the original string. Two options:
+
+**(a)** Add a fifth slot `source-text` (string) to `toplevel-form`. The slot
+holds the original input string from which this form was parsed. The write path
+reads skipped nodes' source ranges against this string. For forms constructed
+programmatically (not parsed from a string), `source-text` is NIL, and the write
+path falls back to pretty-print-only (non-matching `#+`/`#-` branches cannot
+exist in a programmatically constructed form because there is no original text).
+
+**(b)** Pass the original string as an argument to `write-toplevel-form-to-string`:
+`(write-toplevel-form-to-string form &key source-text)`. No slot change.
+
+**Decision: (a).** A slot is cleaner because `normalize-toplevel-form` calls
+`write-toplevel-form-to-string` internally and should not burden its callers with
+tracking the source string. The slot is set by `read-toplevel-form-from-string`
+and is NIL for forms made via `make-toplevel-form`.
+
+### Revised export list (16 symbols, up from 15)
+
+Add: `toplevel-form-source-text`.
+
+### What does NOT change
+
+- The four original slots (kind, name, body, eval-when) are unchanged.
+- The read path API (`read-toplevel-form-from-string`) is unchanged.
+- The write path API (`write-toplevel-form-to-string`) is unchanged.
+- The normalize path API (`normalize-toplevel-form`) is unchanged.
+- All 18 acceptance criteria are unchanged.
+- The fixture format is unchanged.
+- The step table order is unchanged (steps 1–44).
+- INV-17 through INV-20 are unchanged.
+
+### C2 write path shape (step 12, `write-form.lisp`)
+
+`write-toplevel-form-to-string` walks the CST:
+- For normal `cons-cst` and `atom-cst` nodes: pretty-print via the dispatch table.
+- For `annotated-cons-cst` nodes: pretty-print the matching children, then for
+  each `skipped-cst` in `skipped-nodes`, copy `(subseq source-text start end)`
+  verbatim at the appropriate position (determined by the skipped node's source
+  range relative to its siblings' source ranges).
+- If `source-text` is NIL (programmatic form): skip all `skipped-cst` nodes
+  silently (they cannot exist anyway — only `read-toplevel-form-from-string`
+  creates them).
+
+This is ~150–250 lines of CL. The pretty-printer integration reuses
+`*atelier-pprint-dispatch*` for matching branches.
