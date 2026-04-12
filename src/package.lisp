@@ -273,6 +273,7 @@
    #:effective-maintainer-disposition
    #:linter-op
    #:lint-system
+   #:lint-string
 
    ;; Utilities (used by legacy bridge)
    #:string-match

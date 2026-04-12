@@ -271,6 +271,77 @@ Return FINDING unchanged if no override applies."
 
 
 ;;;;
+;;;; String-Level Linting
+;;;;
+
+(defun lint-string (content &key (pathname #p"<lint-string>")
+                                 (levels '(:line :syntax)))
+  "Run the Atelier lint pipeline on CONTENT (a string) at the requested
+inspector LEVELS and return (VALUES fixed-content findings).
+
+LEVELS is a list of keywords selecting which inspector levels to run:
+  :LINE    — trailing whitespace, mixed indentation
+  :SYNTAX  — CST-level inspectors (earmuffs, bare-lambda, etc.)
+  :FILE is deliberately excluded because file-level inspectors require
+  header/footer/SPDX context that a single form does not have.
+
+PATHNAME is bound to *CURRENT-PATHNAME* for finding construction; it
+defaults to #p\"<lint-string>\" (a synthetic pathname).
+
+Resolutions from registered maintainers are collected and applied
+automatically. The signalling protocol (RESOLUTION-PROPOSED) is not
+used — lint-string applies all production resolutions unconditionally,
+as there is no interactive caller to prompt."
+  (declare (type string content)
+           (type pathname pathname)
+           (type list levels)
+           (values string list))
+  (let ((*current-pathname* pathname)
+        (*project-configuration* nil)
+        (*linter-configuration* nil)
+        (findings nil))
+    ;; Line-level inspection
+    (when (member :line levels)
+      (let ((lines (string-to-line-vector content))
+            (line-inspectors (collect-inspectors-by-level 'line-inspector)))
+        (dolist (inspector-instance line-inspectors)
+          (let ((inspector-findings (inspect-file inspector-instance lines)))
+            (when inspector-findings
+              (setf findings
+                    (nconc findings
+                           (collect-and-override-findings
+                            inspector-instance inspector-findings))))))))
+    ;; Syntax-level inspection
+    (when (member :syntax levels)
+      (let ((forms (parse-common-lisp content)))
+        (when forms
+          (let ((*current-line-vector* (string-to-line-vector content))
+                (*current-cst-root* forms))
+            (let ((syntax-inspectors (collect-inspectors-by-level 'syntax-inspector)))
+              (dolist (inspector-instance syntax-inspectors)
+                (let ((inspector-findings (inspect-file inspector-instance forms)))
+                  (when inspector-findings
+                    (setf findings
+                          (nconc findings
+                                 (collect-and-override-findings
+                                  inspector-instance inspector-findings)))))))))))
+    ;; Collect and apply resolutions from maintainers
+    (flet ((production-resolution-p (resolution)
+             (let ((pkg (symbol-package (resolution-maintainer resolution))))
+               (and pkg
+                    (not (search "TEST" (package-name pkg) :test #'char-equal))))))
+      (let ((resolutions nil))
+        (dolist (finding findings)
+          (when (typep finding 'line-finding)
+            (dolist (resolution (resolve-finding finding))
+              (when (production-resolution-p resolution)
+                (push resolution resolutions)))))
+        (if resolutions
+            (values (apply-resolutions content (nreverse resolutions)) findings)
+            (values content findings))))))
+
+
+;;;;
 ;;;; Inspection Pipeline
 ;;;;
 
