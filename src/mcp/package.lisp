@@ -118,6 +118,7 @@
    #:swank-connect
    #:swank-disconnect
    #:swank-send
+   #:swank-send-raw
    #:swank-receive
    #:swank-eval
    ;; Session child access (slice 010)

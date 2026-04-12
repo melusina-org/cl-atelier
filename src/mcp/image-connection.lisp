@@ -133,23 +133,30 @@
                (error 'child-image-spawn-failed
                       :reason (format nil "Failed to spawn SBCL: ~A" c)
                       :message (format nil "Failed to spawn SBCL: ~A" c))))))
-    ;; Read the port from child's stdout
+    ;; Read the port from child's stdout. The child emits SBCL banner,
+    ;; compilation messages, etc. before printing the port. We read
+    ;; lines until we find one that's a pure decimal integer.
     (let ((port-line nil)
           (child-stdout (uiop:process-info-output process-info)))
-      ;; Wait for port with timeout
-      (let ((deadline (+ (get-internal-real-time)
-                         (* timeout internal-time-units-per-second))))
-        (loop
-          (when (> (get-internal-real-time) deadline)
-            (uiop:terminate-process process-info)
-            (uiop:wait-process process-info)
-            (error 'child-image-spawn-failed
-                   :reason "Timeout waiting for child SWANK port."
-                   :message "Timeout waiting for child SWANK port."))
-          (when (listen child-stdout)
-            (setf port-line (read-line child-stdout nil nil))
-            (when port-line (return)))
-          (sleep 0.1)))
+      (handler-case
+          (sb-ext:with-timeout timeout
+            (loop
+              (let ((line (read-line child-stdout nil nil)))
+                (unless line
+                  (error 'child-image-spawn-failed
+                         :reason "Child stdout closed before port was received."
+                         :message "Child stdout closed before port was received."))
+                (let ((trimmed (string-trim '(#\Space #\Tab #\Return #\Newline) line)))
+                  (when (and (plusp (length trimmed))
+                             (every #'digit-char-p trimmed))
+                    (setf port-line trimmed)
+                    (return))))))
+        (sb-ext:timeout ()
+          (uiop:terminate-process process-info)
+          (uiop:wait-process process-info)
+          (error 'child-image-spawn-failed
+                 :reason "Timeout waiting for child SWANK port."
+                 :message "Timeout waiting for child SWANK port.")))
       (let ((port (parse-integer (string-trim '(#\Space #\Tab #\Return #\Newline)
                                               port-line)
                                  :junk-allowed nil)))

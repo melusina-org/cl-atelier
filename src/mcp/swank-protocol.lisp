@@ -113,9 +113,9 @@
   (declare (ignore timeout))
   (let ((id (%next-continuation-id connection))
         (output (make-string-output-stream)))
-    ;; Send :emacs-rex as a formatted string (SWANK package not in parent)
+    ;; Send :emacs-rex with eval-and-grab-output (SWANK package not in parent)
     (swank-send-raw connection
-                    (format nil "(:emacs-rex (swank:interactive-eval ~S 0 0) ~S t ~D)"
+                    (format nil "(:emacs-rex (swank:eval-and-grab-output ~S) ~S t ~D)"
                             form-string package id))
     ;; Read messages until we get :return with our ID
     (loop
@@ -124,14 +124,19 @@
           (error "Unexpected SWANK message: ~S" message))
         (case (first message)
           (:return
-           ;; (:return THREAD VALUE ID)
-           (let ((value (third message))
-                 (ret-id (fourth message)))
+           ;; (:return (:ok (OUTPUT RESULT)) ID)  or  (:return (:abort TEXT) ID)
+           (let ((value (second message))
+                 (ret-id (third message)))
              (when (eql ret-id id)
-               (let ((output-string (get-output-stream-string output)))
+               (let ((extra-output (get-output-stream-string output)))
                  (cond
                    ((and (consp value) (eq (first value) :ok))
-                    (return (values (second value) output-string)))
+                    ;; value is (:ok ("captured-output" "result"))
+                    (let ((payload (second value)))
+                      (let ((captured (if (consp payload) (first payload) ""))
+                            (result (if (consp payload) (second payload) (princ-to-string payload))))
+                        (return (values result
+                                        (concatenate 'string extra-output captured))))))
                    ((and (consp value) (eq (first value) :abort))
                     (error "Evaluation aborted: ~A" (second value)))
                    (t
@@ -145,6 +150,7 @@
                        `(:emacs-pong ,(second message) ,(third message))))
           (:debug
            ;; Auto-abort: invoke restart 0 (ABORT)
+           ;; (:debug THREAD LEVEL CONDITION RESTARTS FRAMES CONTS)
            (let ((level (third message))
                  (condition-info (fourth message)))
              ;; Send abort restart
