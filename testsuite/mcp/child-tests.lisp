@@ -362,11 +362,17 @@
 
 (defun %count-sbcl-processes ()
   "Count the number of SBCL processes on this machine."
-  (let ((output (uiop:run-program '("pgrep" "-c" "sbcl")
-                                  :output :string
-                                  :ignore-error-status t)))
-    (parse-integer (string-trim '(#\Space #\Newline #\Return) output)
-                   :junk-allowed t)))
+  (multiple-value-bind (output error-output exit-code)
+      (uiop:run-program '("pgrep" "-c" "sbcl")
+                        :output :string
+                        :error-output nil
+                        :ignore-error-status t)
+    (declare (ignore error-output))
+    (if (zerop exit-code)
+        (or (parse-integer (string-trim '(#\Space #\Newline #\Return) output)
+                           :junk-allowed t)
+            0)
+        0)))
 
 
 ;;; ---- Combined runner for child-dependent tests ----
