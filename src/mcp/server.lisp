@@ -28,7 +28,12 @@
     :initform nil)
    (output-mutex
     :reader server-output-mutex
-    :initform (bordeaux-threads:make-lock "atelier/mcp output")))
+    :initform (bordeaux-threads:make-lock "atelier/mcp output"))
+   (child-connection
+    :accessor server-child-connection
+    :initform nil
+    :documentation "The session's child SBCL connection, created lazily
+     on the first eval-form call. Shut down when the session ends."))
   (:documentation
    "An MCP server instance bound to a two-way stream and an optional
     session transcript. Single output mutex serialises response
@@ -54,12 +59,35 @@
                                 :transcript transcript)))
     (%serve-loop server)))
 
+(defun ensure-child-connection (server)
+  "Return the session's child-connection, creating one lazily on
+   first call. If the existing child is dead, spawn a fresh one."
+  (let ((conn (server-child-connection server)))
+    (cond
+      ((and conn (connection-alive-p conn)) conn)
+      (t
+       (when conn
+         (ignore-errors (connection-shutdown conn)))
+       (let ((new-conn (make-child-connection)))
+         (setf (server-child-connection server) new-conn)
+         new-conn)))))
+
+(defun %shutdown-child-if-present (server)
+  "Shut down the session's child connection if one exists."
+  (let ((conn (server-child-connection server)))
+    (when conn
+      (ignore-errors (connection-shutdown conn))
+      (setf (server-child-connection server) nil))))
+
 (defun %serve-loop (server)
-  "The read-dispatch-write loop. Honours EOF as end-of-session."
-  (let ((stream (server-stream server)))
-    (loop :for line := (read-line stream nil nil)
-          :while line
-          :do (%serve-one-line server line))))
+  "The read-dispatch-write loop. Honours EOF as end-of-session.
+   Shuts down any child connection when the session ends."
+  (unwind-protect
+       (let ((stream (server-stream server)))
+         (loop :for line := (read-line stream nil nil)
+               :while line
+               :do (%serve-one-line server line)))
+    (%shutdown-child-if-present server)))
 
 (defun %serve-one-line (server line)
   "Handle a single line: parse, dispatch, write the response.

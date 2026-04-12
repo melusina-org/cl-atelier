@@ -135,8 +135,8 @@
 ;;; ----- Tools/call -----
 
 (defmethod handle-message ((request tools-call-request) server)
-  (declare (ignore server))
-  (let* ((params (request-params request))
+  (let* ((*current-server* server)
+         (params (request-params request))
          (name   (and params (gethash "name" params)))
          (args-h (and params (gethash "arguments" params)))
          (args   (%hash-table-to-alist args-h))

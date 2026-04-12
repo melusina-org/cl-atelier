@@ -107,6 +107,21 @@
    #:connection-process-info
    #:connection-eval
    #:connection-shutdown
-   #:connection-alive-p))
+   #:connection-alive-p
+   ;; Child connection (slice 010)
+   #:child-connection
+   #:make-child-connection
+   #:child-connection-port
+   #:child-image-spawn-failed
+   ;; SWANK protocol client (slice 010)
+   #:swank-connection
+   #:swank-connect
+   #:swank-disconnect
+   #:swank-send
+   #:swank-receive
+   #:swank-eval
+   ;; Session child access (slice 010)
+   #:server-child-connection
+   #:ensure-child-connection))
 
 ;;;; End of file `package.lisp'

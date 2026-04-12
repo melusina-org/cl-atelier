@@ -82,6 +82,18 @@
 		 (:file "write-form")
 		 (:file "canonicalize")))))
 
+(asdf:defsystem #:org.melusina.atelier/child-worker
+  :description "Child SBCL worker for Atelier MCP eval."
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:closer-mop)
+  :components
+  ((:module "src/child-worker"
+    :serial t
+    :components ((:file "package")
+		 (:file "introspection")
+		 (:file "entry-point")))))
+
 (asdf:defsystem #:org.melusina.atelier/mcp
   :description "MCP server skeleton for Atelier."
   :author "Michaël Le Barbier"
@@ -89,8 +101,10 @@
   :depends-on (#:alexandria
 	       #:bordeaux-threads
 	       #:uiop
+	       #:usocket
 	       #:com.inuoe.jzon
-	       #:org.melusina.atelier)
+	       #:org.melusina.atelier
+	       #:org.melusina.atelier/editor)
   :components
   ((:module "src/mcp"
     :serial t
@@ -107,6 +121,7 @@
 		 (:file "transcript-render")
 		 (:file "transcript")
 		 (:file "image-connection")
+		 (:file "swank-protocol")
 		 (:file "dispatcher")
 		 (:file "server")
 		 (:module "tools"
@@ -117,7 +132,15 @@
 			       (:file "list-systems")
 			       (:file "inspector-detail")
 			       (:file "maintainer-detail")
-			       (:file "transcript-resources")))))))
+			       (:file "transcript-resources")
+			       (:file "canonicalize-form")
+			       (:file "eval-form")
+			       (:file "list-packages")
+			       (:file "list-package-symbols")
+			       (:file "describe-symbol")
+			       (:file "find-definition")
+			       (:file "run-tests-fresh")
+			       (:file "run-tests-in-child")))))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"
@@ -125,6 +148,7 @@
   :depends-on (#:alexandria
 	       #:org.melusina.atelier
 	       #:org.melusina.atelier/editor
+	       #:org.melusina.atelier/child-worker
 	       #:org.melusina.atelier/mcp
 	       #:org.melusina.confidence)
   :components

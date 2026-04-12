@@ -69,4 +69,140 @@
            :class (class-name (class-of connection))
            :message "connection-eval has no concrete subclass in slice 009.")))
 
+
+;;; ---- child-connection: concrete subclass using SWANK over TCP ----
+
+(defclass child-connection (image-connection)
+  ((port
+    :initarg :port
+    :reader child-connection-port
+    :type integer
+    :documentation "TCP port the child SWANK server listens on.")
+   (swank-conn
+    :initarg :swank-conn
+    :accessor child-connection-swank-conn
+    :type (or swank-connection null)
+    :initform nil
+    :documentation "The SWANK protocol connection to the child."))
+  (:documentation
+   "A connection to a child SBCL image via SWANK over TCP.
+    Created by MAKE-CHILD-CONNECTION, which spawns SBCL, loads the
+    child-worker system, starts SWANK on a random port, and connects."))
+
+(defvar *child-worker-system-path* nil
+  "Pathname to the directory containing org.melusina.atelier.asd.
+   Set lazily by MAKE-CHILD-CONNECTION from this image's source registry.")
+
+(defun %find-atelier-asd-directory ()
+  "Find the directory containing org.melusina.atelier.asd."
+  (or *child-worker-system-path*
+      (let ((system (asdf:find-system "org.melusina.atelier" nil)))
+        (when system
+          (setf *child-worker-system-path*
+                (asdf:system-source-directory system))))))
+
+(defun %quicklisp-setup-path ()
+  "Return the path to quicklisp/setup.lisp, or NIL."
+  (let ((ql-home (symbol-value
+                  (find-symbol "*QUICKLISP-HOME*"
+                               (find-package :ql)))))
+    (when ql-home
+      (merge-pathnames "setup.lisp" ql-home))))
+
+(defun make-child-connection (&key (timeout 10))
+  "Spawn a child SBCL, load the child-worker system, start SWANK,
+   and connect via TCP. Returns a CHILD-CONNECTION.
+   TIMEOUT is seconds to wait for the child to print its port.
+   Signals CHILD-IMAGE-SPAWN-FAILED on failure."
+  (let* ((asd-dir (%find-atelier-asd-directory))
+         (ql-setup (%quicklisp-setup-path))
+         (process-info
+           (handler-case
+               (uiop:launch-program
+                (list "sbcl" "--non-interactive"
+                      "--eval" (format nil "(load ~S)"
+                                       (namestring ql-setup))
+                      "--eval" (format nil "(push ~S asdf:*central-registry*)"
+                                       (namestring asd-dir))
+                      "--eval" "(asdf:load-system \"org.melusina.atelier/child-worker\")"
+                      "--eval" "(atelier/child-worker:start-worker)")
+                :input :stream
+                :output :stream
+                :error-output :stream)
+             (error (c)
+               (error 'child-image-spawn-failed
+                      :reason (format nil "Failed to spawn SBCL: ~A" c)
+                      :message (format nil "Failed to spawn SBCL: ~A" c))))))
+    ;; Read the port from child's stdout
+    (let ((port-line nil)
+          (child-stdout (uiop:process-info-output process-info)))
+      ;; Wait for port with timeout
+      (let ((deadline (+ (get-internal-real-time)
+                         (* timeout internal-time-units-per-second))))
+        (loop
+          (when (> (get-internal-real-time) deadline)
+            (uiop:terminate-process process-info)
+            (uiop:wait-process process-info)
+            (error 'child-image-spawn-failed
+                   :reason "Timeout waiting for child SWANK port."
+                   :message "Timeout waiting for child SWANK port."))
+          (when (listen child-stdout)
+            (setf port-line (read-line child-stdout nil nil))
+            (when port-line (return)))
+          (sleep 0.1)))
+      (let ((port (parse-integer (string-trim '(#\Space #\Tab #\Return #\Newline)
+                                              port-line)
+                                 :junk-allowed nil)))
+        (unless port
+          (uiop:terminate-process process-info)
+          (uiop:wait-process process-info)
+          (error 'child-image-spawn-failed
+                 :reason (format nil "Invalid port from child: ~S" port-line)
+                 :message (format nil "Invalid port from child: ~S" port-line)))
+        ;; Connect to SWANK
+        (let ((swank-conn (handler-case
+                              (%connect-with-retry "127.0.0.1" port :retries 10 :delay 0.5)
+                            (error (c)
+                              (uiop:terminate-process process-info)
+                              (uiop:wait-process process-info)
+                              (error 'child-image-spawn-failed
+                                     :reason (format nil "Failed to connect to child SWANK: ~A" c)
+                                     :message (format nil "Failed to connect to child SWANK: ~A" c))))))
+          (make-instance 'child-connection
+                         :process-info process-info
+                         :port port
+                         :swank-conn swank-conn))))))
+
+(defun %connect-with-retry (host port &key (retries 10) (delay 0.5))
+  "Try to connect to HOST:PORT, retrying on failure."
+  (loop :for attempt :from 1 :to retries
+        :do (handler-case
+                (return (swank-connect host port))
+              (error ()
+                (when (= attempt retries)
+                  (error "Failed to connect to ~A:~D after ~D attempts."
+                         host port retries))
+                (sleep delay)))))
+
+(defmethod connection-eval ((conn child-connection) form)
+  "Evaluate FORM (a string) in the child via the SWANK connection.
+   Returns (VALUES result-string output-string)."
+  (swank-eval (child-connection-swank-conn conn) form))
+
+(defmethod connection-shutdown ((conn child-connection))
+  "Shut down the child: disconnect SWANK, terminate process, wait."
+  (let ((swank-conn (child-connection-swank-conn conn)))
+    (when swank-conn
+      (ignore-errors
+        (swank-send-raw swank-conn "(:emacs-rex (swank:quit-lisp) \"CL-USER\" t 0)"))
+      (ignore-errors (swank-disconnect swank-conn))
+      (setf (child-connection-swank-conn conn) nil)))
+  ;; Fall back to process termination
+  (call-next-method))
+
+(defmethod connection-alive-p ((conn child-connection))
+  "Return T if the child process is running."
+  (and (child-connection-swank-conn conn)
+       (call-next-method)))
+
 ;;;; End of file `image-connection.lisp'

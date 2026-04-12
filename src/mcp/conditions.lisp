@@ -102,4 +102,15 @@
     template placeholders do not match the &key parameters. This is a
     compile-time error and prevents the defining system from loading."))
 
+(define-condition child-image-spawn-failed (mcp-error)
+  ((reason
+    :initarg :reason
+    :reader child-image-spawn-failed-reason
+    :type string
+    :documentation "Description of why the child image failed to start."))
+  (:documentation
+   "Signalled when make-child-connection fails to spawn a child SBCL,
+    connect to its SWANK server, or read the assigned port. Common
+    causes: SBCL not on PATH, startup timeout, port not received."))
+
 ;;;; End of file `conditions.lisp'
