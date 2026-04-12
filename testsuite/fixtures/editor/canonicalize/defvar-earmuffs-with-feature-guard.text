@@ -1,0 +1,7 @@
+---
+description: "defvar with earmuffs violation and #+/#- on the value"
+kind: defvar
+---
+(defvar foo #+sbcl 42 #-sbcl 0)
+---
+(defvar *foo* #+sbcl 42 #-sbcl 0)

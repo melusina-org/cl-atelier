@@ -1,0 +1,7 @@
+---
+description: "defun with #+/#- branches inside body — both preserved"
+kind: defun
+---
+(defun connect () #+sbcl :yes #-sbcl :no)
+---
+(defun connect () #+sbcl :yes #-sbcl :no)

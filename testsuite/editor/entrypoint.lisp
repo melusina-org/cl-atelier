@@ -41,6 +41,8 @@
   (validate-normalize-earmuffs)
   (validate-normalize-returns-findings)
   (validate-normalize-idempotent)
+  (validate-normalize-preserves-feature-guards)
+  (validate-normalize-preserves-body-feature-branches)
   ;; auto-discovered fixtures (T28–T40+)
   (validate-canonicalize-fixtures)
   ;; fresh-SBCL subprocess (T7 — slow)
