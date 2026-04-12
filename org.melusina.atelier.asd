@@ -221,6 +221,33 @@
 			       (:file "entrypoint")))
 		 (:file "entrypoint")))))
 
+(asdf:defsystem #:org.melusina.atelier/testsuite/input-output
+  :description "Exploratory tests for pipe I/O behavior"
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:bordeaux-threads
+	       #:uiop
+	       #:org.melusina.confidence)
+  :components
+  ((:module "testsuite/input-output"
+    :serial t
+    :components ((:file "package")
+		 (:file "pipe-behavior")))))
+
+(asdf:defsystem #:org.melusina.atelier/testsuite/swank
+  :description "Exploratory tests for SWANK protocol behavior"
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:usocket
+	       #:flexi-streams
+	       #:org.melusina.atelier/mcp
+	       #:org.melusina.confidence)
+  :components
+  ((:module "testsuite/swank"
+    :serial t
+    :components ((:file "package")
+		 (:file "wire-protocol")))))
+
 (asdf:defsystem #:org.melusina.atelier/development
   :description "Development tools for Atelier"
   :author "Michaël Le Barbier"
