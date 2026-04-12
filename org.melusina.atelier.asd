@@ -102,6 +102,7 @@
 	       #:bordeaux-threads
 	       #:uiop
 	       #:usocket
+	       #:flexi-streams
 	       #:com.inuoe.jzon
 	       #:org.melusina.atelier
 	       #:org.melusina.atelier/editor)

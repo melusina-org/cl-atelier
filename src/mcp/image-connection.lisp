@@ -83,7 +83,8 @@
     :accessor child-connection-swank-conn
     :type (or swank-connection null)
     :initform nil
-    :documentation "The SWANK protocol connection to the child."))
+    :documentation "The SWANK protocol connection to the child.")
+)
   (:documentation
    "A connection to a child SBCL image via SWANK over TCP.
     Created by MAKE-CHILD-CONNECTION, which spawns SBCL, loads the
@@ -128,57 +129,57 @@
                       "--eval" "(atelier/child-worker:start-worker)")
                 :input :stream
                 :output :stream
-                :error-output :stream)
+                :error-output :output)
              (error (c)
                (error 'child-image-spawn-failed
                       :reason (format nil "Failed to spawn SBCL: ~A" c)
                       :message (format nil "Failed to spawn SBCL: ~A" c))))))
     ;; Read the port from child's stdout. The child emits SBCL banner,
-    ;; compilation messages, etc. before printing the port. We read
-    ;; lines until we find one that's a pure decimal integer.
-    (let ((port-line nil)
-          (child-stdout (uiop:process-info-output process-info)))
-      (handler-case
-          (sb-ext:with-timeout timeout
-            (loop
-              (let ((line (read-line child-stdout nil nil)))
-                (unless line
-                  (error 'child-image-spawn-failed
-                         :reason "Child stdout closed before port was received."
-                         :message "Child stdout closed before port was received."))
-                (let ((trimmed (string-trim '(#\Space #\Tab #\Return #\Newline) line)))
-                  (when (and (plusp (length trimmed))
-                             (every #'digit-char-p trimmed))
-                    (setf port-line trimmed)
-                    (return))))))
-        (sb-ext:timeout ()
-          (uiop:terminate-process process-info)
-          (uiop:wait-process process-info)
-          (error 'child-image-spawn-failed
-                 :reason "Timeout waiting for child SWANK port."
-                 :message "Timeout waiting for child SWANK port.")))
-      (let ((port (parse-integer (string-trim '(#\Space #\Tab #\Return #\Newline)
-                                              port-line)
-                                 :junk-allowed nil)))
-        (unless port
-          (uiop:terminate-process process-info)
-          (uiop:wait-process process-info)
-          (error 'child-image-spawn-failed
-                 :reason (format nil "Invalid port from child: ~S" port-line)
-                 :message (format nil "Invalid port from child: ~S" port-line)))
-        ;; Connect to SWANK
-        (let ((swank-conn (handler-case
-                              (%connect-with-retry "127.0.0.1" port :retries 10 :delay 0.5)
-                            (error (c)
-                              (uiop:terminate-process process-info)
-                              (uiop:wait-process process-info)
-                              (error 'child-image-spawn-failed
-                                     :reason (format nil "Failed to connect to child SWANK: ~A" c)
-                                     :message (format nil "Failed to connect to child SWANK: ~A" c))))))
-          (make-instance 'child-connection
-                         :process-info process-info
-                         :port port
-                         :swank-conn swank-conn))))))
+      ;; compilation messages, etc. before printing the port. We read
+      ;; lines until we find one that's a pure decimal integer.
+      (let ((port-line nil)
+            (child-stdout (uiop:process-info-output process-info)))
+        (handler-case
+            (sb-ext:with-timeout timeout
+              (loop
+                (let ((line (read-line child-stdout nil nil)))
+                  (unless line
+                    (error 'child-image-spawn-failed
+                           :reason "Child stdout closed before port was received."
+                           :message "Child stdout closed before port was received."))
+                  (let ((trimmed (string-trim '(#\Space #\Tab #\Return #\Newline) line)))
+                    (when (and (plusp (length trimmed))
+                               (every #'digit-char-p trimmed))
+                      (setf port-line trimmed)
+                      (return))))))
+          (sb-ext:timeout ()
+            (uiop:terminate-process process-info)
+            (uiop:wait-process process-info)
+            (error 'child-image-spawn-failed
+                   :reason "Timeout waiting for child SWANK port."
+                   :message "Timeout waiting for child SWANK port.")))
+        (let ((port (parse-integer (string-trim '(#\Space #\Tab #\Return #\Newline)
+                                                port-line)
+                                   :junk-allowed nil)))
+          (unless port
+            (uiop:terminate-process process-info)
+            (uiop:wait-process process-info)
+            (error 'child-image-spawn-failed
+                   :reason (format nil "Invalid port from child: ~S" port-line)
+                   :message (format nil "Invalid port from child: ~S" port-line)))
+          ;; Connect to SWANK
+          (let ((swank-conn (handler-case
+                                (%connect-with-retry "127.0.0.1" port :retries 10 :delay 0.5)
+                              (error (c)
+                                (uiop:terminate-process process-info)
+                                (uiop:wait-process process-info)
+                                (error 'child-image-spawn-failed
+                                       :reason (format nil "Failed to connect to child SWANK: ~A" c)
+                                       :message (format nil "Failed to connect to child SWANK: ~A" c))))))
+            (make-instance 'child-connection
+                           :process-info process-info
+                           :port port
+                           :swank-conn swank-conn))))))
 
 (defun %connect-with-retry (host port &key (retries 10) (delay 0.5))
   "Try to connect to HOST:PORT, retrying on failure."

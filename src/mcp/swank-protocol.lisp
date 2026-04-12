@@ -65,9 +65,9 @@
 (defun swank-send-raw (connection string)
   "Send STRING as a raw SWANK wire protocol message:
    6-char hex length prefix + UTF-8 payload."
-  (let* ((octets (sb-ext:string-to-octets string :external-format :utf-8))
+  (let* ((octets (flexi-streams:string-to-octets string :external-format :utf-8))
          (length (length octets))
-         (header (sb-ext:string-to-octets (format nil "~6,'0x" length)
+         (header (flexi-streams:string-to-octets (format nil "~6,'0x" length)
                                           :external-format :utf-8))
          (stream (usocket:socket-stream (swank-connection-usocket connection))))
     (write-sequence header stream)
@@ -83,7 +83,7 @@
     (let ((n (read-sequence header-buf stream)))
       (when (< n 6)
         (error "SWANK connection closed: incomplete header (~D bytes)." n)))
-    (let* ((header-string (sb-ext:octets-to-string header-buf :external-format :utf-8))
+    (let* ((header-string (flexi-streams:octets-to-string header-buf :external-format :utf-8))
            (length (parse-integer header-string :radix 16))
            (payload-buf (make-array length :element-type '(unsigned-byte 8))))
       ;; Read payload
@@ -91,7 +91,7 @@
         (when (< n length)
           (error "SWANK connection closed: incomplete payload (~D of ~D bytes)."
                  n length)))
-      (let ((payload-string (sb-ext:octets-to-string payload-buf :external-format :utf-8)))
+      (let ((payload-string (flexi-streams:octets-to-string payload-buf :external-format :utf-8)))
         ;; SWANK messages use keywords for message types (:return, :write-string, etc.)
         ;; and SWANK-internal symbols in the payload. Read with CL-USER so unknown
         ;; SWANK symbols become CL-USER interned (harmless — we only inspect keywords).
