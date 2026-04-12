@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **A linter** with 15 inspectors, 10 automatic maintainers, autofix, and pretty-printer
 - **License management** (MIT, GPL, CeCILL, Proprietary) with SPDX identifiers
 - **MCP server** (slice 009) — `org.melusina.atelier/mcp` exposes Atelier state over the Model Context Protocol via stdio with 6 tools, 3 concrete resources, and 5 URI-templated resources. Entry point: `(atelier/mcp:serve-two-way-stream)`.
+- **Projectional editor** (slice 010) — `org.melusina.atelier/editor` (package `atelier/editor`) represents toplevel CL forms as `toplevel-form` records (4 slots: kind, name, body, eval-when) with an Eclector CST body preserving `#+`/`#-` as structure. Entry point: `(atelier/editor:normalize-toplevel-form form)` runs the lint + maintainer pipeline and returns `(values normalized-form findings)`. Read: `read-toplevel-form-from-string`. Write: `write-toplevel-form-to-string`. Also adds `atelier:lint-string` to core for in-memory lint pipeline execution.
 
 ## Common Commands (REPL)
 
@@ -47,6 +48,7 @@ Lint with autofix:
 | `org.melusina.atelier` | Main system: scaffolding, linter, inspectors, maintainers, pretty-printer |
 | `org.melusina.atelier/testsuite` | Test suite (uses `org.melusina.confidence`) |
 | `org.melusina.atelier/development` | Dev helpers: `lint`, `reload` |
+| `org.melusina.atelier/editor` | Projectional editor: `toplevel-form` record, `read-toplevel-form-from-string`, `write-toplevel-form-to-string`, `normalize-toplevel-form`. Depends only on core atelier (no MCP, no jzon, no bordeaux-threads). |
 | `org.melusina.atelier/mcp` | MCP server skeleton: stdio JSON-RPC, 6 tools + 3 concrete resources + 5 templates. Depends on `com.inuoe.jzon` and `bordeaux-threads`. |
 | `org.melusina.atelier/testsuite/mcp` | MCP test suite |
 

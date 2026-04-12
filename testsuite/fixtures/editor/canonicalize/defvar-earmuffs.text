@@ -1,0 +1,7 @@
+---
+description: "defvar — defvar-earmuffs"
+kind: defvar
+---
+(defvar foo 42)
+---
+(defvar *foo* 42)

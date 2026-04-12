@@ -1,0 +1,7 @@
+---
+description: "defun — defun-simple"
+kind: defun
+---
+(defun foo (x) (1+ x))
+---
+(defun foo (x) (1+ x))

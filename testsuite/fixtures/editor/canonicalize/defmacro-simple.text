@@ -1,0 +1,7 @@
+---
+description: "defmacro — defmacro-simple"
+kind: defmacro
+---
+(defmacro always-nil (&body body) (declare (ignore body)) nil)
+---
+(defmacro always-nil (&body body) (declare (ignore body)) nil)

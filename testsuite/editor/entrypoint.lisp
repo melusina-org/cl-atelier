@@ -40,6 +40,10 @@
   ;; normalize pipeline (T18–T20)
   (validate-normalize-earmuffs)
   (validate-normalize-returns-findings)
-  (validate-normalize-idempotent))
+  (validate-normalize-idempotent)
+  ;; auto-discovered fixtures (T28–T40+)
+  (validate-canonicalize-fixtures)
+  ;; fresh-SBCL subprocess (T7 — slow)
+  (validate-editor-loads-without-mcp))
 
 ;;;; End of file `entrypoint.lisp'

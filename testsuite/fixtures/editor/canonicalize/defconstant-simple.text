@@ -1,0 +1,7 @@
+---
+description: "defconstant — defconstant-simple"
+kind: defconstant
+---
+(defconstant +max+ 100)
+---
+(defconstant +max+ 100)

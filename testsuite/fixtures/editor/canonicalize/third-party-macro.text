@@ -1,0 +1,7 @@
+---
+description: "define-constant — third-party-macro"
+kind: define-constant
+---
+(alexandria:define-constant +max-retries+ 3)
+---
+(alexandria:define-constant +max-retries+ 3)

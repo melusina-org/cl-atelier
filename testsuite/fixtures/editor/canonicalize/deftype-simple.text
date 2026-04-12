@@ -1,0 +1,7 @@
+---
+description: "deftype — deftype-simple"
+kind: deftype
+---
+(deftype positive-integer () (quote (integer 1)))
+---
+(deftype positive-integer () '(integer 1))

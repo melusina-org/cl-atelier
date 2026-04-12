@@ -167,6 +167,8 @@
 			       (:file "toplevel-form")
 			       (:file "write-form")
 			       (:file "normalize")
+			       (:file "fixtures")
+			       (:file "fresh-sbcl-load")
 			       (:file "entrypoint")))
 		 (:module "mcp"
 		  :serial t

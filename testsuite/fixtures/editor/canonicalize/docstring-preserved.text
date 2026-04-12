@@ -1,0 +1,7 @@
+---
+description: "defun — docstring-preserved"
+kind: defun
+---
+(defun documented (x) "Return X unchanged." x)
+---
+(defun documented (x) "Return X unchanged." x)

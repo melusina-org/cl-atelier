@@ -1,0 +1,7 @@
+---
+description: "defmethod — defmethod-simple"
+kind: defmethod
+---
+(defmethod compute ((x number) (y number)) (+ x y))
+---
+(defmethod compute ((x number) (y number)) (+ x y))

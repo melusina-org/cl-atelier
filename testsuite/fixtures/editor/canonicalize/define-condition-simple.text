@@ -1,0 +1,9 @@
+---
+description: "define-condition — define-condition-simple"
+kind: define-condition
+---
+(define-condition my-error (error) ((detail :initarg :detail :reader my-error-detail)))
+---
+(define-condition my-error
+    (error)
+    ((detail :initarg :detail :reader my-error-detail)))

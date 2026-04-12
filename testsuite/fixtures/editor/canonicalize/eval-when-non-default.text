@@ -1,0 +1,8 @@
+---
+description: "eval-when — non-default situation list"
+kind: defun
+---
+(eval-when (:compile-toplevel :load-toplevel :execute) (defun early-helper () t))
+---
+(eval-when (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
+  (defun early-helper () t))

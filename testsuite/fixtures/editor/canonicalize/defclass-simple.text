@@ -1,0 +1,7 @@
+---
+description: "defclass — defclass-simple"
+kind: defclass
+---
+(defclass thing () ((name :initarg :name :reader thing-name)))
+---
+(defclass thing nil ((name :initarg :name :reader thing-name)))

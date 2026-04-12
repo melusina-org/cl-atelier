@@ -1,0 +1,8 @@
+---
+description: "defgeneric — defgeneric-simple"
+kind: defgeneric
+---
+(defgeneric compute (x y))
+---
+(defgeneric compute
+    (x y))

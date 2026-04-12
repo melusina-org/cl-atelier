@@ -1,0 +1,7 @@
+---
+description: "defparameter — defparameter-simple"
+kind: defparameter
+---
+(defparameter *baz* "hello")
+---
+(defparameter *baz* "hello")
