@@ -4,4 +4,4 @@ kind: deftype
 ---
 (deftype positive-integer () (quote (integer 1)))
 ---
-(deftype positive-integer () '(integer 1))
+(deftype positive-integer () (quote (integer 1)))

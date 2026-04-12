@@ -19,6 +19,7 @@
     (assert-string= input source-text)
     ;; The write path should preserve the #-sbcl region
     (let ((output (atelier/editor:write-toplevel-form-to-string form)))
+      (assert-t* (search "#+sbcl" output))
       (assert-t* (search "#-sbcl" output)))))
 
 (define-testcase validate-eclector-cst-to-text-round-trip ()
@@ -27,7 +28,7 @@
          (form (atelier/editor:read-toplevel-form-from-string input))
          (output (atelier/editor:write-toplevel-form-to-string form)))
     ;; Both branches should be present in the output
-    (assert-t* (search ":yes" output :test #'char-equal))
+    (assert-t* (search "#+sbcl :yes" output))
     (assert-t* (search "#-sbcl :no" output))))
 
 ;;;; End of file `eclector-capability.lisp'
