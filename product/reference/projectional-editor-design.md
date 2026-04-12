@@ -83,9 +83,10 @@ org.melusina.atelier/editor    org.melusina.atelier/mcp
 
 - **`org.melusina.atelier/mcp`** — the MCP server. Depends on
   `org.melusina.atelier/editor` so that MCP tools can call
-  `atelier/editor:canonicalize-form`, `atelier/editor:add-form`, and the
-  rest of the editor API. MCP tools are thin wrappers: parse arguments,
-  delegate to the editor API, wrap the result in a JSON-RPC response.
+  `atelier/editor:normalize-toplevel-form`,
+  `atelier/editor:add-form`, and the rest of the editor API. MCP tools
+  are thin wrappers: parse arguments, delegate to the editor API, wrap
+  the result in a JSON-RPC response.
 
 - **`org.melusina.atelier/testsuite`** — single consolidated test system,
   per the slice 009 pattern. Tests for the editor live under the module
@@ -127,39 +128,82 @@ An Atelier-managed Lisp file has exactly the following structure:
 The file is the unit of persistence. The **form list** is the unit of agent
 interaction.
 
-### The `form` record
+### The `toplevel-form` record
 
-Every addressable toplevel item is a record with these fields:
+Every addressable toplevel item is a `toplevel-form` instance (CLOS class)
+with four slots:
 
-| Field | Type | Meaning |
+| Slot | Type | Meaning |
 |---|---|---|
-| `kind` | keyword | `:defun`, `:defclass`, `:defgeneric`, `:defmethod`, `:defmacro`, `:defvar`, `:defparameter`, `:defconstant`, `:deftype`, `:define-condition`, `:define-symbol-macro`, `:define-testcase`, `:expression` |
-| `name` | symbol or nil | The defined symbol (for definition forms). `:expression` forms have no name and are the decomposition of a toplevel `progn` sequence. |
-| `body` | s-expression | The form body as the agent-supplied s-expression, with docstring and metadata wrappers stripped. |
-| `docstring` | string or nil | The CL docstring, preserved as metadata (not a comment). |
-| `eval-when` | list of keywords | The toplevel `eval-when` situations wrapping this form. Default `(:load-toplevel :execute)`. `:compile-toplevel` is added automatically by the dependency analyzer when required (e.g. helper function for a same-file macro). |
-| `features` | feature expression or nil | A feature expression applied to the **whole** form (`:sbcl`, `(:or :sbcl :ecl)`, `(:not :windows)`). Never inside the form's body. |
-| `source-position` | integer or nil | The form's declared position in the file, used as a tie-break when topological sort is ambiguous (e.g. mutually recursive DEFUNs). |
+| `kind` | symbol | The operator symbol from the form's CAR. Examples: `common-lisp:defun`, `common-lisp:defclass`, `confidence:define-testcase`, `atelier:define-maintainer`. Third-party toplevel macros are first-class citizens. |
+| `name` | symbol or nil | The defined symbol, derived from position 1 (second element) of the form for both known CL definition forms and unknown third-party macros. NIL for expression forms that do not define a named entity. |
+| `body` | Eclector CST | The complete form as an Eclector Concrete Syntax Tree. Reader conditionals (`#+`/`#-`) inside the body are preserved as CST structure, not evaluated. The docstring (if any) remains in its natural position within the body — it is not extracted. Use `toplevel-form-ast` for a plain s-expression view that evaluates reader conditionals against a given feature set. |
+| `eval-when` | list | The EVAL-WHEN situation list wrapping this form. Default `(:load-toplevel :execute)`, elided on write. `:compile-toplevel` is added automatically by the dependency analyzer (slice 015) when required. |
 
-When the server **writes** a file, it:
+**Slots deliberately omitted:**
+
+- **`docstring`** — remains in the body CST. Extracting it requires
+  kind-specific knowledge that breaks down for unknown third-party macros.
+  The body is the truth; callers who want the docstring inspect the AST.
+- **`feature-expression`** — dropped. Platform-specific whole-form guards
+  are handled at the ASDF level (feature-guarded `:components` entries),
+  which is established CL practice. The editor never wraps a single form
+  in `#+` at the toplevel level.
+- **`source-position`** — dropped. The editor's ordering algorithm
+  (topological sort by free-variable dependencies, alphabetical tie-break
+  by symbol name) is the single authority on form order. No slot
+  influences it. Dependencies are computed on demand from the body,
+  never stored.
+
+**Derived accessor:**
+
+```lisp
+(toplevel-form-ast form &key features)
+```
+
+Returns the body as a plain s-expression. Reader conditionals are evaluated
+against FEATURES (default: `cl:*features*`). The result is a lossy view:
+cross-platform branches for non-matching features are dropped. This is for
+convenient examination; the canonical representation is the Eclector CST
+in the `body` slot.
+
+**Constructor:**
+
+```lisp
+(make-toplevel-form &key kind name body eval-when)
+```
+
+**Read/Write functions:**
+
+```lisp
+(read-toplevel-form-from-string string)   ; → toplevel-form (or list via DECOMPOSE restart)
+(write-toplevel-form-to-string form)      ; → string
+(normalize-toplevel-form form)            ; → (values toplevel-form findings)
+```
+
+When the editor **writes** a file (slice 015), it:
 
 1. Renders the header banner from the template.
 2. Writes `(in-package #:<component.package>)`.
-3. Topologically sorts the form list by free-variable dependencies. Tie-break:
-   declaration order (`source-position`), falling back to alphabetical for
-   fresh forms with no prior position.
-4. For each form, wraps it in the minimal `eval-when` and `#+…` envelopes
-   required by its metadata and pretty-prints the result.
-5. Renders the footer banner from the template.
-6. Runs every automatic maintainer on the output and applies every
+3. Computes dependencies by analyzing free variables in each form's body.
+4. Topologically sorts the form list. Tie-break: alphabetical by symbol
+   name. Mutually recursive DEFUNs can be broken by `(declaim (ftype ...))`
+   forms that provide forward type declarations.
+5. For each form, wraps it in the minimal `eval-when` envelope required by
+   its metadata and pretty-prints the CST to text, preserving reader
+   conditionals.
+6. Renders the footer banner from the template.
+7. Runs every automatic maintainer on the output and applies every
    auto-applicable resolution.
-7. Writes the file atomically.
+8. Writes the file atomically.
 
-When the server **reads** a file, it inverts this process: strips the banners,
-parses `in-package`, reads each toplevel form, and hydrates form records by
-peeling `eval-when`/`#+…` wrappers into metadata. This read-back is required
-to be a fixed point: `(write (read file))` must be byte-identical to `file`
-for any file the server itself wrote.
+When the editor **reads** a file, it inverts this process: strips the banners,
+parses `in-package`, reads each toplevel form via a custom Eclector client
+that preserves `#+`/`#-` as CST structure, and hydrates `toplevel-form`
+records by peeling `eval-when` wrappers into the `eval-when` slot. This
+read-back is required to be a fixed point:
+`write(read(write(read(s)))) = write(read(s))` for any string `s` the
+editor accepts.
 
 ### Forbidden at toplevel
 
@@ -176,14 +220,25 @@ The projectional editor refuses to represent or emit the following:
   `define-testcase`, not by running at load time.
 - **The `#.` reader macro.** Read-time evaluation is unsound under the
   round-trip read/write contract.
-- **Feature conditionals inside a form's body.** `#+sbcl` is allowed as a
-  wrapper around a whole form (it becomes `:features`); it is not allowed
-  inside a `defun` body or a `defclass` slot list. Agents that need
-  per-implementation branches write separate forms with disjoint
-  `:features`.
-- **Toplevel `progn`.** `progn` at toplevel is decomposed into a sequence of
-  forms on read; the agent may submit a sequence directly, or submit a
-  `progn` which the server immediately decomposes.
+- **Toplevel `progn`.** `progn` at toplevel signals
+  `unexpected-toplevel-form` with a `decompose` restart that splits it
+  into individual `toplevel-form` records. The agent may submit a
+  sequence directly, or submit a `progn` and handle the restart.
+- **Toplevel feature conditionals** (`#+sbcl (defun ...)`). Platform-
+  specific whole-form guards are handled at the ASDF level: feature-
+  guarded `:components` entries in the `defsystem` form, which is
+  established CL practice. The editor does not wrap individual forms
+  in `#+` at the toplevel level.
+
+**Allowed inside form bodies:**
+
+- **`#+`/`#-` reader conditionals.** Following established CL practice,
+  reader conditionals are allowed inside DEFUN bodies, DEFCLASS slot
+  lists, DEFMETHOD bodies, etc. The body is an Eclector CST that
+  preserves these as structure, not evaluated away.
+  Example: `(defun connect () #+sbcl (sb-bsd-sockets:...) #-sbcl (error ...))`
+  is a single `toplevel-form` with `kind = common-lisp:defun` and the
+  `#+`/`#-` branches preserved in the body CST.
 
 ### `defpackage` and `defsystem` are structural, not formal (W1)
 
@@ -344,3 +399,4 @@ Steward next revises the principles list:
 |---|---|
 | 2026-04-11 | Initial draft during slice 010 design session. Constrained file model, `form` record, W1–W6 wrinkles, slice dependency map, non-goals, P8 and P9 principles. |
 | 2026-04-11 | Added the System Layering section. The projectional editor is extracted as a standalone system `org.melusina.atelier/editor` (package `atelier/editor`) from the start, with the MCP server depending on it as an adapter rather than hosting it. Tests live under `testsuite/editor/` (package `atelier/testsuite/editor`) inside the consolidated `org.melusina.atelier/testsuite`, mirroring slice 009's organisation for MCP tests — no independent test system. Slice dependency map updated to split each slice's delivery into an editor column and an MCP-adapter column. Two new invariants recorded: fresh-SBCL loads `/editor` without MCP, and `/editor` never depends on `/mcp`. |
+| 2026-04-12 | **Major revision from slice 010 Tactician planning interview.** The `form` record is now `toplevel-form` (CLOS class, four slots: kind, name, body, eval-when). `kind` is a symbol (`common-lisp:defun`, not a keyword), supporting third-party macros as first-class citizens. `body` is an Eclector CST preserving `#+`/`#-` inside form bodies as structure (following established CL practice). Three slots dropped: `docstring` (stays in body — extraction is kind-specific and breaks for unknown macros), `feature-expression` (whole-form guards handled at ASDF `:components` level), `source-position` (editor owns ordering via topological sort + alphabetical tie-break; no slot influences it). Dependencies computed on demand, never stored. `toplevel-form-ast` is a derived accessor returning a lossy s-expression view with reader conditionals evaluated against a caller-supplied feature set. API names follow CL conventions: `read-toplevel-form-from-string`, `write-toplevel-form-to-string`, `normalize-toplevel-form`. The `forbidden-toplevel` condition renamed to `unexpected-toplevel-form` with a `decompose` restart for PROGN. Mutual recursion handled via `(declaim (ftype ...))` forward declarations. |
