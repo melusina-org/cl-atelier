@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Project scaffolding** via a template system (`new-lisp-project`, `new-lisp-file`)
 - **A linter** with 15 inspectors, 10 automatic maintainers, autofix, and pretty-printer
 - **License management** (MIT, GPL, CeCILL, Proprietary) with SPDX identifiers
-- **MCP server** (slice 009) — `org.melusina.atelier/mcp` exposes Atelier state over the Model Context Protocol via stdio with 6 tools, 3 concrete resources, and 5 URI-templated resources. Entry point: `(atelier/mcp:serve-two-way-stream)`.
+- **MCP server** (slices 009–010) — `org.melusina.atelier/mcp` exposes Atelier state over the Model Context Protocol via stdio with 14 tools, 3 concrete resources, and 5 URI-templated resources. Entry point: `(atelier/mcp:serve-two-way-stream)`. Slice 010 added child SBCL management via SWANK (`child-connection`), eval-form, canonicalize-form, package/symbol introspection, and testsuite runner tools. Child-side code lives in `org.melusina.atelier/child-worker`.
 - **Projectional editor** (slice 010) — `org.melusina.atelier/editor` (package `atelier/editor`) represents toplevel CL forms as `toplevel-form` records (4 slots: kind, name, body, eval-when) with an Eclector CST body preserving `#+`/`#-` as structure. Entry point: `(atelier/editor:normalize-toplevel-form form)` runs the lint + maintainer pipeline and returns `(values normalized-form findings)`. Read: `read-toplevel-form-from-string`. Write: `write-toplevel-form-to-string`. Also adds `atelier:lint-string` to core for in-memory lint pipeline execution.
 
 ## Common Commands (REPL)
@@ -49,8 +49,11 @@ Lint with autofix:
 | `org.melusina.atelier/testsuite` | Test suite (uses `org.melusina.confidence`) |
 | `org.melusina.atelier/development` | Dev helpers: `lint`, `reload` |
 | `org.melusina.atelier/editor` | Projectional editor: `toplevel-form` record, `read-toplevel-form-from-string`, `write-toplevel-form-to-string`, `normalize-toplevel-form`. Depends only on core atelier (no MCP, no jzon, no bordeaux-threads). |
-| `org.melusina.atelier/mcp` | MCP server skeleton: stdio JSON-RPC, 6 tools + 3 concrete resources + 5 templates. Depends on `com.inuoe.jzon` and `bordeaux-threads`. |
+| `org.melusina.atelier/child-worker` | Child SBCL worker: SWANK startup, introspection helpers (`list-packages-data`, `describe-symbol-data`, etc.). Loaded in the child image. Depends on `closer-mop`. |
+| `org.melusina.atelier/mcp` | MCP server: stdio JSON-RPC, 14 tools + 3 concrete resources + 5 templates. SWANK wire protocol client, `child-connection` for child SBCL management. Depends on `com.inuoe.jzon`, `bordeaux-threads`, `usocket`, `flexi-streams`, and `org.melusina.atelier/editor`. |
 | `org.melusina.atelier/testsuite/mcp` | MCP test suite |
+| `org.melusina.atelier/testsuite/input-output` | Exploratory tests for UNIX pipe I/O behavior (not in main suite) |
+| `org.melusina.atelier/testsuite/swank` | Exploratory tests for SWANK wire protocol (not in main suite) |
 
 ## Architecture
 
