@@ -1,13 +1,13 @@
 # Slice 013: MCP Documentation Tools
 
-**Status:** Planned
+**Status:** Complete
 **Type:** New capability
 **Goal addressed:** G5
 **Backlog items:** #9
 **Planned start:** 2026-04-13
-**Actual end:**
+**Actual end:** 2026-04-13
 **Implementation phases:**
-  - Phase 1: product/slice/013-mcp-documentation-tools/implementation-1.md — Planned
+  - Phase 1: product/slice/013-mcp-documentation-tools/implementation-1.md — Complete
 
 ---
 
@@ -107,11 +107,11 @@ warnings, and errors.
 
 ## Quality Criteria
 
-- [ ] All new tools follow the child-worker pattern (child-worker function + thin MCP wrapper) except HyperSpec tools which run in the parent (local file I/O only)
-- [ ] HyperSpec tools never make network requests — all reads are from the local filesystem
-- [ ] All new resources are registered in both concrete and template registries as appropriate
-- [ ] Full test suite passes (base atelier + MCP + editor) in a fresh SBCL subprocess
-- [ ] CLAUDE.md tool and resource counts updated
+- [x] All new tools follow the child-worker pattern (child-worker function + thin MCP wrapper) except HyperSpec tools which run in the parent (local file I/O only)
+- [x] HyperSpec tools never make network requests — all reads are from the local filesystem
+- [x] All new resources are registered in both concrete and template registries as appropriate
+- [x] Full test suite passes (base atelier + MCP + editor) in a fresh SBCL subprocess
+- [x] CLAUDE.md tool and resource counts updated
 
 ## Definition of Ready
 
@@ -123,10 +123,10 @@ warnings, and errors.
 
 ## Definition of Done
 
-- [ ] All stories complete with acceptance criteria passing
-- [ ] Quality criteria passing
-- [ ] Full test suite passes
-- [ ] All implementation phases have completion notes
-- [ ] `product/slice/013-mcp-documentation-tools/retrospective.md` created
-- [ ] `product/backlog.md` updated
-- [ ] `product/roadmap.md` updated
+- [x] All stories complete with acceptance criteria passing
+- [x] Quality criteria passing
+- [x] Full test suite passes (695/695)
+- [x] All implementation phases have completion notes
+- [x] `product/slice/013-mcp-documentation-tools/retrospective.md` created
+- [x] `product/backlog.md` updated
+- [x] `product/roadmap.md` updated
