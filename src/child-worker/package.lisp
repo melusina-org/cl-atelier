@@ -18,6 +18,12 @@
    #:list-package-symbols-data
    #:describe-symbol-data
    #:find-definition-data
-   #:run-testsuite-data))
+   #:run-testsuite-data
+   ;; Slice 012: ASDF, Quicklisp, Confidence
+   #:quickload-data
+   #:system-info-data
+   #:system-apropos-data
+   #:list-testcases-data
+   #:run-testcase-data))
 
 ;;;; End of file `package.lisp'

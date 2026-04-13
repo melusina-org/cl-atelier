@@ -145,7 +145,12 @@
 			       (:file "select-restart")
 			       (:file "abort-debug")
 			       (:file "backtrace")
-			       (:file "eval-in-frame")))))))
+			       (:file "eval-in-frame")
+			       (:file "quickload")
+			       (:file "system-info")
+			       (:file "system-apropos")
+			       (:file "list-testcases")
+			       (:file "run-testcase")))))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"
@@ -222,6 +227,7 @@
 			       (:file "canonicalize-tool")
 			       (:file "child-tests")
 			       (:file "debugger-tests")
+			       (:file "asdf-tools-tests")
 			       (:file "fresh-sbcl-load")
 			       (:file "entrypoint")))
 		 (:file "entrypoint")))))

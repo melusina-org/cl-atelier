@@ -196,4 +196,109 @@
             (cons "error-output" (%truncate-string
                                   (get-output-stream-string err-output) 5000))))))
 
+
+;;; ---- Slice 012: ASDF, Quicklisp, Confidence ----
+
+(defun quickload-data (system-name)
+  "Load SYSTEM-NAME via Quicklisp (or ASDF if QL unavailable).
+   Returns an alist with system, success, output, duration-ms."
+  (let ((output (make-string-output-stream))
+        (start (get-internal-real-time))
+        (success nil))
+    (handler-case
+        (let ((*standard-output* (make-broadcast-stream *standard-output* output))
+              (*error-output* (make-broadcast-stream *error-output* output)))
+          (if (find-package :ql)
+              (funcall (find-symbol "QUICKLOAD" :ql) system-name :silent t)
+              (asdf:load-system system-name))
+          (setf success t))
+      (error (c)
+        (format output "~&Error: ~A~%" c)))
+    (let ((duration-ms (round (* 1000 (- (get-internal-real-time) start))
+                              internal-time-units-per-second)))
+      (list (cons "system" (string system-name))
+            (cons "success" success)
+            (cons "output" (%truncate-string
+                            (get-output-stream-string output) 10000))
+            (cons "duration-ms" duration-ms)))))
+
+(defun system-info-data (system-name)
+  "Return an alist describing ASDF system SYSTEM-NAME."
+  (let ((system (asdf:find-system system-name nil)))
+    (unless system
+      (error "System ~S not found." system-name))
+    (list (cons "name" (asdf:component-name system))
+          (cons "version" (or (asdf:component-version system) ""))
+          (cons "author" (or (asdf:system-author system) ""))
+          (cons "license" (or (asdf:system-license system) ""))
+          (cons "description" (or (asdf:system-description system) ""))
+          (cons "source-directory"
+                (let ((dir (asdf:system-source-directory system)))
+                  (if dir (namestring dir) "")))
+          (cons "depends-on"
+                (mapcar (lambda (dep)
+                          (if (stringp dep) dep
+                              (princ-to-string dep)))
+                        (asdf:system-depends-on system)))
+          (cons "components"
+                (mapcar (lambda (comp)
+                          (list (cons "name" (asdf:component-name comp))
+                                (cons "type" (string-downcase
+                                              (symbol-name
+                                               (type-of comp))))))
+                        (asdf:component-children system))))))
+
+(defun system-apropos-data (search-string)
+  "Return system names from the source registry matching SEARCH-STRING."
+  (asdf/source-registry:ensure-source-registry)
+  (let ((registry (symbol-value
+                   (find-symbol "*SOURCE-REGISTRY*" :asdf/source-registry)))
+        (result nil)
+        (search-down (string-downcase search-string)))
+    (when (hash-table-p registry)
+      (loop :for name :being :the :hash-keys :of registry
+            :do (when (search search-down (string-downcase name))
+                  (push name result))))
+    (sort result #'string<)))
+
+(defun list-testcases-data (package-name)
+  "Return a list of Confidence testcases defined in PACKAGE-NAME.
+   Each testcase is an alist with name and documentation."
+  (let ((pkg (find-package package-name))
+        (result nil)
+        (testcase-key nil))
+    (unless pkg
+      (error "Package ~S not found." package-name))
+    ;; Confidence uses :ORG.MELUSINA.CONFIDENCE/TESTCASE as the property key
+    (setf testcase-key :org.melusina.confidence/testcase)
+    (unless (find-package :confidence)
+      (return-from list-testcases-data nil))
+    ;; Scan symbols for the testcase property
+    (do-symbols (sym pkg)
+      (when (and (eq (symbol-package sym) pkg)
+                 (get sym testcase-key))
+        (push (list (cons "name" (format nil "~A:~A"
+                                         (package-name pkg)
+                                         (symbol-name sym)))
+                    (cons "documentation"
+                          (%truncate-string
+                           (or (documentation sym 'function) "") 200)))
+              result)))
+    (sort result #'string<
+          :key (lambda (alist) (cdr (assoc "name" alist :test #'string=))))))
+
+(defun run-testcase-data (testcase-designator)
+  "Run a Confidence testcase by designator (e.g. \"ATELIER/TESTSUITE:RUN-ALL-TESTS\").
+   Returns an alist with name, total, success, failure, condition, outcome."
+  (let* ((sym (let ((*package* (find-package :cl-user)))
+                (read-from-string testcase-designator)))
+         (output (make-string-output-stream)))
+    (unless (and (symbolp sym) (fboundp sym))
+      (error "~S is not a callable testcase." testcase-designator))
+    (let ((*standard-output* (make-broadcast-stream *standard-output* output)))
+      (funcall sym))
+    (list (cons "name" testcase-designator)
+          (cons "output" (%truncate-string
+                          (get-output-stream-string output) 10000)))))
+
 ;;;; End of file `introspection.lisp'

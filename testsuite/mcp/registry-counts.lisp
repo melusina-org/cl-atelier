@@ -17,8 +17,8 @@
 ;;; product/knowledge/patterns.md).
 
 (define-testcase validate-tool-count-is-six ()
-  "Exactly 18 tools are registered (6 slice-009 + 8 slice-010 + 4 slice-011)."
-  (assert-eql 18 (length (list-tools))))
+  "Exactly 23 tools are registered (6 s009 + 8 s010 + 4 s011 + 5 s012)."
+  (assert-eql 23 (length (list-tools))))
 
 (define-testcase validate-concrete-resource-count-is-three ()
   "Exactly three concrete resources are registered."

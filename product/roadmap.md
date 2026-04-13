@@ -1,5 +1,5 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-13 (slice 011 complete)
+**Last updated:** 2026-04-13 (slice 012 complete)
 
 ## Now (in progress)
 
@@ -20,12 +20,13 @@
 | [009-mcp-skeleton](slice/009-mcp-skeleton/slice.md) | New capability | G5 | ✅ |
 | [010-editor-foundation-and-mcp-eval](slice/010-editor-foundation-and-mcp-eval/slice.md) | New capability | G5 | ✅ |
 | [011-mcp-debugger-and-restarts](slice/011-mcp-debugger-and-restarts/slice.md) | New capability | G5 | ✅ |
+| [012-mcp-asdf-quicklisp-confidence](slice/012-mcp-asdf-quicklisp-confidence/slice.md) | New capability | G5 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
 | Item | Type | Goal addressed | Notes |
 |------|------|----------------|-------|
-| 012 — MCP ASDF + Quicklisp + Confidence test runner (backlog #8) | New capability | G5 | `asdf-operate`, `quickload`, `where-is-system`, `system-apropos`, plus Confidence integration via the `define-testcase` symbol-property convention. Slice 010 already ships a minimal testsuite runner; 012 extends it. |
+| 013 — MCP documentation: describe/apropos/hyperspec, macroexpand, disassemble (#9) | New capability | G5 | CLHS available locally via MacPorts; X3J13 issue documents exposed as `lisp://hyperspec/issues/<id>` resources. |
 
 ## Later (probable but not yet scheduled)
 
@@ -95,3 +96,4 @@
 | 2026-04-12 | Slice 010 completed — verdict ✅ Supported. Moved to Completed. 623/623 tests passing. Two items deferred: eval-form timeout (AC28), dead-child auto-restart (AC29). |
 | 2026-04-12 | Slice 011 (MCP debugger and restarts) planned and moved to Now. Five new debugger tools, eval-form debug state exposure, eval-form timeout. Delivers backlog #7 and deferred AC28. |
 | 2026-04-13 | Slice 011 completed — verdict ✅ Supported. Moved to Completed. 647/647 tests passing. Four new tools: select-restart, abort-debug, backtrace-frames, eval-in-frame. Two items deferred: eval-in-frame SWANK hang, eval-form timeout interrupt delivery. |
+| 2026-04-13 | Slice 012 completed — verdict ✅ Supported. Moved to Completed. 659/659 tests passing. Five new tools: quickload, system-info, system-apropos, list-testcases, run-testcase. Confidence testcase discovery via :ORG.MELUSINA.CONFIDENCE/TESTCASE property. |
