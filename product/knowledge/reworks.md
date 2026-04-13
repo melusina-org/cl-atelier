@@ -159,6 +159,22 @@ What was reworked, why, and what could have prevented it. The most direct learni
 **Preventable?** Yes, by checking the SWANK source for the function signature.
 **Lesson:** *Always verify SWANK function signatures via exploratory test or source inspection.*
 
+## Slice 012, Phase 1: Confidence testcase property key
+
+**What was reworked:** `list-testcases-data` initially looked for `confidence::testcase` as the symbol property key. The actual key is `:org.melusina.confidence/testcase` (a keyword).
+**Trigger:** `list-testcases-data` returned NIL for packages with known testcases.
+**Effort cost:** Trivial — 1 line change.
+**Preventable?** Yes, by macroexpanding `define-testcase` before writing the discovery function.
+**Lesson:** *Never assume a library's internal conventions — macroexpand and inspect.*
+
+## Slice 012, Phase 1: system-apropos missed *central-registry* systems
+
+**What was reworked:** `system-apropos` initially searched only `asdf/source-registry:*source-registry*`. Systems loaded via `asdf:*central-registry*` (like Atelier itself in the test environment) were not in that hash table.
+**Trigger:** `system-apropos "atelier"` returned empty list.
+**Effort cost:** Minor — added `asdf:registered-systems` search.
+**Preventable?** Yes, by understanding the two ASDF system discovery mechanisms.
+**Lesson:** *ASDF has two discovery paths: source-registry (directory scanning) and central-registry (explicit directory list). Search both.*
+
 ## Slice 010, Phase 2: sb-ext not portable
 
 **What was reworked:** `swank-protocol.lisp` used `sb-ext:string-to-octets` and `sb-ext:octets-to-string`. User feedback: "avoid SB-EXT, use well-established libraries." Fixed: replaced with `flexi-streams:string-to-octets` / `flexi-streams:octets-to-string`. Added `flexi-streams` to MCP dependencies.

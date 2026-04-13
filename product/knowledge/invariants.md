@@ -185,3 +185,15 @@ Numbering is global and continuous across all slices.
 **Discovered:** slice 011, phase 1
 **Invariant:** After a SWANK abort restart, `%drain-post-abort-messages` must consume `:debug-return`, `:debug`, and `:debug-activate` messages and send `(swank:throw-to-toplevel)` (0 args, on the debug thread) to force return to the REPL loop. Without this, the next `swank-eval` reads stale messages.
 **Rationale:** SWANK re-enters the debugger after abort. The post-abort drain is essential for connection reuse.
+
+## INV-31: Confidence testcase property key is :ORG.MELUSINA.CONFIDENCE/TESTCASE
+
+**Discovered:** slice 012, phase 1
+**Invariant:** Confidence's `define-testcase` marks symbols with the property `:org.melusina.confidence/testcase` (a keyword, not an internal symbol). Testcase discovery scans `symbol-plist` for this key.
+**Rationale:** Initial assumption was `confidence::testcase` (internal symbol). The actual key was found by macroexpanding `define-testcase` → `set-testcase-properties` → `(setf (get sym :org.melusina.confidence/testcase) t)`.
+
+## INV-32: system-apropos must search both *source-registry* and registered-systems
+
+**Discovered:** slice 012, phase 1
+**Invariant:** ASDF system search must cover `asdf/source-registry:*source-registry*` (disk-scanned systems) AND `asdf:registered-systems` (already-loaded systems). Systems loaded via `*central-registry*` do not appear in `*source-registry*`.
+**Rationale:** The Atelier project directory is pushed to `*central-registry*`, not to the source registry configuration. Searching only `*source-registry*` missed all Atelier systems.

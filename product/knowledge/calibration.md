@@ -124,3 +124,15 @@ Running record of where plans over- or under-estimated effort, pass counts, or o
 **Category pattern update:**
 - SWANK-integration stories consistently require 2–3 reworks per story from protocol surprises. Budget 1.5× the naive estimate.
 - Stories that depend on SWANK functions designed for Emacs (containing "for-emacs" in the name, or documented as interacting with Emacs UI state) have a ~50% chance of being unusable from CL clients. Verify via exploratory test before committing the story.
+
+## Slice 012 — ASDF, Quicklisp, Confidence
+
+**Planned phases:** 1 — **Actual phases:** 1
+**Assertion count:** 12 new (659 total).
+**Effort surprises:**
+- Zero SWANK protocol reworks. All 5 tools are thin wrappers over child-worker functions using `connection-eval`. The pattern established in slice 010 is now friction-free.
+- Two data-format reworks: (1) Confidence property key was `:org.melusina.confidence/testcase` not `confidence::testcase`, (2) `system-apropos` needed to search both `*source-registry*` and `registered-systems`. Both caught by first test run.
+
+**Category pattern update:**
+- *Pure tools slices* (thin wrappers over child-worker functions) produce ~2 assertions per tool. Prediction: 10–15 for 5 tools. Actual: 12. The pattern is stable.
+- *Discovery reworks* (finding the right API surface in an external system) cost ~1 test cycle each. Budget one rework per external system touched.

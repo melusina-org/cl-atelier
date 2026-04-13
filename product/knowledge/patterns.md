@@ -108,3 +108,10 @@ Patterns observed across slices that are likely to recur. Each entry names a sig
 **Pattern:** The `define-tool` macro interns `NAME-TOOL` as a class in the current package. If `NAME` shadows a symbol exported from `COMMON-LISP` (like `invoke-restart`, `abort`, `restart`, `continue`), SBCL raises a package lock violation at compile time. The fix is to use a name that doesn't conflict: `select-restart` instead of `invoke-restart`, `abort-debug` instead of `abort`.
 **Signal:** `COMPILE-FILE-ERROR` mentioning "Lock on package COMMON-LISP violated when interning NAME-TOOL."
 **Mitigation:** Before naming a tool, check if the name shadows a CL export: `(find-symbol "NAME" :cl)`. If it does, choose an alternative.
+
+## Pure tools pattern: child-worker function + thin MCP wrapper
+
+**Discovered:** slice 010, phase 2; confirmed slice 012, phase 1
+**Pattern:** The reliable pattern for MCP tools that operate in the child image is: (1) write a function in `atelier/child-worker` that returns an alist, (2) write a `define-tool` wrapper that calls `connection-eval` with a format string invoking the function, (3) `read-from-string` the result. This pattern produces zero SWANK surprises because the only SWANK interaction is `eval-and-grab-output` on a single form. All 5 slice-012 tools used this pattern with zero reworks. Compare with slice 011's 6 reworks from direct SWANK protocol interactions.
+**Signal:** A new tool that needs to run code in the child image.
+**Mitigation:** Default to the child-worker pattern. Only use direct SWANK protocol for operations that require SWANK-specific state (debugger, interrupt, frame inspection).
