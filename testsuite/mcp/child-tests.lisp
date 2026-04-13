@@ -346,8 +346,8 @@
 ;;; ---- Registration and orphan tests ----
 
 (define-testcase validate-tool-registration-count ()
-  "Verify that 23 tools are registered (14 slice 010 + 4 slice 011 + 5 slice 012)."
-  (assert= 23 (hash-table-count atelier/mcp:*tool-registry*)))
+  "Verify that 30 tools are registered (14 s010 + 4 s011 + 5 s012 + 7 s013)."
+  (assert= 30 (hash-table-count atelier/mcp:*tool-registry*)))
 
 (define-testcase validate-no-orphan-sbcl ()
   "Verify no orphan SBCL processes after test suite child cleanup."

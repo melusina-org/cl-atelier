@@ -92,6 +92,7 @@
     :serial t
     :components ((:file "package")
 		 (:file "introspection")
+		 (:file "documentation")
 		 (:file "entry-point")))))
 
 (asdf:defsystem #:org.melusina.atelier/mcp
@@ -125,6 +126,7 @@
 		 (:file "swank-protocol")
 		 (:file "dispatcher")
 		 (:file "server")
+		 (:file "hyperspec")
 		 (:module "tools"
 		  :serial t
 		  :components ((:file "probe-environment")
@@ -150,7 +152,14 @@
 			       (:file "system-info")
 			       (:file "system-apropos")
 			       (:file "list-testcases")
-			       (:file "run-testcase")))))))
+			       (:file "run-testcase")
+			       (:file "apropos-search")
+			       (:file "hyperspec-lookup")
+			       (:file "hyperspec-issue")
+			       (:file "hyperspec-issues")
+			       (:file "macroexpand-form")
+			       (:file "disassemble-symbol")
+			       (:file "compile-form")))))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"
@@ -228,6 +237,7 @@
 			       (:file "child-tests")
 			       (:file "debugger-tests")
 			       (:file "asdf-tools-tests")
+			       (:file "documentation-tools-tests")
 			       (:file "fresh-sbcl-load")
 			       (:file "entrypoint")))
 		 (:file "entrypoint")))))

@@ -142,8 +142,8 @@
 ;;; ---- S6: Tool count ----
 
 (define-testcase validate-asdf-tool-count ()
-  "Verify that 23 tools are registered (18 + 5 new in slice 012)."
-  (assert= 23 (hash-table-count atelier/mcp:*tool-registry*)))
+  "Verify that 30 tools are registered (18 + 5 s012 + 7 s013)."
+  (assert= 30 (hash-table-count atelier/mcp:*tool-registry*)))
 
 
 ;;; ---- Combined runner ----

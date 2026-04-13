@@ -24,6 +24,11 @@
    #:system-info-data
    #:system-apropos-data
    #:list-testcases-data
-   #:run-testcase-data))
+   #:run-testcase-data
+   ;; Slice 013: Documentation tools
+   #:apropos-data
+   #:macroexpand-data
+   #:disassemble-data
+   #:compile-form-data))
 
 ;;;; End of file `package.lisp'

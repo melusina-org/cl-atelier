@@ -46,23 +46,23 @@
          (output (%run-server-on-string input))
          (parsed (decode-from-string (first (split-non-blank-lines output))))
          (tools  (gethash "tools" (gethash "result" parsed))))
-    (assert-eql 23 (length tools))))
+    (assert-eql 30 (length tools))))
 
 (define-testcase validate-handshake-resources-list-returns-three ()
-  "resources/list returns exactly the three concrete resources."
+  "resources/list returns exactly the four concrete resources (3 s009 + 1 s013)."
   (let* ((input (format nil "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"resources/list\"}~%"))
          (output (%run-server-on-string input))
          (parsed (decode-from-string (first (split-non-blank-lines output))))
          (resources (gethash "resources" (gethash "result" parsed))))
-    (assert-eql 3 (length resources))))
+    (assert-eql 4 (length resources))))
 
 (define-testcase validate-handshake-resources-templates-list-returns-five ()
-  "resources/templates/list returns exactly the five URI templates."
+  "resources/templates/list returns exactly the seven URI templates (5 s009 + 2 s013)."
   (let* ((input (format nil "{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"resources/templates/list\"}~%"))
          (output (%run-server-on-string input))
          (parsed (decode-from-string (first (split-non-blank-lines output))))
          (templates (gethash "resourceTemplates" (gethash "result" parsed))))
-    (assert-eql 5 (length templates))))
+    (assert-eql 7 (length templates))))
 
 (define-testcase validate-handshake-malformed-json-parse-error ()
   "Malformed JSON produces a -32700 parse error."
