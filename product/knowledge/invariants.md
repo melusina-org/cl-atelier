@@ -155,3 +155,33 @@ Numbering is global and continuous across all slices.
 **Discovered:** slice 010, phase 2
 **Invariant:** `run-tests-fresh` spawns a separate SBCL subprocess via `uiop:run-program` (synchronous, captures output). The session child is untouched. Enforced by test.
 **Rationale:** Fresh-start testing must be hermetic — no compiled state from prior evals.
+
+## INV-26: eval-form returns debug state, not isError, on debugger entry
+
+**Discovered:** slice 011, phase 1
+**Invariant:** When a child eval enters the SWANK debugger, `eval-form` returns a JSON object with `in_debugger: true`, condition, restarts, backtrace, and level. The `isError` field is false. The agent can act on the debug state without the MCP client treating it as a failure.
+**Rationale:** Auto-aborting on error (slice 010 behavior) hides the restart options from the agent. Returning debug state lets the agent choose how to proceed.
+
+## INV-27: eval-form rejects calls while debugger is active
+
+**Discovered:** slice 011, phase 1
+**Invariant:** When `connection-debug-state` is non-nil, `eval-form` signals `debugger-active` immediately. One eval at a time per session.
+**Rationale:** Overlapping evals while the SWANK debugger is active would deadlock.
+
+## INV-28: swank-eval returns status keyword as first value
+
+**Discovered:** slice 011, phase 1
+**Invariant:** `swank-eval` returns `(VALUES :ok result output)` on success or `(VALUES :debug debug-state output)` on debugger entry. `connection-eval` auto-aborts on `:debug` for backward compatibility.
+**Rationale:** The status keyword lets callers choose between auto-abort (connection-eval) and debug-state exposure (eval-form tool).
+
+## INV-29: SWANK debug requests require the debug thread ID
+
+**Discovered:** slice 011, phase 1
+**Invariant:** All SWANK requests during an active debug session (`backtrace`, `invoke-nth-restart-for-emacs`, `eval-string-in-frame`) must use the thread ID from the `:debug` message, not `t`. Using `t` causes the request to hang.
+**Rationale:** SWANK dispatches `:emacs-rex` per-thread. The debug thread is blocked in the debugger loop; only requests addressed to it reach the debug context.
+
+## INV-30: Post-abort drain with throw-to-toplevel
+
+**Discovered:** slice 011, phase 1
+**Invariant:** After a SWANK abort restart, `%drain-post-abort-messages` must consume `:debug-return`, `:debug`, and `:debug-activate` messages and send `(swank:throw-to-toplevel)` (0 args, on the debug thread) to force return to the REPL loop. Without this, the next `swank-eval` reads stale messages.
+**Rationale:** SWANK re-enters the debugger after abort. The post-abort drain is essential for connection reuse.

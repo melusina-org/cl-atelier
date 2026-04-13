@@ -18,7 +18,8 @@
    #:assert-string=
    #:assert-equal
    #:assert=
-   #:assert-condition)
+   #:assert-condition
+   #:assert-eq)
   (:export
    #:run-swank-tests))
 

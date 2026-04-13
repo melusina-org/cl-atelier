@@ -87,3 +87,24 @@ Patterns observed across slices that are likely to recur. Each entry names a sig
 **Pattern:** When integrating with an external system (SWANK, UNIX pipes), the natural impulse is to write throwaway ad-hoc test scripts in `/tmp/`. Each iteration produces knowledge that is immediately lost. The knowledge gap resurfaces the next time the code is touched. Slice 010 spent ~3 iterations debugging pipe deadlock and ~3 iterations debugging SWANK debug handling via throwaway scripts before creating the exploratory test systems, which immediately exposed both root causes in a single run.
 **Signal:** More than one `/tmp/test-*.lisp` file for the same subsystem in the same session.
 **Mitigation:** After the first ad-hoc test, create a permanent exploratory test system (`org.melusina.atelier/testsuite/<topic>`). Write assertions about the external system's behavior, not about your code. The tests encode learning, not correctness.
+
+## SWANK debug requests require the debug thread ID
+
+**Discovered:** slice 011, phase 1
+**Pattern:** SWANK dispatches `:emacs-rex` requests per-thread. During debugging, the debug thread is blocked in the debugger loop. Requests sent with `t` (the REPL thread) or `:repl-thread` do not reach the debugger context — they hang silently. The correct thread ID is the second element of the `:debug` message. This applies to `backtrace`, `invoke-nth-restart-for-emacs`, and `eval-string-in-frame`.
+**Signal:** Any SWANK request that hangs during an active debug session.
+**Mitigation:** Always capture the thread ID from the `:debug` message and pass it via the `:emacs-rex` envelope's thread parameter. Never use `t` for debug-context operations.
+
+## SWANK re-enters debugger after abort restart
+
+**Discovered:** slice 011, phase 1
+**Pattern:** After sending `invoke-nth-restart-for-emacs` with the ABORT restart (index 0), SWANK sends three additional messages: `(:debug-return THREAD LEVEL)`, `(:debug THREAD LEVEL ...)`, `(:debug-activate THREAD LEVEL)`. The REPL loop catches the abort and re-enters the debugger. Without draining these messages, the next `swank-eval` reads stale data and hangs. The fix is `swank:throw-to-toplevel` (0 arguments, dispatched on the debug thread) which forces return to the REPL loop.
+**Signal:** Second `swank-eval` after an abort cycle hangs.
+**Mitigation:** After receiving the `:return` for an abort restart, drain pending messages with a short timeout. If `:debug-activate` arrives, send `(swank:throw-to-toplevel)` on the debug thread and drain its response.
+
+## CL package lock on define-tool names
+
+**Discovered:** slice 011, phase 1
+**Pattern:** The `define-tool` macro interns `NAME-TOOL` as a class in the current package. If `NAME` shadows a symbol exported from `COMMON-LISP` (like `invoke-restart`, `abort`, `restart`, `continue`), SBCL raises a package lock violation at compile time. The fix is to use a name that doesn't conflict: `select-restart` instead of `invoke-restart`, `abort-debug` instead of `abort`.
+**Signal:** `COMPILE-FILE-ERROR` mentioning "Lock on package COMMON-LISP violated when interning NAME-TOOL."
+**Mitigation:** Before naming a tool, check if the name shadows a CL export: `(find-symbol "NAME" :cl)`. If it does, choose an alternative.

@@ -88,7 +88,14 @@
     :initarg :stdout-drain-thread
     :initform nil
     :documentation "Background thread draining child stdout to prevent
-     pipe deadlock. Started after the port is read."))
+     pipe deadlock. Started after the port is read.")
+   (debug-state
+    :accessor connection-debug-state
+    :initform nil
+    :type (or debug-state null)
+    :documentation "The current debug state if the child is in the
+     debugger, or NIL. Set by eval-form when the debugger is entered,
+     cleared by invoke-restart or abort."))
   (:documentation
    "A connection to a child SBCL image via SWANK over TCP.
     Created by MAKE-CHILD-CONNECTION, which spawns SBCL, loads the
@@ -218,8 +225,22 @@
 
 (defmethod connection-eval ((conn child-connection) form)
   "Evaluate FORM (a string) in the child via the SWANK connection.
-   Returns (VALUES result-string output-string)."
-  (swank-eval (child-connection-swank-conn conn) form))
+   Returns (VALUES result-string output-string). If the eval enters
+   the debugger, auto-aborts and signals an error (preserving slice 010
+   behavior for callers that use connection-eval directly)."
+  (multiple-value-bind (status result output)
+      (swank-eval (child-connection-swank-conn conn) form)
+    (case status
+      (:ok (values result output))
+      (:debug
+       ;; Auto-abort for connection-eval callers (backward compat)
+       (let ((condition-text (debug-state-condition result)))
+         (ignore-errors
+           (swank-invoke-restart (child-connection-swank-conn conn)
+                                 (debug-state-level result) 0
+                                 :thread (debug-state-thread result)))
+         (error "Evaluation aborted: ~A" condition-text)))
+      (otherwise (error "Unexpected eval status: ~S" status)))))
 
 (defmethod connection-shutdown ((conn child-connection))
   "Shut down the child: disconnect SWANK, terminate process, wait."

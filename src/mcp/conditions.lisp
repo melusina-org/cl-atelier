@@ -113,4 +113,12 @@
     connect to its SWANK server, or read the assigned port. Common
     causes: SBCL not on PATH, startup timeout, port not received."))
 
+(define-condition debugger-active (mcp-error)
+  ()
+  (:default-initargs :message "Debugger is active — invoke a restart or abort before evaluating.")
+  (:documentation
+   "Signalled when eval-form is called while the child image is in the
+    debugger. The agent must invoke a restart or abort before issuing
+    a new eval."))
+
 ;;;; End of file `conditions.lisp'

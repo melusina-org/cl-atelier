@@ -119,6 +119,46 @@ What was reworked, why, and what could have prevented it. The most direct learni
 **Preventable?** Yes, by testing the debug lifecycle in an exploratory test before building the auto-abort handler.
 **Lesson:** *SWANK's debug lifecycle is non-obvious: the original eval's :return does not arrive after abort.* This is now documented in INV-24 and tested in `testsuite/swank/wire-protocol.lisp`.
 
+## Slice 011, Phase 1: CL package lock on invoke-restart
+
+**What was reworked:** Tool `invoke-restart` renamed to `select-restart`.
+**Trigger:** SBCL compile error — `define-tool invoke-restart` tried to intern `INVOKE-RESTART-TOOL` in `atelier/mcp` which uses `common-lisp`.
+**Effort cost:** Minor — file rename + grep-replace in tests.
+**Preventable?** Yes, by checking `(find-symbol "INVOKE-RESTART" :cl)` before naming the tool.
+**Lesson:** *Check CL symbol conflicts before naming `define-tool` forms.*
+
+## Slice 011, Phase 1: swank-eval return convention breaks callers
+
+**What was reworked:** `connection-eval` method on `child-connection` updated to unpack the new `(VALUES :ok result output)` return convention.
+**Trigger:** Existing tests broke because `connection-eval` returned `:ok` as the "result" string.
+**Effort cost:** Minor — 1 method rewrite.
+**Preventable?** Yes, by tracing all callers of `swank-eval` before changing its return type.
+**Lesson:** *When changing a function's return convention, update the full caller graph in the same step.*
+
+## Slice 011, Phase 1: SWANK debug thread ID required
+
+**What was reworked:** All SWANK debug functions (backtrace, invoke-restart, eval-in-frame) gained a `:thread` keyword parameter, and all callers updated to pass the thread from `debug-state`.
+**Trigger:** Backtrace tool test hung. Diagnosed by reading the `:debug` message and noticing the thread ID field.
+**Effort cost:** Medium — added `:thread` keyword to 3 SWANK functions + 4 tool callers.
+**Preventable?** Partly — the prototype notes mentioned thread dispatch, but didn't make the thread ID requirement explicit for debug-context operations.
+**Lesson:** *SWANK dispatches :emacs-rex per-thread. Debug-context requests MUST use the debug thread ID.*
+
+## Slice 011, Phase 1: Post-abort message drain
+
+**What was reworked:** Added `%drain-post-abort-messages` function with `throw-to-toplevel`.
+**Trigger:** Repeated debug/abort/eval cycles hung on the second eval.
+**Effort cost:** Significant — new function, protocol investigation, throw-to-toplevel signature fix.
+**Preventable?** No — this is undocumented SWANK behavior.
+**Lesson:** *SWANK re-enters the debugger after abort. Always drain post-abort messages and send throw-to-toplevel.*
+
+## Slice 011, Phase 1: throw-to-toplevel takes 0 arguments
+
+**What was reworked:** Changed `(swank:throw-to-toplevel THREAD)` to `(swank:throw-to-toplevel)`.
+**Trigger:** SWANK entered a level-2 debugger with "invalid number of arguments: 1".
+**Effort cost:** Trivial — 1 format string edit.
+**Preventable?** Yes, by checking the SWANK source for the function signature.
+**Lesson:** *Always verify SWANK function signatures via exploratory test or source inspection.*
+
 ## Slice 010, Phase 2: sb-ext not portable
 
 **What was reworked:** `swank-protocol.lisp` used `sb-ext:string-to-octets` and `sb-ext:octets-to-string`. User feedback: "avoid SB-EXT, use well-established libraries." Fixed: replaced with `flexi-streams:string-to-octets` / `flexi-streams:octets-to-string`. Added `flexi-streams` to MCP dependencies.

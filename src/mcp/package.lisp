@@ -123,6 +123,20 @@
    #:swank-eval
    ;; Session child access (slice 010)
    #:server-child-connection
-   #:ensure-child-connection))
+   #:ensure-child-connection
+   ;; Debug state (slice 011)
+   #:debug-state
+   #:debug-state-condition
+   #:debug-state-restarts
+   #:debug-state-backtrace
+   #:debug-state-level
+   #:debug-state-thread
+   #:connection-debug-state
+   #:debugger-active
+   ;; SWANK debug protocol (slice 011)
+   #:swank-invoke-restart
+   #:swank-backtrace-frames
+   #:swank-eval-in-frame
+   #:swank-interrupt))
 
 ;;;; End of file `package.lisp'

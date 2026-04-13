@@ -110,3 +110,17 @@ Running record of where plans over- or under-estimated effort, pass counts, or o
 **Observation:** Slow tests (child spawn, SWANK eval) produce fewer assertions per testcase than fast tests (pure functions, in-memory parsing). When a phase is dominated by slow tests, the assertion count trends toward the low end of the range. The range prediction was correct; the distribution within the range is predictable from the test-category mix.
 
 **Timing:** Phase 2 child-dependent tests take ~80s total (one child spawn ≈ 20s, eval/introspection ≈ 5s, run-tests-fresh ≈ 30s, run-tests-in-child ≈ 20s, shutdown+orphan ≈ 5s). This is the first slice where test runtime is a material factor.
+
+## Slice 011 — MCP debugger and restarts
+
+**Planned phases:** 1 — **Actual phases:** 1
+**Assertion prediction:** 30–60 — **Actual:** 24. Below the lower bound.
+**Effort surprises:**
+- 6 reworks, all SWANK protocol surprises. Same pattern as slice 010 Phase 2 (5 SWANK reworks). The exploratory test system caught all issues but the diagnosis cost was cumulative.
+- eval-in-frame and timeout deferred — SWANK functions designed for Emacs don't work from CL clients. This is the third instance of this pattern (slice 010: `interactive-eval`, slice 011: `eval-string-in-frame` and `:emacs-interrupt :repl-thread`).
+
+**Root cause of low assertion count:** 2 stories deferred (eval-in-frame, timeout) which would have contributed ~6–10 assertions. The remaining 4 stories produced 21 slow-test assertions — at 5.25 assertions per story, consistent with the "slow tests produce fewer assertions" observation from slice 010.
+
+**Category pattern update:**
+- SWANK-integration stories consistently require 2–3 reworks per story from protocol surprises. Budget 1.5× the naive estimate.
+- Stories that depend on SWANK functions designed for Emacs (containing "for-emacs" in the name, or documented as interacting with Emacs UI state) have a ~50% chance of being unusable from CL clients. Verify via exploratory test before committing the story.

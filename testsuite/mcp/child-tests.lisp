@@ -133,22 +133,26 @@
   (format t "~&;; SKIPPED: validate-eval-form-multiple-values (not SBCL)~%"))
 
 (define-testcase validate-eval-form-error ()
-  "Verify eval-form on a signalling form returns an error."
+  "Verify eval-form on a signalling form returns debug state (slice 011)."
   #+sbcl
   (with-test-child (conn)
-    (declare (ignore conn))
     (let* ((server (make-instance 'atelier/mcp::mcp-server
                                   :stream (make-two-way-stream
                                            (make-string-input-stream "")
                                            (make-string-output-stream))))
            (atelier/mcp::*current-server* server))
       (setf (atelier/mcp:server-child-connection server) *test-child*)
-      (let ((tool (atelier/mcp:find-tool-by-name "atelier:eval-form")))
-        ;; Evaluating an error should signal
-        (assert-condition
-         (atelier/mcp:handle-tool-call tool
-                                       (list (cons "form" "(error \"test error\")")))
-         error))))
+      ;; Clear any stale debug state
+      (setf (atelier/mcp:connection-debug-state conn) nil)
+      (let* ((tool (atelier/mcp:find-tool-by-name "atelier:eval-form"))
+             (result (atelier/mcp:handle-tool-call
+                      tool
+                      (list (cons "form" "(error \"test error\")")))))
+        ;; Should return debug state, not signal error
+        (assert-t (cdr (assoc "in_debugger" result :test #'string=)))
+        ;; Clean up: abort the debugger
+        (let ((abort-tool (atelier/mcp:find-tool-by-name "atelier:abort-debug")))
+          (atelier/mcp:handle-tool-call abort-tool nil)))))
   #-sbcl
   (format t "~&;; SKIPPED: validate-eval-form-error (not SBCL)~%"))
 
@@ -342,8 +346,8 @@
 ;;; ---- Registration and orphan tests ----
 
 (define-testcase validate-tool-registration-count ()
-  "Verify that 14 tools are registered (6 from slice 009 + 8 new)."
-  (assert= 14 (hash-table-count atelier/mcp:*tool-registry*)))
+  "Verify that 18 tools are registered (14 from slice 010 + 4 new in slice 011)."
+  (assert= 18 (hash-table-count atelier/mcp:*tool-registry*)))
 
 (define-testcase validate-no-orphan-sbcl ()
   "Verify no orphan SBCL processes after test suite child cleanup."
