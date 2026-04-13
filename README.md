@@ -174,6 +174,63 @@ Loading the system is sufficient to activate the inspector in subsequent
 `lint-system` calls.
 
 
+## MCP Server
+
+Atelier includes an MCP (Model Context Protocol) server that exposes
+a Common Lisp development environment to AI coding agents. The server
+provides 30 tools covering evaluation, debugging, documentation lookup,
+HyperSpec access, ASDF/Quicklisp operations, and test running.
+
+### Building
+
+Build the standalone binary with ASDF:
+
+```lisp
+(asdf:make "org.melusina.atelier/mcp-server")
+```
+
+This produces the `atelier_mcp` executable in the system source
+directory.
+
+### Installing for Claude Code
+
+Add the server to your Claude Code MCP configuration
+(`~/.claude/claude_code_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "atelier": {
+      "command": "/path/to/atelier_mcp"
+    }
+  }
+}
+```
+
+Replace `/path/to/atelier_mcp` with the actual path to the built
+binary. The server communicates over stdio using JSON-RPC.
+
+### Running from the REPL
+
+Without building a binary, the server can be started directly:
+
+```lisp
+(ql:quickload "org.melusina.atelier/mcp")
+(atelier/mcp:serve-two-way-stream)
+```
+
+### Prerequisites
+
+- **SBCL** — the MCP server and its child SBCL process require SBCL.
+  The server automatically sets `SBCL_HOME` when running from a dumped
+  image.
+- **Quicklisp** — required in the child image for `quickload` support.
+- **HyperSpec** (optional) — install via MacPorts (`sudo port install
+  lisp-hyperspec`) to enable `hyperspec-lookup`, `hyperspec-issue`, and
+  `hyperspec-issues` tools. These tools read from the local filesystem
+  only and never make network requests.
+
+
 ## Installation
 
 ```lisp

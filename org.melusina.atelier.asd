@@ -278,4 +278,13 @@
   ((:module "libexec/lisp"
     :components ((:file "development")))))
 
+(asdf:defsystem #:org.melusina.atelier/mcp-server
+  :description "Build MCP Server from ASDF System"
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:org.melusina.atelier/mcp)
+  :build-operation program-op
+  :build-pathname "atelier_mcp"
+  :entry-point "atelier/mcp:serve-two-way-stream")
+
 ;;;; End of file `org.melusina.atelier.asd'

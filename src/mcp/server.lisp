@@ -40,6 +40,28 @@
     writes; even though slice 009 is single-threaded, the discipline
     is set up here for slice 010's eventual concurrent dispatch."))
 
+(defvar *sbcl-home-at-build-time* nil
+  "Captured at load time so the dumped image remembers where SBCL lived.")
+
+#+sbcl
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (let ((home (sb-int:sbcl-homedir-pathname)))
+    (when home
+      (setf *sbcl-home-at-build-time* (namestring home)))))
+
+(defun %ensure-sbcl-home ()
+  "Set SBCL_HOME if not already set. When running from a dumped image,
+   sb-int:sbcl-homedir-pathname may return NIL, so we fall back to the
+   value captured at build time."
+  #+sbcl
+  (unless (uiop:getenv "SBCL_HOME")
+    (let ((home (or (let ((p (sb-int:sbcl-homedir-pathname)))
+                      (when p (namestring p)))
+                    *sbcl-home-at-build-time*)))
+      (when home
+        (setf (uiop:getenv "SBCL_HOME") home))))
+  (values))
+
 (defun serve-two-way-stream (&optional
                                (stream (make-two-way-stream
                                         *standard-input*
@@ -52,6 +74,7 @@
    *standard-output*, which is the production launch path.
    Test paths pass an explicit stream built from string-input-streams
    and string-output-streams to drive the server with recorded fixtures."
+  (%ensure-sbcl-home)
   (let* ((transcript (handler-case (make-transcript)
                        (error () nil)))
          (server (make-instance 'mcp-server
