@@ -136,3 +136,17 @@ Running record of where plans over- or under-estimated effort, pass counts, or o
 **Category pattern update:**
 - *Pure tools slices* (thin wrappers over child-worker functions) produce ~2 assertions per tool. Prediction: 10–15 for 5 tools. Actual: 12. The pattern is stable.
 - *Discovery reworks* (finding the right API surface in an external system) cost ~1 test cycle each. Budget one rework per external system touched.
+
+## Slice 013 — MCP Documentation Tools
+
+**Planned phases:** 1 — **Actual phases:** 1
+**Assertion count:** 36 new (695 total).
+**Effort surprises:**
+- Zero SWANK reworks. All 4 child tools followed the established pure-tools pattern.
+- One package-lock rework (apropos → apropos-search). Caught on first compile, fixed in 2 minutes.
+- Count assertion updates touched 5 files across 3 prior slices — mechanical but wide-reaching.
+
+**Category pattern update:**
+- *Pure tools slices* produce ~5 assertions per tool. Prediction: 30–40 for 7 tools. Actual: 36. Slightly higher than slice 012 (2/tool) due to HyperSpec tests having more assertions per tool (known/unknown × tool/resource).
+- *HyperSpec tools* (parent-side, filesystem I/O) are effectively zero-risk. No protocol surprises, no external system API discovery. Budget as XS effort.
+- *Count assertion drift* is now a reliable 5-file-edit per slice. Consider consolidating to a single canonical count assertion to reduce this overhead.

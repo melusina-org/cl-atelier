@@ -197,3 +197,21 @@ Numbering is global and continuous across all slices.
 **Discovered:** slice 012, phase 1
 **Invariant:** ASDF system search must cover `asdf/source-registry:*source-registry*` (disk-scanned systems) AND `asdf:registered-systems` (already-loaded systems). Systems loaded via `*central-registry*` do not appear in `*source-registry*`.
 **Rationale:** The Atelier project directory is pushed to `*central-registry*`, not to the source registry configuration. Searching only `*source-registry*` missed all Atelier systems.
+
+## INV-33: HyperSpec tools read only from the local filesystem
+
+**Discovered:** slice 013, phase 1
+**Invariant:** All HyperSpec tools (`hyperspec-lookup`, `hyperspec-issue`, `hyperspec-issues`) read from the local MacPorts installation at `/opt/local/share/doc/lisp/HyperSpec-7-0/HyperSpec/`. They never make network requests.
+**Rationale:** Network requests would add latency, require error handling for connectivity, and introduce a dependency on an external service. The local installation is complete and authoritative.
+
+## INV-34: HyperSpec tools gracefully unavailable when not installed
+
+**Discovered:** slice 013, phase 1
+**Invariant:** When the local HyperSpec installation is absent, `hyperspec-available-p` returns NIL and HyperSpec tests skip gracefully. Tools return an `mcp-error` with an installation instruction.
+**Rationale:** Not every developer machine has MacPorts lisp-hyperspec installed. The MCP server must start and function for all other tools even when HyperSpec is unavailable.
+
+## INV-35: Tool names never shadow CL exports
+
+**Discovered:** slice 013, phase 1
+**Invariant:** Every `define-tool` name must not be an external symbol of `COMMON-LISP`. The `define-tool` macro creates `NAME-TOOL` which requires interning `NAME` in the current package; if that package uses CL and `NAME` is a CL export, SBCL raises a package lock violation.
+**Rationale:** `define-tool apropos` failed because `CL:APROPOS` is exported. Renamed to `apropos-search`. See PAT-11.

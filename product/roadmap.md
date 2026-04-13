@@ -1,9 +1,10 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-13 (slice 012 complete)
+**Last updated:** 2026-04-13 (slice 013 complete)
 
 ## Now (in progress)
 
 (none — ready for next slice)
+
 
 ## Completed
 
@@ -21,18 +22,18 @@
 | [010-editor-foundation-and-mcp-eval](slice/010-editor-foundation-and-mcp-eval/slice.md) | New capability | G5 | ✅ |
 | [011-mcp-debugger-and-restarts](slice/011-mcp-debugger-and-restarts/slice.md) | New capability | G5 | ✅ |
 | [012-mcp-asdf-quicklisp-confidence](slice/012-mcp-asdf-quicklisp-confidence/slice.md) | New capability | G5 | ✅ |
+| [013-mcp-documentation-tools](slice/013-mcp-documentation-tools/slice.md) | New capability | G5 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
 | Item | Type | Goal addressed | Notes |
 |------|------|----------------|-------|
-| 013 — MCP documentation: describe/apropos/hyperspec, macroexpand, disassemble (#9) | New capability | G5 | CLHS available locally via MacPorts; X3J13 issue documents exposed as `lisp://hyperspec/issues/<id>` resources. |
+| 014 — MCP xref + inspector + trace + `who-tests`/`run-impacted` (#10) | New capability | G5 | `who-tests` filters xref callers to Confidence testcase property. |
 
 ## Later (probable but not yet scheduled)
 
 | Item | Goal addressed | Notes |
 |------|----------------|-------|
-| 013 — MCP documentation: describe/apropos/hyperspec (with X3J13 issues), source-location, compile-with-notes, disassemble, macroexpand (#9) | G5 | CLHS available locally via MacPorts; X3J13 issue documents exposed as `lisp://hyperspec/issues/<id>` resources. |
 | 014 — MCP xref + inspector + trace + `who-tests`/`run-impacted` (#10) | G5 | `who-tests` filters xref callers to those carrying the Confidence testcase property — differentiator over generic Lisp MCP servers. |
 | 015 — MCP refactorings: rename-symbol, rename-package, rename-system, unintern, unexport, remove-method, **lint-passthrough** (#11) | G5 | Lint-passthrough is the bridge between MCP server and Atelier linter. |
 | 016 — MCP domain diagnostics: CFFI, bordeaux-threads, SBCL profiling (#12) | G5 | SBCL profiling is `#+sbcl`. |
@@ -97,3 +98,4 @@
 | 2026-04-12 | Slice 011 (MCP debugger and restarts) planned and moved to Now. Five new debugger tools, eval-form debug state exposure, eval-form timeout. Delivers backlog #7 and deferred AC28. |
 | 2026-04-13 | Slice 011 completed — verdict ✅ Supported. Moved to Completed. 647/647 tests passing. Four new tools: select-restart, abort-debug, backtrace-frames, eval-in-frame. Two items deferred: eval-in-frame SWANK hang, eval-form timeout interrupt delivery. |
 | 2026-04-13 | Slice 012 completed — verdict ✅ Supported. Moved to Completed. 659/659 tests passing. Five new tools: quickload, system-info, system-apropos, list-testcases, run-testcase. Confidence testcase discovery via :ORG.MELUSINA.CONFIDENCE/TESTCASE property. |
+| 2026-04-13 | Slice 013 completed — verdict ✅ Supported. Moved to Completed. 695/695 tests passing. Seven new tools: apropos-search, hyperspec-lookup, hyperspec-issue, hyperspec-issues, macroexpand-form, disassemble-symbol, compile-form. HyperSpec reads from local MacPorts installation. |

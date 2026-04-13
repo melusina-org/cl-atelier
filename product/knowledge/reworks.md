@@ -182,3 +182,11 @@ What was reworked, why, and what could have prevented it. The most direct learni
 **Effort cost:** Mechanical — find-and-replace + dependency addition.
 **Preventable?** Yes, by defaulting to portable libraries from the start.
 **Lesson:** *Default to portable well-established libraries (flexi-streams, alexandria, bordeaux-threads, closer-mop, usocket) instead of implementation-specific extensions.* SB-EXT is a convenience; portability is a design principle.
+
+## Slice 013, Phase 1: apropos → apropos-search (CL package lock)
+
+**What was reworked:** `define-tool apropos` triggered SBCL package lock violation because `CL:APROPOS` is exported from COMMON-LISP. Interning `APROPOS-TOOL` in `atelier/mcp` (which uses CL) tripped the lock. Renamed to `apropos-search`.
+**Trigger:** PAT-11 (CL package lock on define-tool names) — known pattern, but the plan used the bare name anyway.
+**Effort cost:** Minor — file rename + 2 test string replacements, ~2 minutes.
+**Preventable?** Yes, by checking `(find-symbol "APROPOS" :cl)` during planning. The pattern knowledge file explicitly warns about this.
+**Lesson:** *During planning, grep CL exports for every tool name. `(do-external-symbols (s :cl) ...)` or `(find-symbol NAME :cl)` catches conflicts before compile time.*
