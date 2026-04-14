@@ -33,7 +33,6 @@
    #:list-template-parameter-names
    #:list-licenses
    #:write-template
-   #:initialize
    #:new-lisp-project
    #:new-lisp-file
 
@@ -50,11 +49,14 @@
    #:lisp-source
    #:shell-stdlib
    #:shell-script
+   #:shell-source
    #:lisp-development-makedoc
    #:texinfo
    #:lisp-development-lint
    #:lisp-development-build
    #:lisp-development-test
+   #:lisp-system-entry-point
+   #:lisp-test-entry-point
    #:project-files
    #:lisp-system-scaffolding
    #:devops-actions
@@ -71,8 +73,7 @@
    #:license-text
    #:license-spdx-identifier
    #:find-license
-   #:template-repository-empty-p
-
+   
    ;; Finding hierarchy
    #:finding
    #:file-finding
@@ -294,10 +295,14 @@
    #:read-file-documents-with-yaml-front-matter
    #:read-stream-documents-with-yaml-front-matter
    #:define-named-class
-   ))
+
+   ;; Initialization
+   #:initialize
+   #:initialized-p))
 
 (in-package #:atelier)
 
 (declaim (ftype (function nil (values null)) initialize))
+(declaim (ftype (function nil (values (or nil t))) initialized-p))
 
 ;;;; End of file `package.lisp'

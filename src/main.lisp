@@ -10,6 +10,11 @@
 
 (in-package #:atelier)
 
+(defun initialized-p ()
+  (and (gethash :mit *license-repository*)
+       (gethash 'license *template-repository*)
+       t))
+  
 (defun initialize ()
   (license-repository-load)
   (template-repository-load)

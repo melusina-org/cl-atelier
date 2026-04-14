@@ -87,6 +87,10 @@ The file format is expected to have three documents separated by '---':
 
 (defun find-license (designator)
   "Find license by DESIGNATOR in *LICENSE-REPOSITORY*."
+  (unless (initialized-p)
+    (restart-case (error "The license resources are not initialized.")
+      (initialize ()
+	(initialize))))
   (cond
     ((typep designator 'license)
      designator)
