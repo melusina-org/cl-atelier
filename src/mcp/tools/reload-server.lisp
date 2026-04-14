@@ -18,6 +18,12 @@
     child connection is preserved — only the parent image is updated.
     Use after editing source files to pick up changes without
     rebuilding the binary or reconnecting.")
+  ;; Clear tool registries before reload so stale definitions (e.g.
+  ;; tools with changed lambda lists) don't persist. The define-tool
+  ;; macro re-registers every tool at load time.
+  (clrhash *tool-registry*)
+  (clrhash *concrete-resource-registry*)
+  (clrhash *template-resource-registry*)
   (let ((results nil)
         (errors nil))
     (flet ((reload-one (system-name)

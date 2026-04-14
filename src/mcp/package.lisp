@@ -10,6 +10,29 @@
 
 
 ;;;;
+;;;; Reload preparation — resolve symbol conflicts in live images
+;;;;
+
+;;; When reloading in a live image where atelier/mcp already exists
+;;; with its own home symbols, introducing :use of atelier/mcp-kernel
+;;; would conflict. We unintern the symbols from atelier/mcp first so
+;;; they can be inherited from the kernel cleanly.
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (let ((mcp-pkg (find-package :atelier/mcp))
+        (kernel-pkg (find-package :atelier/mcp-kernel)))
+    (when (and mcp-pkg kernel-pkg
+               (not (member kernel-pkg (package-use-list mcp-pkg))))
+      ;; atelier/mcp exists but doesn't yet :use the kernel.
+      ;; Unintern symbols that the kernel exports, so defpackage
+      ;; can import them via :use without conflict.
+      (do-external-symbols (sym kernel-pkg)
+        (let ((existing (find-symbol (symbol-name sym) mcp-pkg)))
+          (when (and existing (eq (symbol-package existing) mcp-pkg))
+            (unintern existing mcp-pkg)))))))
+
+
+;;;;
 ;;;; MCP Kernel — reusable MCP server framework
 ;;;;
 
