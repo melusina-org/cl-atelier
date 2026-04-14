@@ -145,7 +145,19 @@
      :system-name system-name
      :package-name package-name)))
 
+(define-testcase validate-template-idempotent-write ()
+  "Verify that new-lisp-project can be called twice on the same directory
+   without signalling an error (regression for FILE-EXISTS crash fixed in
+   slice 014)."
+  (with-temporary-directory (pathname)
+    (with-fixed-parameter-bindings nil
+      (atelier:new-lisp-project pathname)
+      (atelier:new-lisp-project pathname))
+    (assert-t (uiop:file-exists-p
+               (merge-pathnames "src/package.lisp" pathname)))))
+
 (define-testcase testsuite-template ()
+  (validate-template-idempotent-write)
   (ensure-a-lisp-project-is-created-for-the-golden-path)
   (ensure-a-lisp-project-is-created-fully-functional
    :project-filename "example"

@@ -104,6 +104,18 @@ tool/resource definitions from disk.
 - A test verifies that `new-lisp-project` can be called twice on the
   same directory without error
 
+### S7: Child process cap and PID ownership (added during phase 1)
+**In order to** prevent runaway child process spawning,
+**a** developer **can** rely on the MCP server to enforce a concurrent child
+cap and track PIDs.
+**Acceptance criteria:**
+- Server never has more than `max-children` (default 3) concurrent
+  child connections
+- Every child connection exposes its OS PID via `connection-pid`
+- When eval-form times out and the child is unresponsive, the server
+  kills the child by PID, extracts diagnostics, and returns an error
+- Next tool call after a killed child gets a fresh one
+
 ## Quality Criteria
 
 - [ ] No broken-pipe errors surface to MCP clients under any child crash
@@ -111,6 +123,7 @@ tool/resource definitions from disk.
 - [ ] MCP test suite completes in <90s in fresh SBCL
 - [ ] `reload-server` preserves child connection and session state
 - [ ] All 40+ tools still function after `reload-server`
+- [ ] No more than 3 concurrent child SBCLs at any point during test suite
 - [ ] CLAUDE.md updated
 
 ## Definition of Ready

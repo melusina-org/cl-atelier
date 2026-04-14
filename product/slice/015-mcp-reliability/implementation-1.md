@@ -340,9 +340,119 @@ Carried forward from prior slices (INV-1 through INV-40). New:
 
 ## Phase Closure Conditions
 
-- All acceptance criteria AC1–AC12 verified
+- All acceptance criteria AC1–AC15 verified
 - Full MCP test suite passes under shared child (S3 structural proof)
 - `atelier/mcp-kernel` loads independently in fresh SBCL
 - No orphan SBCL processes after test run
 - CLAUDE.md updated with new system
 - Tool count assertion updated if changed
+
+---
+
+## Amendment 1: Child Process Cap and PID Ownership (2026-04-14)
+
+**Trigger:** During step 1 execution, the MCP test suite spawned hundreds
+of SBCL child processes — each child-dependent test group spawned its own
+child, and `run-tests-fresh` spawned additional fresh SBCLs. The machine
+ran out of resources. The root cause: no cap on concurrent children, no
+PID tracking, no timeout kill-and-respawn.
+
+**New requirement from user:**
+1. Cap on concurrent child processes (default 3, adjustable)
+2. Every child has its PID tracked explicitly
+3. When a tool call times out, extract diagnostics + stderr, kill the
+   child, and respawn
+
+### Design
+
+**Kernel level (`image-connection.lisp` + `server.lisp`):**
+
+The abstract `image-connection` gains a `connection-pid` generic:
+```lisp
+(defgeneric connection-pid (connection)
+  "Return the OS process ID of CONNECTION's image, or NIL.")
+```
+
+The `mcp-server` gains a child process cap:
+```lisp
+(defclass mcp-server ()
+  (...
+   (max-children
+    :initarg :max-children
+    :reader server-max-children
+    :initform 3
+    :type (integer 1)
+    :documentation "Maximum concurrent child connections.")
+   (children
+    :accessor server-children
+    :initform nil
+    :type list
+    :documentation "List of active IMAGE-CONNECTION instances."))
+  ...)
+```
+
+`ensure-child-connection` enforces the cap:
+```lisp
+(defun ensure-child-connection (server)
+  "Return the session's primary connection, respawning if dead.
+   Enforces SERVER-MAX-CHILDREN cap by shutting down the oldest
+   idle connection when at capacity."
+  ...)
+```
+
+**MCP level (`child-connection.lisp`):**
+
+`child-connection` implements `connection-pid`:
+```lisp
+(defmethod connection-pid ((conn child-connection))
+  (let ((info (connection-process-info conn)))
+    (when info (uiop/launch-program:process-info-pid info))))
+```
+
+**Timeout kill-and-respawn in `eval-form`:**
+
+When `swank-eval` times out (SWANK interrupt fails or hangs), the tool:
+1. Extracts any partial output from the SWANK connection
+2. Calls `connection-shutdown` (kills the child by PID)
+3. Clears the connection so `ensure-child-connection` respawns
+4. Returns an error result with diagnostics
+
+### Amended Risk Register
+
+| # | Risk | Category | Mitigation |
+|---|------|----------|-----------|
+| R8 | Cap of 3 may be too low for `run-tests-fresh` which spawns a separate SBCL | Resource | `run-tests-fresh` spawns via `uiop:run-program` (synchronous, not tracked as a child connection). Only SWANK-connected children count toward the cap. |
+| R9 | `uiop/launch-program:process-info-pid` may not be portable | Portability | SBCL-specific `#+sbcl` guard with fallback to nil. PID is diagnostic, not load-bearing. |
+
+### Amended Step Table
+
+Insert after step 12 (server.lisp):
+
+| Step | File | Action | Form(s) | Test | Cat |
+|------|------|--------|---------|------|:---:|
+| 12a | `src/mcp/image-connection.lisp` | modify | Add `connection-pid` generic (returns nil by default) | — | — |
+| 12b | `src/mcp/server.lisp` | modify | Add `max-children`, `children` slots; enforce cap in `ensure-child-connection` | — | — |
+| 13 | `src/mcp/child-connection.lisp` | new | (as before, plus `connection-pid` method using `uiop` process-info) | — | — |
+| 16a | `testsuite/mcp/health-check-tests.lisp` | new | Add `validate-child-cap-enforced`, `validate-connection-pid-tracked` | S1 tests | slow |
+| 19a | `src/mcp/tools/eval-form.lisp` | modify | On timeout: extract diagnostics, kill child by PID, clear connection | — | — |
+
+### Amended Invariants
+
+- **INV-46:** The MCP server never has more than `server-max-children`
+  concurrent child connections. `ensure-child-connection` enforces this
+  by shutting down the oldest idle connection when at capacity.
+- **INV-47:** Every `image-connection` exposes its OS PID via
+  `connection-pid`. The kernel generic returns NIL; concrete subclasses
+  return the actual PID.
+- **INV-48:** When `eval-form` times out and the child is unresponsive,
+  the server kills the child process (by PID), extracts available
+  diagnostics, and returns an error result. The next tool call gets a
+  fresh child.
+
+### Amended Acceptance Criteria
+
+| # | Criterion | Mapped to |
+|---|-----------|-----------|
+| AC13 | Server never exceeds `max-children` concurrent connections | S1 (amended) |
+| AC14 | `connection-pid` returns the OS PID of a live child | S1 (amended) |
+| AC15 | Timed-out eval kills the child and next call gets a fresh one | S1 (amended) |
