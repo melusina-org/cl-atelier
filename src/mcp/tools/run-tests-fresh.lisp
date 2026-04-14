@@ -34,12 +34,14 @@
          (ql-setup (%quicklisp-setup-path))
          (start (get-internal-real-time))
          (colon-pos (position #\: testcase-designator))
-         (pkg-name (if colon-pos
-                       (subseq testcase-designator 0 colon-pos)
-                       "CL-USER"))
-         (sym-name (if colon-pos
-                       (string-left-trim ":" (subseq testcase-designator colon-pos))
-                       testcase-designator))
+         (pkg-name (string-upcase
+                    (if colon-pos
+                        (subseq testcase-designator 0 colon-pos)
+                        "CL-USER")))
+         (sym-name (string-upcase
+                    (if colon-pos
+                        (string-left-trim ":" (subseq testcase-designator colon-pos))
+                        testcase-designator)))
          (run-form (format nil "(uiop:symbol-call ~S ~S)" pkg-name sym-name)))
     (multiple-value-bind (stdout stderr exit-code)
         (uiop:run-program
