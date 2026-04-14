@@ -95,18 +95,14 @@
 		 (:file "documentation")
 		 (:file "entry-point")))))
 
-(asdf:defsystem #:org.melusina.atelier/mcp
-  :description "MCP server skeleton for Atelier."
+(asdf:defsystem #:org.melusina.atelier/mcp-kernel
+  :description "Reusable MCP server framework — protocol, dispatch, tool registry."
   :author "Michaël Le Barbier"
   :license "MIT License"
   :depends-on (#:alexandria
 	       #:bordeaux-threads
 	       #:uiop
-	       #:usocket
-	       #:flexi-streams
-	       #:com.inuoe.jzon
-	       #:org.melusina.atelier
-	       #:org.melusina.atelier/editor)
+	       #:com.inuoe.jzon)
   :components
   ((:module "src/mcp"
     :serial t
@@ -120,12 +116,31 @@
 		 (:file "tool")
 		 (:file "message")
 		 (:file "define-tool")
-		 (:file "transcript-render")
-		 (:file "transcript")
 		 (:file "image-connection")
-		 (:file "swank-protocol")
 		 (:file "dispatcher")
 		 (:file "server")
+		 (:module "tools"
+		  :components ((:file "reload-server")))))))
+
+(asdf:defsystem #:org.melusina.atelier/mcp
+  :description "Atelier MCP server — SWANK transport, tools, HyperSpec."
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:alexandria
+	       #:bordeaux-threads
+	       #:uiop
+	       #:usocket
+	       #:flexi-streams
+	       #:org.melusina.atelier/mcp-kernel
+	       #:org.melusina.atelier
+	       #:org.melusina.atelier/editor)
+  :components
+  ((:module "src/mcp"
+    :serial t
+    :components ((:file "transcript-render")
+		 (:file "transcript")
+		 (:file "swank-protocol")
+		 (:file "child-connection")
 		 (:file "hyperspec")
 		 (:module "tools"
 		  :serial t
@@ -170,8 +185,7 @@
 			       (:file "trace-function")
 			       (:file "untrace-function")
 			       (:file "who-tests")
-			       (:file "run-impacted")
-			       (:file "reload-server")))))))
+			       (:file "run-impacted")))))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"

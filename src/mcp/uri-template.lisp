@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 ;;; Atelier's URI templates are a level-1 subset of RFC 6570: a single
 ;;; {name} placeholder within an otherwise literal URI. No reserved

@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 (define-tool reload-server ()
   (:description

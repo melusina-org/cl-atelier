@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 ;;; DEFINE-TOOL is the single entry point for registering tools,
 ;;; resources, and dual-exposed definitions. Full design in

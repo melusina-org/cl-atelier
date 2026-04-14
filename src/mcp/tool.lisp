@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 ;;; Tool hierarchy. Concrete tool classes are generated per
 ;;; define-tool form. Each tool class carries its metadata on reader

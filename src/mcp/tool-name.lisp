@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 ;;; Tool names are derived from the symbol's home package and name per
 ;;; the rules in references/define-tool-macro.md:

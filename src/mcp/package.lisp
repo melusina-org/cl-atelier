@@ -1,4 +1,4 @@
-;;;; package.lisp — Package for the Atelier MCP server
+;;;; package.lisp — Packages for MCP kernel and MCP server
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -8,7 +8,12 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(defpackage #:atelier/mcp
+
+;;;;
+;;;; MCP Kernel — reusable MCP server framework
+;;;;
+
+(defpackage #:atelier/mcp-kernel
   (:use #:common-lisp)
   (:export
    ;; Protocol version
@@ -90,7 +95,136 @@
    #:error-code
    #:error-message
    #:error-data
-   ;; Transcript
+   ;; Image connection (abstract)
+   #:image-connection
+   #:connection-id
+   #:connection-process-info
+   #:connection-pid
+   #:connection-eval
+   #:connection-shutdown
+   #:connection-alive-p
+   ;; Server
+   #:mcp-server
+   #:server-stream
+   #:server-child-connection
+   #:server-connection-class
+   #:server-connection-initargs
+   #:server-max-children
+   #:server-children
+   #:ensure-child-connection
+   #:*current-server*
+   ;; Transcript protocol (generic — transport provides methods)
+   #:write-transcript-entry))
+
+
+;;;;
+;;;; MCP — Atelier-specific transport (SWANK, transcript, tools)
+;;;;
+
+(defpackage #:atelier/mcp
+  (:use #:common-lisp #:atelier/mcp-kernel)
+  (:export
+   ;; Re-export all kernel symbols
+   ;; Protocol version
+   #:+mcp-protocol-version+
+   ;; Entry point
+   #:serve-two-way-stream
+   ;; Conditions
+   #:mcp-error
+   #:tool-not-found
+   #:resource-not-found
+   #:not-implemented
+   #:invalid-tool-arguments
+   #:invalid-uri-template
+   ;; JSON utilities
+   #:+json-null+
+   #:+json-true+
+   #:+json-false+
+   #:encode-to-string
+   #:decode-from-string
+   #:make-json-object
+   #:alist-to-json-object
+   #:plist-to-json-object
+   #:json-object-to-alist
+   #:missing-key
+   ;; Tool-name helper
+   #:derive-tool-name-from-symbol
+   ;; Input-schema helper
+   #:derive-input-schema-from-lambda-list
+   ;; URI template helper
+   #:parse-uri-template
+   #:match-uri-against-template
+   #:validate-uri-template-against-lambda-list
+   #:uri-template-static-p
+   ;; Tool class and registries
+   #:tool
+   #:resource-tool
+   #:tool-name
+   #:tool-description
+   #:tool-input-schema
+   #:resource-uri-template
+   #:resource-name
+   #:resource-mime-type
+   #:handle-tool-call
+   #:register-tool
+   #:*tool-registry*
+   #:*concrete-resource-registry*
+   #:*template-resource-registry*
+   #:list-tools
+   #:list-concrete-resources
+   #:list-template-resources
+   #:find-tool-by-name
+   #:find-concrete-resource-by-uri
+   #:match-resource-uri
+   ;; Define-tool macro
+   #:define-tool
+   ;; Message hierarchy
+   #:mcp-message
+   #:mcp-request
+   #:mcp-notification
+   #:mcp-response
+   #:mcp-success-response
+   #:mcp-error-response
+   #:initialize-request
+   #:initialized-notification
+   #:tools-list-request
+   #:tools-call-request
+   #:resources-list-request
+   #:resources-templates-list-request
+   #:resources-read-request
+   #:parse-mcp-message
+   #:handle-message
+   #:message-raw-json
+   #:message-timestamp
+   #:request-id
+   #:request-method
+   #:request-params
+   #:response-request
+   #:response-result
+   #:error-code
+   #:error-message
+   #:error-data
+   ;; Image connection (abstract — from kernel)
+   #:image-connection
+   #:connection-id
+   #:connection-process-info
+   #:connection-pid
+   #:connection-eval
+   #:connection-shutdown
+   #:connection-alive-p
+   ;; Server (from kernel)
+   #:mcp-server
+   #:server-stream
+   #:server-child-connection
+   #:server-connection-class
+   #:server-connection-initargs
+   #:server-max-children
+   #:server-children
+   #:ensure-child-connection
+   #:*current-server*
+   ;; Transcript protocol (from kernel)
+   #:write-transcript-entry
+   ;; Transcript (mcp-specific)
    #:transcript
    #:make-transcript
    #:transcript-session-id
@@ -101,19 +235,13 @@
    #:read-transcript-entries
    #:sexp-to-json-entries
    #:sexp-to-markdown-entries
-   ;; Image connection
-   #:image-connection
-   #:connection-id
-   #:connection-process-info
-   #:connection-eval
-   #:connection-shutdown
-   #:connection-alive-p
-   ;; Child connection (slice 010)
+   ;; Child connection (SWANK transport)
    #:child-connection
    #:make-child-connection
    #:child-connection-port
+   #:child-connection-swank-conn
    #:child-image-spawn-failed
-   ;; SWANK protocol client (slice 010)
+   ;; SWANK protocol client
    #:swank-connection
    #:swank-connect
    #:swank-disconnect
@@ -121,10 +249,10 @@
    #:swank-send-raw
    #:swank-receive
    #:swank-eval
-   ;; Session child access (slice 010)
+   ;; Session child access
    #:server-child-connection
    #:ensure-child-connection
-   ;; Debug state (slice 011)
+   ;; Debug state
    #:debug-state
    #:debug-state-condition
    #:debug-state-restarts
@@ -133,7 +261,7 @@
    #:debug-state-thread
    #:connection-debug-state
    #:debugger-active
-   ;; SWANK debug protocol (slice 011)
+   ;; SWANK debug protocol
    #:swank-invoke-restart
    #:swank-backtrace-frames
    #:swank-eval-in-frame

@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 (alexandria:define-constant +mcp-protocol-version+ "2024-11-05"
   :test #'string=

@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 ;;; The class hierarchy mirrors JSON-RPC 2.0 with MCP method classes
 ;;; as concrete request subclasses. See references/message-hierarchy.md.

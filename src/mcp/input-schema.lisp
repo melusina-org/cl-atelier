@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 ;;; JSON Schema derivation rules live in references/define-tool-macro.md.
 ;;; Supported lambda lists: empty () and keyword-only (&key a b c).

@@ -1,4 +1,4 @@
-;;;; server.lisp — serve-two-way-stream entry point
+;;;; server.lisp — serve-two-way-stream entry point (MCP kernel)
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -8,13 +8,15 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/mcp)
+(in-package #:atelier/mcp-kernel)
 
 ;;; The server reads JSON-RPC frames from a TWO-WAY-STREAM, parses
-;;; them, dispatches via HANDLE-MESSAGE, and writes the response back.
-;;; SERVE-TWO-WAY-STREAM is the only entry point shipped in slice 009.
-;;; Slice 010 will add a thin shell wrapper that exec's SBCL with this
-;;; called from --eval, but the dump-image work is its own slice.
+;;; them, dispatches via HANDLE-MESSAGE, and writes responses back.
+;;; SERVE-TWO-WAY-STREAM is the only entry point shipped in the kernel.
+;;; The connection-class/connection-initargs pattern (borrowed from
+;;; Hunchentoot's acceptor) allows concrete transports to plug in
+;;; without the kernel knowing about SWANK, TCP, or any specific
+;;; transport mechanism.
 
 (defclass mcp-server ()
   ((stream
@@ -24,21 +26,46 @@
    (transcript
     :initarg :transcript
     :reader server-transcript
-    :type (or transcript null)
-    :initform nil)
+    :type t
+    :initform nil
+    :documentation "Transcript object (opaque to the kernel). Set by the
+     transport layer's serve-two-way-stream wrapper.")
    (output-mutex
     :reader server-output-mutex
     :initform (bordeaux-threads:make-lock "atelier/mcp output"))
+   (connection-class
+    :initarg :connection-class
+    :reader server-connection-class
+    :initform 'image-connection
+    :documentation "Class designator for make-instance when spawning a
+     connection. Set by the transport layer.")
+   (connection-initargs
+    :initarg :connection-initargs
+    :reader server-connection-initargs
+    :initform nil
+    :documentation "Plist of initargs passed to make-instance for the
+     connection class.")
+   (max-children
+    :initarg :max-children
+    :reader server-max-children
+    :initform 3
+    :type (integer 1)
+    :documentation "Maximum concurrent child connections.")
+   (children
+    :accessor server-children
+    :initform nil
+    :type list
+    :documentation "List of active IMAGE-CONNECTION instances.")
    (child-connection
     :accessor server-child-connection
     :initform nil
-    :documentation "The session's child SBCL connection, created lazily
+    :documentation "The session's primary child connection, created lazily
      on the first eval-form call. Shut down when the session ends."))
   (:documentation
-   "An MCP server instance bound to a two-way stream and an optional
-    session transcript. Single output mutex serialises response
-    writes; even though slice 009 is single-threaded, the discipline
-    is set up here for slice 010's eventual concurrent dispatch."))
+   "An MCP server instance bound to a two-way stream. The
+    connection-class and connection-initargs slots parametrise child
+    connection creation (Hunchentoot acceptor pattern). The kernel never
+    mentions any concrete connection subclass."))
 
 (defvar *sbcl-home-at-build-time* nil
   "Captured at load time so the dumped image remembers where SBCL lived.")
@@ -62,45 +89,51 @@
         (setf (uiop:getenv "SBCL_HOME") home))))
   (values))
 
-(defun serve-two-way-stream (&optional
-                               (stream (make-two-way-stream
-                                        *standard-input*
-                                        *standard-output*)))
-  "Serve the MCP protocol over STREAM. Reads JSON-RPC requests one
-   line at a time, dispatches them, and writes responses to the same
-   stream. Returns when the input side reaches EOF.
+(defun %make-connection (server)
+  "Create a new child connection using the server's connection-class
+   and connection-initargs. Registers the connection in SERVER-CHILDREN."
+  (let ((conn (apply #'make-instance
+                     (server-connection-class server)
+                     (server-connection-initargs server))))
+    (push conn (server-children server))
+    conn))
 
-   STREAM defaults to a two-way-stream wrapping *standard-input* and
-   *standard-output*, which is the production launch path.
-   Test paths pass an explicit stream built from string-input-streams
-   and string-output-streams to drive the server with recorded fixtures."
-  (%ensure-sbcl-home)
-  (let* ((transcript (handler-case (make-transcript)
-                       (error () nil)))
-         (server (make-instance 'mcp-server
-                                :stream stream
-                                :transcript transcript)))
-    (%serve-loop server)))
+(defun %enforce-child-cap (server)
+  "If SERVER-CHILDREN exceeds SERVER-MAX-CHILDREN, shut down the oldest
+   idle connection to make room."
+  (loop :while (>= (length (server-children server))
+                   (server-max-children server))
+        :for oldest := (car (last (server-children server)))
+        :do (ignore-errors (connection-shutdown oldest))
+            (setf (server-children server)
+                  (remove oldest (server-children server)))))
 
 (defun ensure-child-connection (server)
   "Return the session's child-connection, creating one lazily on
-   first call. If the existing child is dead, spawn a fresh one."
+   first call. If the existing child is dead, spawn a fresh one.
+   Enforces the max-children cap."
   (let ((conn (server-child-connection server)))
     (cond
       ((and conn (connection-alive-p conn)) conn)
       (t
        (when conn
-         (ignore-errors (connection-shutdown conn)))
-       (let ((new-conn (make-child-connection)))
+         (ignore-errors (connection-shutdown conn))
+         (setf (server-children server)
+               (remove conn (server-children server))))
+       (%enforce-child-cap server)
+       (let ((new-conn (%make-connection server)))
          (setf (server-child-connection server) new-conn)
          new-conn)))))
 
 (defun %shutdown-child-if-present (server)
-  "Shut down the session's child connection if one exists."
+  "Shut down all child connections."
   (let ((conn (server-child-connection server)))
     (when conn
       (ignore-errors (connection-shutdown conn))
-      (setf (server-child-connection server) nil))))
+      (setf (server-child-connection server) nil)))
+  (dolist (child (server-children server))
+    (ignore-errors (connection-shutdown child)))
+  (setf (server-children server) nil))
 
 (defun %serve-loop (server)
   "The read-dispatch-write loop. Honours EOF as end-of-session.
@@ -131,6 +164,33 @@
     (when response
       (%transcript-message server response)
       (%write-response server response))))
+
+(defgeneric write-transcript-entry (transcript entry)
+  (:documentation
+   "Write ENTRY to TRANSCRIPT. Defined in the kernel as a generic
+    function so the transport layer can provide the concrete method.
+    The kernel default is a no-op.")
+  (:method (transcript entry)
+    (declare (ignore transcript entry))
+    nil))
+
+(defun serve-two-way-stream (&optional
+                               (stream (make-two-way-stream
+                                        *standard-input*
+                                        *standard-output*))
+                               &rest server-initargs)
+  "Serve the MCP protocol over STREAM. Reads JSON-RPC requests one
+   line at a time, dispatches them, and writes responses to the same
+   stream. Returns when the input side reaches EOF.
+
+   SERVER-INITARGS are passed to MAKE-INSTANCE of MCP-SERVER and
+   should include :CONNECTION-CLASS and :CONNECTION-INITARGS for the
+   transport layer to configure child connections."
+  (%ensure-sbcl-home)
+  (let ((server (apply #'make-instance 'mcp-server
+                       :stream stream
+                       server-initargs)))
+    (%serve-loop server)))
 
 (defun %transcript-message (server message)
   "Append MESSAGE to the server's transcript, when one is configured."
