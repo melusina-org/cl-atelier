@@ -1,13 +1,13 @@
 # Slice 015: MCP Server Reliability
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** Improvement
 **Goal addressed:** G5
 **Backlog items:** (new — MCP server reliability)
 **Planned start / end:** 2026-04-14 /
 **Actual end:**
 **Implementation phases:**
-  - Phase 1: product/slice/015-mcp-reliability/implementation-1.md — Planned
+  - Phase 1: product/slice/015-mcp-reliability/implementation-1.md — In Progress
 
 ---
 
