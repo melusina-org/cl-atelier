@@ -176,7 +176,7 @@
                (error 'child-image-spawn-failed
                       :reason (format nil "Failed to spawn SBCL: ~A" c)
                       :message (format nil "Failed to spawn SBCL: ~A" c))))))
-    (setf (slot-value conn 'process-info) process-info)
+    (setf (slot-value conn 'atelier/mcp-kernel::process-info) process-info)
     ;; Read the port from child's stdout
     (let ((port-line nil)
           (child-stdout (uiop:process-info-output process-info)))
