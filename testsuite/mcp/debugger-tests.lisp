@@ -284,30 +284,25 @@
 ;;; ---- Combined runner for debugger tests ----
 
 (define-testcase run-debugger-tests ()
-  "Run all debugger-related tests with a shared child."
-  (let ((*test-child* nil))
-    (unwind-protect
-         (progn
-           ;; S1: Debug state from eval-form
-           (validate-eval-form-debug-state)
-           (validate-eval-form-non-error-unchanged)
-           (validate-eval-form-rejects-during-debug)
-           ;; S2: invoke-restart
-           (validate-invoke-restart-abort)
-           (validate-invoke-restart-no-debugger)
-           ;; S3: abort
-           (validate-abort-tool)
-           (validate-abort-no-debugger)
-           ;; S4: backtrace
-           (validate-backtrace-tool)
-           (validate-backtrace-no-debugger)
-           ;; S5: eval-in-frame — deferred, swank:eval-string-in-frame
-           ;; hangs from non-Emacs CL clients. The tool exists and
-           ;; properly guards against no-debugger state; the SWANK
-           ;; function needs investigation.
-           (validate-eval-in-frame-no-debugger))
-      (when *test-child*
-        (ignore-errors (atelier/mcp:connection-shutdown *test-child*))
-        (setf *test-child* nil)))))
+  "Run all debugger-related tests.
+   Expects *test-child* to be managed by the caller (run-mcp-tests)."
+  ;; S1: Debug state from eval-form
+  (validate-eval-form-debug-state)
+  (validate-eval-form-non-error-unchanged)
+  (validate-eval-form-rejects-during-debug)
+  ;; S2: invoke-restart
+  (validate-invoke-restart-abort)
+  (validate-invoke-restart-no-debugger)
+  ;; S3: abort
+  (validate-abort-tool)
+  (validate-abort-no-debugger)
+  ;; S4: backtrace
+  (validate-backtrace-tool)
+  (validate-backtrace-no-debugger)
+  ;; S5: eval-in-frame — deferred, swank:eval-string-in-frame
+  ;; hangs from non-Emacs CL clients. The tool exists and
+  ;; properly guards against no-debugger state; the SWANK
+  ;; function needs investigation.
+  (validate-eval-in-frame-no-debugger))
 
 ;;;; End of file `debugger-tests.lisp'

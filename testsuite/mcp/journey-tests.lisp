@@ -174,15 +174,10 @@
 ;;; ---- Combined runner ----
 
 (define-testcase run-journey-tests ()
-  "Run all journey tests with a shared child."
-  (let ((*test-child* nil))
-    (unwind-protect
-         (progn
-           (validate-journey-xref-to-impacted)
-           (validate-journey-class-introspection)
-           (validate-journey-trace-observe-untrace))
-      (when *test-child*
-        (ignore-errors (atelier/mcp:connection-shutdown *test-child*))
-        (setf *test-child* nil)))))
+  "Run all journey tests.
+   Expects *test-child* to be managed by the caller (run-mcp-tests)."
+  (validate-journey-xref-to-impacted)
+  (validate-journey-class-introspection)
+  (validate-journey-trace-observe-untrace))
 
 ;;;; End of file `journey-tests.lisp'

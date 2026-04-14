@@ -275,22 +275,17 @@
 ;;; ---- Combined runner ----
 
 (define-testcase run-xref-tools-tests ()
-  "Run all xref/who-tests/run-impacted tool tests with a shared child."
-  (let ((*test-child* nil))
-    (unwind-protect
-         (progn
-           (validate-who-calls)
-           (validate-who-calls-unknown)
-           (validate-who-references)
-           (validate-who-binds)
-           (validate-who-specializes)
-           (validate-who-macroexpands)
-           (validate-who-tests)
-           (validate-who-tests-no-callers)
-           (validate-run-impacted)
-           (validate-run-impacted-no-tests))
-      (when *test-child*
-        (ignore-errors (atelier/mcp:connection-shutdown *test-child*))
-        (setf *test-child* nil)))))
+  "Run all xref/who-tests/run-impacted tool tests.
+   Expects *test-child* to be managed by the caller (run-mcp-tests)."
+  (validate-who-calls)
+  (validate-who-calls-unknown)
+  (validate-who-references)
+  (validate-who-binds)
+  (validate-who-specializes)
+  (validate-who-macroexpands)
+  (validate-who-tests)
+  (validate-who-tests-no-callers)
+  (validate-run-impacted)
+  (validate-run-impacted-no-tests))
 
 ;;;; End of file `xref-tools-tests.lisp'

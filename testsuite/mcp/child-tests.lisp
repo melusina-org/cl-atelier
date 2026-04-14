@@ -382,29 +382,24 @@
 ;;; ---- Combined runner for child-dependent tests ----
 
 (define-testcase run-child-dependent-tests ()
-  "Run all tests that require a child SBCL connection."
-  (let ((*test-child* nil))
-    (unwind-protect
-         (progn
-           ;; S4: Child connection
-           (validate-child-connection-spawn)
-           (validate-child-connection-eval)
-           (validate-child-connection-sequential-state)
-           ;; S5: Eval-form tool
-           (validate-eval-form-basic)
-           (validate-eval-form-multiple-values)
-           (validate-eval-form-error)
-           (validate-eval-form-output-capture)
-           ;; S6: Introspection
-           (validate-list-packages)
-           (validate-list-package-symbols)
-           (validate-describe-symbol)
-           (validate-find-definition)
-           (validate-introspection-missing-symbol)
-           ;; S7: Test runners (in-child only; fresh is separate)
-           (validate-run-tests-in-child))
-      (when *test-child*
-        (ignore-errors (atelier/mcp:connection-shutdown *test-child*))
-        (setf *test-child* nil)))))
+  "Run all tests that require a child SBCL connection.
+   Expects *test-child* to be managed by the caller (run-mcp-tests)."
+  ;; S4: Child connection
+  (validate-child-connection-spawn)
+  (validate-child-connection-eval)
+  (validate-child-connection-sequential-state)
+  ;; S5: Eval-form tool
+  (validate-eval-form-basic)
+  (validate-eval-form-multiple-values)
+  (validate-eval-form-error)
+  (validate-eval-form-output-capture)
+  ;; S6: Introspection
+  (validate-list-packages)
+  (validate-list-package-symbols)
+  (validate-describe-symbol)
+  (validate-find-definition)
+  (validate-introspection-missing-symbol)
+  ;; S7: Test runners (in-child only; fresh is separate)
+  (validate-run-tests-in-child))
 
 ;;;; End of file `child-tests.lisp'

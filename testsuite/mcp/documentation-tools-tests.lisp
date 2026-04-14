@@ -312,21 +312,15 @@
 ;;; ---- Combined runner ----
 
 (define-testcase run-documentation-tools-tests ()
-  "Run all documentation tool tests with a shared child."
-  (let ((*test-child* nil))
-    (unwind-protect
-         (progn
-           ;; Child-dependent tests
-           (validate-apropos-no-filter)
-           (validate-apropos-package-filter)
-           (validate-macroexpand-form)
-           (validate-macroexpand-form-fully)
-           (validate-disassemble-symbol)
-           (validate-disassemble-symbol-unknown)
-           (validate-compile-form-clean)
-           (validate-compile-form-with-warning))
-      (when *test-child*
-        (ignore-errors (atelier/mcp:connection-shutdown *test-child*))
-        (setf *test-child* nil)))))
+  "Run all documentation tool tests.
+   Expects *test-child* to be managed by the caller (run-mcp-tests)."
+  (validate-apropos-no-filter)
+  (validate-apropos-package-filter)
+  (validate-macroexpand-form)
+  (validate-macroexpand-form-fully)
+  (validate-disassemble-symbol)
+  (validate-disassemble-symbol-unknown)
+  (validate-compile-form-clean)
+  (validate-compile-form-with-warning))
 
 ;;;; End of file `documentation-tools-tests.lisp'

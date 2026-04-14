@@ -149,17 +149,12 @@
 ;;; ---- Combined runner ----
 
 (define-testcase run-asdf-tools-tests ()
-  "Run all ASDF/Quicklisp/Confidence tool tests with a shared child."
-  (let ((*test-child* nil))
-    (unwind-protect
-         (progn
-           (validate-quickload-known-system)
-           (validate-system-info)
-           (validate-system-apropos)
-           (validate-list-testcases)
-           (validate-run-testcase))
-      (when *test-child*
-        (ignore-errors (atelier/mcp:connection-shutdown *test-child*))
-        (setf *test-child* nil)))))
+  "Run all ASDF/Quicklisp/Confidence tool tests.
+   Expects *test-child* to be managed by the caller (run-mcp-tests)."
+  (validate-quickload-known-system)
+  (validate-system-info)
+  (validate-system-apropos)
+  (validate-list-testcases)
+  (validate-run-testcase))
 
 ;;;; End of file `asdf-tools-tests.lisp'

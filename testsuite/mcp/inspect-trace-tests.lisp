@@ -160,17 +160,19 @@
 ;;; ---- Combined runner ----
 
 (define-testcase run-inspect-trace-tests ()
-  "Run all inspect-class and trace tool tests with a shared child."
-  (let ((*test-child* nil))
-    (unwind-protect
-         (progn
-           (validate-inspect-class)
-           (validate-inspect-class-non-class)
-           (validate-trace-function)
-           (validate-untrace-function)
-           (validate-trace-output-in-eval))
-      (when *test-child*
-        (ignore-errors (atelier/mcp:connection-shutdown *test-child*))
-        (setf *test-child* nil)))))
+  "Run all inspect-class and trace tool tests.
+   Expects *test-child* to be managed by the caller (run-mcp-tests).
+   Cleans up trace state to avoid polluting subsequent groups."
+  (unwind-protect
+       (progn
+         (validate-inspect-class)
+         (validate-inspect-class-non-class)
+         (validate-trace-function)
+         (validate-untrace-function)
+         (validate-trace-output-in-eval))
+    ;; Clean up: untrace everything in case a test left traces active
+    (when *test-child*
+      (ignore-errors
+        (atelier/mcp:connection-eval *test-child* "(untrace)")))))
 
 ;;;; End of file `inspect-trace-tests.lisp'
