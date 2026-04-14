@@ -306,7 +306,7 @@
 
 (define-testcase validate-documentation-tool-count ()
   "Verify that 40 tools are registered (30 + 10 new in slice 014)."
-  (assert= 40 (hash-table-count atelier/mcp:*tool-registry*)))
+  (assert= 41 (hash-table-count atelier/mcp:*tool-registry*)))
 
 
 ;;; ---- Combined runner ----

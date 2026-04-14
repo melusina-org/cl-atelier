@@ -146,7 +146,7 @@
              (ev-result (atelier/mcp:handle-tool-call
                          ev-tool
                          (list (cons "form"
-                                     "(let ((*trace-output* *standard-output*)) (cl-user::journey-fn 4))")))))
+                                     "(cl-user::journey-fn 4)")))))
         (assert-string= "20" (cdr (assoc "value" ev-result :test #'string=)))
         ;; Trace output should mention the function
         (let ((stdout (cdr (assoc "stdout" ev-result :test #'string=))))
@@ -163,7 +163,7 @@
              (ev-result (atelier/mcp:handle-tool-call
                          ev-tool
                          (list (cons "form"
-                                     "(let ((*trace-output* *standard-output*)) (cl-user::journey-fn 4))")))))
+                                     "(cl-user::journey-fn 4)")))))
         (assert-string= "20" (cdr (assoc "value" ev-result :test #'string=)))
         (let ((stdout (cdr (assoc "stdout" ev-result :test #'string=))))
           (assert-nil (search "JOURNEY-FN" stdout))))))

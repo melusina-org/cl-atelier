@@ -144,7 +144,7 @@
              (result (atelier/mcp:handle-tool-call
                       tool
                       (list (cons "form"
-                                  "(let ((*trace-output* *standard-output*)) (cl-user::test-trace-fn2 7))")))))
+                                  "(cl-user::test-trace-fn2 7)")))))
         ;; The value should be 21
         (assert-string= "21" (cdr (assoc "value" result :test #'string=)))
         ;; Stdout should contain trace output mentioning the function

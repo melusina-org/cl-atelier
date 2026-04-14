@@ -29,6 +29,12 @@
                        expression frame-index
                        :thread (debug-state-thread state))))
           (list (cons "value" (or result ""))))
+      (stream-error (c)
+        (ignore-errors (swank-disconnect (child-connection-swank-conn conn)))
+        (setf (child-connection-swank-conn conn) nil)
+        (setf (connection-debug-state conn) nil)
+        (error 'mcp-error
+               :message (format nil "SWANK connection lost, child will respawn: ~A" c)))
       (error (c)
         (error 'mcp-error
                :message (format nil "Eval-in-frame error: ~A" c))))))

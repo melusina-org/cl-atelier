@@ -26,6 +26,10 @@
       (handler-case
           (swank-invoke-restart (child-connection-swank-conn conn) level 0
                                :thread (debug-state-thread state))
+        (stream-error (c)
+          (declare (ignore c))
+          (ignore-errors (swank-disconnect (child-connection-swank-conn conn)))
+          (setf (child-connection-swank-conn conn) nil))
         (error (c)
           (declare (ignore c))
           nil))

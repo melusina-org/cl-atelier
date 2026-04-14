@@ -227,20 +227,29 @@
   "Evaluate FORM (a string) in the child via the SWANK connection.
    Returns (VALUES result-string output-string). If the eval enters
    the debugger, auto-aborts and signals an error (preserving slice 010
-   behavior for callers that use connection-eval directly)."
-  (multiple-value-bind (status result output)
-      (swank-eval (child-connection-swank-conn conn) form)
-    (case status
-      (:ok (values result output))
-      (:debug
-       ;; Auto-abort for connection-eval callers (backward compat)
-       (let ((condition-text (debug-state-condition result)))
-         (ignore-errors
-           (swank-invoke-restart (child-connection-swank-conn conn)
-                                 (debug-state-level result) 0
-                                 :thread (debug-state-thread result)))
-         (error "Evaluation aborted: ~A" condition-text)))
-      (otherwise (error "Unexpected eval status: ~S" status)))))
+   behavior for callers that use connection-eval directly).
+   If the SWANK socket is broken (pipe error, connection reset), marks
+   the connection as dead so ensure-child-connection will respawn."
+  (handler-case
+      (multiple-value-bind (status result output)
+          (swank-eval (child-connection-swank-conn conn) form)
+        (case status
+          (:ok (values result output))
+          (:debug
+           ;; Auto-abort for connection-eval callers (backward compat)
+           (let ((condition-text (debug-state-condition result)))
+             (ignore-errors
+               (swank-invoke-restart (child-connection-swank-conn conn)
+                                     (debug-state-level result) 0
+                                     :thread (debug-state-thread result)))
+             (error "Evaluation aborted: ~A" condition-text)))
+          (otherwise (error "Unexpected eval status: ~S" status))))
+    (stream-error (c)
+      ;; SWANK socket is dead (broken pipe, connection reset, etc.)
+      ;; Mark connection as dead so ensure-child-connection respawns.
+      (ignore-errors (swank-disconnect (child-connection-swank-conn conn)))
+      (setf (child-connection-swank-conn conn) nil)
+      (error "SWANK connection lost (child will respawn): ~A" c))))
 
 (defmethod connection-shutdown ((conn child-connection))
   "Shut down the child: disconnect SWANK, terminate process, wait."

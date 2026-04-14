@@ -232,10 +232,17 @@
   (let ((id (%next-continuation-id connection))
         (output (make-string-output-stream))
         (watchdog nil))
-    ;; Send :emacs-rex with eval-and-grab-output
-    (swank-send-raw connection
-                    (format nil "(:emacs-rex (swank:eval-and-grab-output ~S) ~S t ~D)"
-                            form-string package id))
+    ;; Send :emacs-rex with eval-and-grab-output.
+    ;; Wrap the form so *trace-output* and *error-output* are captured
+    ;; by SWANK's *standard-output* rebinding (SWANK only captures
+    ;; *standard-output*; this makes trace and warning output visible).
+    (let ((wrapped-form
+            (format nil "(let ((*trace-output* *standard-output*) ~
+                               (*error-output* *standard-output*)) ~A)"
+                    form-string)))
+      (swank-send-raw connection
+                      (format nil "(:emacs-rex (swank:eval-and-grab-output ~S) ~S t ~D)"
+                              wrapped-form package id)))
     ;; Start watchdog thread for timeout
     (when (and timeout (plusp timeout))
       (setf watchdog

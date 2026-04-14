@@ -27,10 +27,10 @@
   (let ((port (funcall (find-symbol "CREATE-SERVER" :swank)
                        :port 0
                        :dont-close t)))
-    ;; 4. Print port for the parent to read
+    ;; 5. Print port for the parent to read
     (format t "~D~%" port)
     (finish-output)
-    ;; 5. Block forever — SWANK runs in background threads
+    ;; 6. Block forever — SWANK runs in background threads
     (loop (sleep 3600))))
 
 ;;;; End of file `entry-point.lisp'

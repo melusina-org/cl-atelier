@@ -278,7 +278,7 @@
 
 (define-testcase validate-debugger-tool-count ()
   "Verify that 40 tools are registered (14 s010 + 4 s011 + 5 s012 + 7 s013 + 10 s014)."
-  (assert= 40 (hash-table-count atelier/mcp:*tool-registry*)))
+  (assert= 41 (hash-table-count atelier/mcp:*tool-registry*)))
 
 
 ;;; ---- Combined runner for debugger tests ----

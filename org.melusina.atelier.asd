@@ -170,7 +170,8 @@
 			       (:file "trace-function")
 			       (:file "untrace-function")
 			       (:file "who-tests")
-			       (:file "run-impacted")))))))
+			       (:file "run-impacted")
+			       (:file "reload-server")))))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"

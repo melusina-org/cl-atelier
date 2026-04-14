@@ -44,6 +44,13 @@
           (handler-case
               (swank-eval (child-connection-swank-conn conn) form
                           :timeout timeout-secs)
+            (stream-error (c)
+              ;; SWANK socket is dead — mark connection for respawn
+              (ignore-errors
+                (swank-disconnect (child-connection-swank-conn conn)))
+              (setf (child-connection-swank-conn conn) nil)
+              (error 'mcp-error
+                     :message (format nil "SWANK connection lost, child will respawn on next call: ~A" c)))
             (error (c)
               (error 'mcp-error
                      :message (format nil "Eval error: ~A" c))))
