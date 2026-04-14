@@ -363,6 +363,8 @@
    #:swank-invoke-restart
    #:swank-backtrace-frames
    #:swank-eval-in-frame
-   #:swank-interrupt))
+   #:swank-interrupt
+   ;; Binary entry point
+   #:serve))
 
 ;;;; End of file `package.lisp'

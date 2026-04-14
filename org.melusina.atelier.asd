@@ -142,6 +142,7 @@
 		 (:file "swank-protocol")
 		 (:file "child-connection")
 		 (:file "hyperspec")
+		 (:file "entry-point")
 		 (:module "tools"
 		  :serial t
 		  :components ((:file "probe-environment")
@@ -314,6 +315,6 @@
   :depends-on (#:org.melusina.atelier/mcp)
   :build-operation program-op
   :build-pathname "atelier_mcp"
-  :entry-point "atelier/mcp:serve-two-way-stream")
+  :entry-point "atelier/mcp:serve")
 
 ;;;; End of file `org.melusina.atelier.asd'
