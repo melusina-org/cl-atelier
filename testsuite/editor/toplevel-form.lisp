@@ -64,12 +64,10 @@
 (define-testcase validate-ast-default-features ()
   "Verify toplevel-form-ast with default features evaluates #+sbcl on SBCL."
   (let* ((form (atelier/editor:read-toplevel-form-from-string
-                 "(defun connect () #+sbcl :yes #-sbcl :no)"))
+                 "(defun connect () #-inexistant-feature :yes #+inexistant-feature :no)"))
          (ast (atelier/editor:toplevel-form-ast form)))
-    ;; On SBCL, #+sbcl matches, so :yes is in the result
-    #+sbcl (assert-t* (member :yes ast))
-    ;; :no should not be in the AST on SBCL
-    #+sbcl (assert-nil (member :no ast))))
+    (assert-t* (member :yes ast))
+    (assert-nil (member :no ast))))
 
 (define-testcase validate-ast-overridden-features ()
   "Verify toplevel-form-ast with overridden features."

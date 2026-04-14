@@ -14,6 +14,8 @@
    #:define-testcase
    #:define-assertion
    #:assert-t
+   #:assert-nil
+   #:assert-t*
    #:assert-eq
    #:assert-equal
    #:assert-set-equal

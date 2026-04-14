@@ -33,6 +33,8 @@
 		 (:file "maintainer")
 		 (:file "asdf")
 		 (:file "runner")
+		 (:file "pretty-printer")
+		 (:file "write-back")
 		 (:module "inspectors"
 		  :components
 		  ((:file "check-file-encoding")
@@ -50,8 +52,6 @@
 		   (:file "check-single-branch-if")
 		   (:file "check-single-form-progn")
 		   (:file "check-when-not")))
-		 (:file "pretty-printer")
-		 (:file "write-back")
 		 (:module "maintainers"
 		  :components
 		  ((:file "fix-trailing-whitespace")
@@ -64,141 +64,24 @@
 		   (:file "fix-header-line")
 		   (:file "fix-footer-line")
 		   (:file "fix-project-identification")))
+		 (:module "editor"
+		  :components ((:file "package")
+			       (:file "conditions")
+			       (:file "toplevel-form")
+			       (:file "eclector-client")
+			       (:file "read-form")
+			       (:file "write-form")
+			       (:file "canonicalize")))
 		 (:file "main")))))
 
-(asdf:defsystem #:org.melusina.atelier/editor
-  :description "Projectional editor for managed Common Lisp files."
-  :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:org.melusina.atelier)
-  :components
-  ((:module "src/editor"
-    :serial t
-    :components ((:file "package")
-		 (:file "conditions")
-		 (:file "toplevel-form")
-		 (:file "eclector-client")
-		 (:file "read-form")
-		 (:file "write-form")
-		 (:file "canonicalize")))))
-
-(asdf:defsystem #:org.melusina.atelier/child-worker
-  :description "Child SBCL worker for Atelier MCP eval."
-  :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:closer-mop)
-  :components
-  ((:module "src/child-worker"
-    :serial t
-    :components ((:file "package")
-		 (:file "introspection")
-		 (:file "documentation")
-		 (:file "entry-point")))))
-
-(asdf:defsystem #:org.melusina.atelier/mcp-kernel
-  :description "Reusable MCP server framework — protocol, dispatch, tool registry."
-  :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:alexandria
-	       #:bordeaux-threads
-	       #:uiop
-	       #:com.inuoe.jzon)
-  :components
-  ((:module "src/mcp"
-    :serial t
-    :components ((:file "package")
-		 (:file "conditions")
-		 (:file "protocol-version")
-		 (:file "json-util")
-		 (:file "tool-name")
-		 (:file "input-schema")
-		 (:file "uri-template")
-		 (:file "tool")
-		 (:file "message")
-		 (:file "define-tool")
-		 (:file "image-connection")
-		 (:file "dispatcher")
-		 (:file "server")
-		 (:module "tools"
-		  :components ((:file "reload-server")))))))
-
-(asdf:defsystem #:org.melusina.atelier/mcp
-  :description "Atelier MCP server — SWANK transport, tools, HyperSpec."
-  :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:alexandria
-	       #:bordeaux-threads
-	       #:uiop
-	       #:usocket
-	       #:flexi-streams
-	       #:org.melusina.atelier/mcp-kernel
-	       #:org.melusina.atelier
-	       #:org.melusina.atelier/editor)
-  :components
-  ((:module "src/mcp"
-    :serial t
-    :components ((:file "transcript-render")
-		 (:file "transcript")
-		 (:file "swank-protocol")
-		 (:file "child-connection")
-		 (:file "hyperspec")
-		 (:file "entry-point")
-		 (:module "tools"
-		  :serial t
-		  :components ((:file "probe-environment")
-			       (:file "list-inspectors")
-			       (:file "list-maintainers")
-			       (:file "list-systems")
-			       (:file "inspector-detail")
-			       (:file "maintainer-detail")
-			       (:file "transcript-resources")
-			       (:file "canonicalize-form")
-			       (:file "eval-form")
-			       (:file "list-packages")
-			       (:file "list-package-symbols")
-			       (:file "describe-symbol")
-			       (:file "find-definition")
-			       (:file "run-tests-fresh")
-			       (:file "run-tests-in-child")
-			       (:file "select-restart")
-			       (:file "abort-debug")
-			       (:file "backtrace")
-			       (:file "eval-in-frame")
-			       (:file "quickload")
-			       (:file "system-info")
-			       (:file "system-apropos")
-			       (:file "list-testcases")
-			       (:file "run-testcase")
-			       (:file "apropos-search")
-			       (:file "hyperspec-lookup")
-			       (:file "hyperspec-issue")
-			       (:file "hyperspec-issues")
-			       (:file "macroexpand-form")
-			       (:file "disassemble-symbol")
-			       (:file "compile-form")
-			       ;; Slice 014: xref, CLOS inspector, trace
-			       (:file "who-calls")
-			       (:file "who-references")
-			       (:file "who-binds")
-			       (:file "who-specializes")
-			       (:file "who-macroexpands")
-			       (:file "inspect-class")
-			       (:file "trace-function")
-			       (:file "untrace-function")
-			       (:file "who-tests")
-			       (:file "run-impacted")))))))
-
 (asdf:defsystem #:org.melusina.atelier/testsuite
-  :description "Testsuite for an atelier for Lisp developers"
+  :description "Test suite for the Atelier for Lisp developers"
   :author "Michaël Le Barbier"
-  :depends-on (#:alexandria
-	       #:org.melusina.atelier
-	       #:org.melusina.atelier/editor
-	       #:org.melusina.atelier/child-worker
-	       #:org.melusina.atelier/mcp
-	       #:org.melusina.confidence)
+  :depends-on (#:org.melusina.confidence
+	       #:org.melusina.atelier)
   :components
   ((:module "testsuite"
+    :serial t
     :components ((:file "package")
 		 (:file "utilities")
 		 (:file "parameter")
@@ -208,8 +91,10 @@
 		 (:file "resolution")
 		 (:file "inspector")
 		 (:file "maintainer")
-		 (:file "runner")
 		 (:file "asdf")
+		 (:file "runner")
+		 (:file "pretty-printer")
+		 (:file "write-back")
 		 (:module "inspectors"
 		  :components
 		  ((:file "check-file-encoding")
@@ -220,8 +105,6 @@
 		   (:file "check-header-line")
 		   (:file "check-footer-line")
 		   (:file "check-project-identification")))
-		 (:file "pretty-printer")
-		 (:file "write-back")
 		 (:module "maintainers"
 		  :components
 		  ((:file "fix-mixed-indentation")
@@ -230,7 +113,6 @@
 		   (:file "fix-footer-line")))
 		 (:file "autofix")
 		 (:module "editor"
-		  :serial t
 		  :components ((:file "package")
 			       (:file "eclector-capability")
 			       (:file "lint-string")
@@ -240,81 +122,19 @@
 			       (:file "fixtures")
 			       (:file "fresh-sbcl-load")
 			       (:file "entrypoint")))
-		 (:module "mcp"
-		  :serial t
-		  :components ((:file "package")
-			       (:file "utilities")
-			       (:file "jzon-round-trip")
-			       (:file "tool-name-derivation")
-			       (:file "input-schema-derivation")
-			       (:file "uri-template")
-			       (:file "define-tool-macro")
-			       (:file "message-parsing")
-			       (:file "dispatcher")
-			       (:file "protocol-handshake")
-			       (:file "tool-invocation")
-			       (:file "resource-read")
-			       (:file "image-connection")
-			       (:file "transcript-encoding")
-			       (:file "transcript-filesystem")
-			       (:file "transcript-torn-write")
-			       (:file "registry-counts")
-			       (:file "swank-protocol")
-			       (:file "canonicalize-tool")
-			       (:file "child-tests")
-			       (:file "debugger-tests")
-			       (:file "asdf-tools-tests")
-			       (:file "documentation-tools-tests")
-			       (:file "xref-tools-tests")
-			       (:file "inspect-trace-tests")
-			       (:file "journey-tests")
-			       (:file "fresh-sbcl-load")
-			       (:file "entrypoint")))
 		 (:file "entrypoint")))))
-
-(asdf:defsystem #:org.melusina.atelier/testsuite/input-output
-  :description "Exploratory tests for pipe I/O behavior"
-  :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:bordeaux-threads
-	       #:uiop
-	       #:org.melusina.confidence)
-  :components
-  ((:module "testsuite/input-output"
-    :serial t
-    :components ((:file "package")
-		 (:file "pipe-behavior")))))
-
-(asdf:defsystem #:org.melusina.atelier/testsuite/swank
-  :description "Exploratory tests for SWANK protocol behavior"
-  :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:usocket
-	       #:flexi-streams
-	       #:org.melusina.atelier/mcp
-	       #:org.melusina.confidence)
-  :components
-  ((:module "testsuite/swank"
-    :serial t
-    :components ((:file "package")
-		 (:file "wire-protocol")))))
 
 (asdf:defsystem #:org.melusina.atelier/development
   :description "Development tools for Atelier"
   :author "Michaël Le Barbier"
   :license "MIT License"
-  :depends-on (#:org.melusina.atelier)
+  :depends-on (#:bordeaux-threads
+	       #:uiop
+	       #:org.melusina.atelier
+	       #:org.melusina.confidence)
   :components
   ((:module "libexec/lisp"
-    :components ((:file "development")))))
-
-(asdf:defsystem #:org.melusina.atelier/mcp-server
-  :description "Build MCP Server from ASDF System"
-  :author "Michaël Le Barbier"
-  :license "MIT License"
-  :depends-on (#:org.melusina.atelier/mcp)
-  :build-operation program-op
-  :build-pathname "atelier_mcp"
-  :entry-point "atelier/mcp:serve")
+    :components ((:file "development")
+		 (:file "uiop-pipe-behavior")))))
 
 ;;;; End of file `org.melusina.atelier.asd'

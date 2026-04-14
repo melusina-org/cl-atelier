@@ -10,6 +10,15 @@
 
 (defpackage #:atelier/development
   (:use #:cl)
+  (:import-from #:confidence
+   #:define-testcase
+   #:assert-condition
+   #:assert-eq
+   #:assert-nil
+   #:assert-string=
+   #:assert-t
+   #:assert-t*
+   #:assert=)
   (:export
    #:lint
    #+quicklisp

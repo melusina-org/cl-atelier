@@ -8,12 +8,8 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite/input-output)
 
-;;; These tests encode our understanding of how uiop:launch-program
-;;; pipes interact with Common Lisp stream operations. Each test uses
-;;; simple UNIX tools (echo, yes, awk, sh) to produce deterministic
-;;; pipe behavior.
+(in-package #:atelier/development)
 
 ;;; ---- Basic pipe read ----
 
@@ -148,8 +144,12 @@
 
 ;;; ---- Entry point ----
 
-(define-testcase run-io-tests ()
-  "Run all pipe I/O behavior tests."
+(define-testcase run-uiop-io-tests ()
+  "Run all pipe I/O behavior tests.
+
+These tests encode our understanding of how uiop:launch-program pipes interact with Common
+Lisp stream operations. Each test uses simple UNIX tools (echo, yes, awk, sh) to produce
+deterministic pipe behavior."
   (validate-pipe-read-single-line)
   (validate-pipe-read-multiple-lines)
   (validate-pipe-small-write-does-not-block)

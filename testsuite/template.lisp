@@ -153,8 +153,8 @@
     (with-fixed-parameter-bindings nil
       (atelier:new-lisp-project pathname)
       (atelier:new-lisp-project pathname))
-    (assert-t (uiop:file-exists-p
-               (merge-pathnames "src/package.lisp" pathname)))))
+    (assert-t* (uiop:file-exists-p
+		(merge-pathnames "src/package.lisp" pathname)))))
 
 (define-testcase testsuite-template ()
   (validate-template-idempotent-write)
