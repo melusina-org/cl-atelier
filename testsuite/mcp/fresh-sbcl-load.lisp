@@ -75,4 +75,40 @@
     (assert-eql 0 exit)
     (assert-eql 0 (%mcp-warning-count stderr))))
 
+(defun %subprocess-eval-forms-kernel ()
+  "Return the list of --eval forms for loading only mcp-kernel."
+  (list "(require :asdf)"
+        "(load #P\"/Users/michael/share/quicklisp/setup.lisp\")"
+        "(pushnew #P\"/Users/michael/Melusina/atelier/\" (symbol-value (find-symbol \"*CENTRAL-REGISTRY*\" :asdf)))"
+        "(funcall (find-symbol \"QUICKLOAD\" :ql) :com.inuoe.jzon :silent t)"
+        "(funcall (find-symbol \"LOAD-SYSTEM\" :asdf) :org.melusina.atelier/mcp-kernel)"
+        "(funcall (find-symbol \"QUIT\" :uiop) 0)"))
+
+(defun %run-fresh-sbcl-kernel-load ()
+  "Run a subprocess SBCL loading only mcp-kernel (not the full mcp).
+   Returns (values stdout stderr exit-code) or NIL."
+  (let ((sbcl (%sbcl-runtime-pathname)))
+    (unless sbcl (return-from %run-fresh-sbcl-kernel-load nil))
+    (let ((args (list (namestring sbcl)
+                      "--non-interactive"
+                      "--no-sysinit" "--no-userinit")))
+      (dolist (form (%subprocess-eval-forms-kernel))
+        (setf args (append args (list "--eval" form))))
+      (multiple-value-bind (stdout stderr exit)
+          (uiop:run-program args
+                            :output :string
+                            :error-output :string
+                            :ignore-error-status t)
+        (values stdout stderr exit)))))
+
+(define-testcase validate-mcp-kernel-loads-independently ()
+  "A fresh SBCL loads org.melusina.atelier/mcp-kernel without the full
+   mcp system, without errors (AC7, INV-41)."
+  (unless (%sbcl-runtime-pathname)
+    (return-from validate-mcp-kernel-loads-independently))
+  (multiple-value-bind (stdout stderr exit) (%run-fresh-sbcl-kernel-load)
+    (declare (ignore stdout))
+    (assert-eql 0 exit)
+    (assert-eql 0 (%mcp-warning-count stderr))))
+
 ;;;; End of file `fresh-sbcl-load.lisp'

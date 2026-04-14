@@ -79,6 +79,7 @@
   (validate-run-tests-fresh-load-failure)
   (validate-no-orphan-sbcl)
   ;; Fresh-SBCL subprocess (slow)
+  (validate-mcp-kernel-loads-independently)
   (validate-mcp-system-loads-cleanly))
 
 ;;;; End of file `entrypoint.lisp'
