@@ -294,12 +294,14 @@
 ;;; ---- S7: Test runner tests ----
 
 (define-testcase validate-run-tests-fresh ()
-  "Verify run-tests-fresh spawns a separate SBCL and runs tests."
+  "Verify run-tests-fresh spawns a separate SBCL and runs a testcase."
   #+sbcl
   (let* ((tool (atelier/mcp:find-tool-by-name "atelier:run-tests-fresh"))
          (result (atelier/mcp:handle-tool-call
                   tool
-                  (list (cons "system-name" "org.melusina.atelier")))))
+                  (list (cons "testsuite-system" "org.melusina.atelier/testsuite")
+                        (cons "testcase-designator"
+                              "atelier/testsuite:testsuite-utilities")))))
     (assert-t* (assoc "exit-code" result :test #'string=))
     (assert-t* (assoc "output" result :test #'string=))
     ;; Check it succeeded
@@ -336,7 +338,8 @@
   (let* ((tool (atelier/mcp:find-tool-by-name "atelier:run-tests-fresh"))
          (result (atelier/mcp:handle-tool-call
                   tool
-                  (list (cons "system-name" "nonexistent-system-xyz")))))
+                  (list (cons "testsuite-system" "nonexistent-system-xyz")
+                        (cons "testcase-designator" "cl-user:run-all-tests")))))
     ;; Should have a non-zero exit code
     (assert-t* (not (zerop (cdr (assoc "exit-code" result :test #'string=))))))
   #-sbcl

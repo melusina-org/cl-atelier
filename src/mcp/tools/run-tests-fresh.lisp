@@ -11,69 +11,51 @@
 (in-package #:atelier/mcp)
 
 ;;; run-tests-fresh spawns a separate SBCL subprocess (NOT the session
-;;; child), loads a system and its testsuite, runs tests, and captures
-;;; the output. Supports targeted execution of a single testcase.
+;;; child), loads a testsuite system, runs a testcase, and captures
+;;; the output.
 ;;;
-;;; Slice 015: Fixed to call the actual test entry point instead of
-;;; asdf:test-system (which had no perform method). Accepts optional
-;;; testsuite-system and testcase-designator for targeted execution.
+;;; Slice 015: Both testsuite-system and testcase-designator are
+;;; mandatory. The caller decides what to load and what to run.
 
-(define-tool run-tests-fresh (&key system-name testsuite-system testcase-designator)
+(define-tool run-tests-fresh (&key testsuite-system testcase-designator)
   (:description
-   "Run a system's test suite in a fresh SBCL subprocess. Spawns a
-    new SBCL (not the session's child), loads the system and its
-    testsuite, runs the tests, and returns the output. The subprocess
-    is shut down after the call.
+   "Run a testcase in a fresh SBCL subprocess. Spawns a new SBCL
+    (not the session's child), loads TESTSUITE-SYSTEM, resolves
+    TESTCASE-DESIGNATOR as a fully-qualified symbol, calls it, and
+    returns the output. The subprocess is shut down after the call.
 
-    SYSTEM-NAME is the primary system to load (e.g. \"org.melusina.atelier\").
-    TESTSUITE-SYSTEM defaults to SYSTEM-NAME/testsuite if not provided.
-    TESTCASE-DESIGNATOR is an optional fully-qualified symbol name
-    (e.g. \"atelier/testsuite:validate-template-idempotent-write\")
-    for targeted execution. When omitted, calls RUN-ALL-TESTS in the
-    testsuite package.")
-  (declare (type string system-name))
+    TESTSUITE-SYSTEM is the ASDF system to load
+    (e.g. \"org.melusina.atelier/testsuite\").
+    TESTCASE-DESIGNATOR is a fully-qualified symbol name
+    (e.g. \"atelier/testsuite:run-all-tests\" or
+    \"atelier/testsuite:validate-template-idempotent-write\").")
+  (declare (type string testsuite-system testcase-designator))
   (let* ((asd-dir (%find-atelier-asd-directory))
          (ql-setup (%quicklisp-setup-path))
-         (ts-system (or testsuite-system
-                        (concatenate 'string system-name "/testsuite")))
          (start (get-internal-real-time))
-         (run-form
-           (if (and testcase-designator (stringp testcase-designator)
-                    (plusp (length testcase-designator)))
-               ;; Targeted: resolve the symbol and call it
-               (let* ((colon-pos (position #\: testcase-designator))
-                      (pkg-name (if colon-pos
-                                    (subseq testcase-designator 0 colon-pos)
-                                    "CL-USER"))
-                      (sym-name (if colon-pos
-                                    (string-left-trim ":" (subseq testcase-designator colon-pos))
-                                    testcase-designator)))
-                 (format nil "(uiop:symbol-call ~S ~S)" pkg-name sym-name))
-               ;; Default: call run-all-tests in the testsuite package
-               (format nil "(let* ((ts-sys (asdf:find-system ~S nil))
-                                   (pkg-name (when ts-sys
-                                               (string-upcase
-                                                (asdf:component-name ts-sys)))))
-                              (if (and pkg-name (find-package pkg-name))
-                                  (uiop:symbol-call pkg-name \"RUN-ALL-TESTS\")
-                                  (asdf:test-system ~S)))"
-                       ts-system system-name))))
+         (colon-pos (position #\: testcase-designator))
+         (pkg-name (if colon-pos
+                       (subseq testcase-designator 0 colon-pos)
+                       "CL-USER"))
+         (sym-name (if colon-pos
+                       (string-left-trim ":" (subseq testcase-designator colon-pos))
+                       testcase-designator))
+         (run-form (format nil "(uiop:symbol-call ~S ~S)" pkg-name sym-name)))
     (multiple-value-bind (stdout stderr exit-code)
         (uiop:run-program
          (list "sbcl" "--non-interactive"
                "--eval" (format nil "(load ~S)" (namestring ql-setup))
                "--eval" (format nil "(push ~S asdf:*central-registry*)"
                                 (namestring asd-dir))
-               "--eval" (format nil "(asdf:load-system ~S)" ts-system)
+               "--eval" (format nil "(asdf:load-system ~S)" testsuite-system)
                "--eval" run-form)
          :output :string
          :error-output :string
          :ignore-error-status t)
       (let ((duration-ms (round (* 1000 (- (get-internal-real-time) start))
                                 internal-time-units-per-second)))
-        (list (cons "system" system-name)
-              (cons "testsuite-system" ts-system)
-              (cons "testcase" (or testcase-designator "run-all-tests"))
+        (list (cons "testsuite-system" testsuite-system)
+              (cons "testcase" testcase-designator)
               (cons "exit-code" exit-code)
               (cons "success" (zerop exit-code))
               (cons "duration-ms" duration-ms)
