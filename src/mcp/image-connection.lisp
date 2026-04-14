@@ -73,7 +73,7 @@
     (let ((info (connection-process-info connection)))
       (when info
         #+sbcl (sb-ext:process-pid
-                (uiop/launch-program::process-info-process info))
+                (slot-value info 'uiop/launch-program::process))
         #-sbcl nil))))
 
 ;;;; End of file `image-connection.lisp'

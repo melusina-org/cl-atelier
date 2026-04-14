@@ -65,7 +65,7 @@
                         (concatenate 'string session-id ".sexp")
                         directory)))
 
-(defun write-transcript-entry (transcript entry)
+(defmethod write-transcript-entry ((transcript transcript) entry)
   "Append ENTRY (a plist) to TRANSCRIPT, atomically per entry.
    The seq field is filled from the transcript counter if absent."
   (let* ((seq (incf (transcript-next-seq transcript)))
