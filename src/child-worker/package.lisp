@@ -29,6 +29,17 @@
    #:apropos-data
    #:macroexpand-data
    #:disassemble-data
-   #:compile-form-data))
+   #:compile-form-data
+   ;; Slice 014: xref, CLOS inspector, trace
+   #:who-calls-data
+   #:who-references-data
+   #:who-binds-data
+   #:who-specializes-data
+   #:who-macroexpands-data
+   #:inspect-class-data
+   #:trace-function-data
+   #:untrace-function-data
+   #:who-tests-data
+   #:run-impacted-data))
 
 ;;;; End of file `package.lisp'

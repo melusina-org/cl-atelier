@@ -46,7 +46,7 @@
          (output (%run-server-on-string input))
          (parsed (decode-from-string (first (split-non-blank-lines output))))
          (tools  (gethash "tools" (gethash "result" parsed))))
-    (assert-eql 30 (length tools))))
+    (assert-eql 40 (length tools))))
 
 (define-testcase validate-handshake-resources-list-returns-three ()
   "resources/list returns exactly the four concrete resources (3 s009 + 1 s013)."

@@ -177,7 +177,7 @@ standard output."
     (cons :shell-namespace
           (string-downcase (pathname-name pathname))))))
     (ensure-directories-exist pathname)
-    (with-open-file (stream pathname :direction :output)
+    (with-open-file (stream pathname :direction :output :if-exists :supersede)
       (write-template template stream (append filename-bindings environment)))
     (when (slot-value template 'template-executable-p)
       (uiop:run-program (list "/bin/chmod" "a+x" (namestring pathname))))))

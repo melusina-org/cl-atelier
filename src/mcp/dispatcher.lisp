@@ -10,6 +10,10 @@
 
 (in-package #:atelier/mcp)
 
+(defvar *current-server* nil
+  "The MCP server currently handling a request. Bound by the
+   dispatcher during tool-call processing.")
+
 ;;; The dispatcher implements one HANDLE-MESSAGE method per concrete
 ;;; request class declared in message.lisp, plus an :around for
 ;;; tools/call and resources/read that catches handler conditions

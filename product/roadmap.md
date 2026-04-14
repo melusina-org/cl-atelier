@@ -1,9 +1,13 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-13 (slice 013 complete)
+**Last updated:** 2026-04-14 (slice 014 complete)
+
+The roadmap is a projection of the backlog's top items into time horizons. It does not introduce new items — every item in Now or Next must appear in the backlog.
 
 ## Now (in progress)
 
-(none — ready for next slice)
+| Slice | Phase | Goal addressed | Description |
+|-------|-------|----------------|-------------|
+| [015-mcp-reliability](slice/015-mcp-reliability/slice.md) | Planned | G5 | SWANK health check, output capture, test speed, MCP kernel for reload, targeted test execution. |
 
 
 ## Completed
@@ -23,20 +27,19 @@
 | [011-mcp-debugger-and-restarts](slice/011-mcp-debugger-and-restarts/slice.md) | New capability | G5 | ✅ |
 | [012-mcp-asdf-quicklisp-confidence](slice/012-mcp-asdf-quicklisp-confidence/slice.md) | New capability | G5 | ✅ |
 | [013-mcp-documentation-tools](slice/013-mcp-documentation-tools/slice.md) | New capability | G5 | ✅ |
+| [014-mcp-xref-inspector-trace](slice/014-mcp-xref-inspector-trace/slice.md) | New capability | G5 | ✅ |
 
 ## Next (intended for the following 1–3 slices)
 
 | Item | Type | Goal addressed | Notes |
 |------|------|----------------|-------|
-| 014 — MCP xref + inspector + trace + `who-tests`/`run-impacted` (#10) | New capability | G5 | `who-tests` filters xref callers to Confidence testcase property. |
+| MCP refactorings (#12) | New capability | G5 | rename-symbol, rename-package, lint-passthrough. Depends on #11. |
+| MCP domain diagnostics (#13) | New capability | G5 | CFFI, bordeaux-threads, SBCL profiling. |
 
 ## Later (probable but not yet scheduled)
 
 | Item | Goal addressed | Notes |
 |------|----------------|-------|
-| 014 — MCP xref + inspector + trace + `who-tests`/`run-impacted` (#10) | G5 | `who-tests` filters xref callers to those carrying the Confidence testcase property — differentiator over generic Lisp MCP servers. |
-| 015 — MCP refactorings: rename-symbol, rename-package, rename-system, unintern, unexport, remove-method, **lint-passthrough** (#11) | G5 | Lint-passthrough is the bridge between MCP server and Atelier linter. |
-| 016 — MCP domain diagnostics: CFFI, bordeaux-threads, SBCL profiling (#12) | G5 | SBCL profiling is `#+sbcl`. |
 | LLM-driven maintainer for any finding class (#21) | G3 | First-class MAINTAINER kind; structured prompt derived from observation + rationale + source context. |
 | Line-level and CST-level CL inspectors (#16, #17) | G2 | Validates full write-back pipeline. Pretty-printer decision (#23) needed before #17. |
 | ShellCheck, Elisp, and Terraform wrapper inspectors (#18, #19, #20) | G2 | External tools integrated via REGION-FINDING / LINE-FINDING. |
@@ -99,3 +102,4 @@
 | 2026-04-13 | Slice 011 completed — verdict ✅ Supported. Moved to Completed. 647/647 tests passing. Four new tools: select-restart, abort-debug, backtrace-frames, eval-in-frame. Two items deferred: eval-in-frame SWANK hang, eval-form timeout interrupt delivery. |
 | 2026-04-13 | Slice 012 completed — verdict ✅ Supported. Moved to Completed. 659/659 tests passing. Five new tools: quickload, system-info, system-apropos, list-testcases, run-testcase. Confidence testcase discovery via :ORG.MELUSINA.CONFIDENCE/TESTCASE property. |
 | 2026-04-13 | Slice 013 completed — verdict ✅ Supported. Moved to Completed. 695/695 tests passing. Seven new tools: apropos-search, hyperspec-lookup, hyperspec-issue, hyperspec-issues, macroexpand-form, disassemble-symbol, compile-form. HyperSpec reads from local MacPorts installation. |
+| 2026-04-14 | Slice 014 completed — verdict ✅ Supported. Moved to Completed. 352/352 MCP tests passing (40 total tools). Ten new tools: who-calls, who-references, who-binds, who-specializes, who-macroexpands, inspect-class, trace-function, untrace-function, who-tests, run-impacted. Three bugs fixed: *current-server* binding order, sb-introspect return shape, template FILE-EXISTS crash. UIOP subprocess I/O discovery experiments. Slice 015 (MCP reliability) defined and added to Now. Backlog migrated to flat-ranked layout. |

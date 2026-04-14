@@ -301,4 +301,258 @@
           (cons "output" (%truncate-string
                           (get-output-stream-string output) 10000)))))
 
+
+
+;;; ---- Slice 014: xref, CLOS inspector, trace ----
+
+(defun %xref-results-to-alist (xref-entries)
+  "Convert a list of (NAME . DEFINITION-SOURCE) conses returned by
+   sb-introspect:who-* to alists. Each entry has the caller name,
+   source file, and form path. Filters out entries with nil pathnames."
+  #+sbcl
+  (let ((result nil))
+    (dolist (entry xref-entries (nreverse result))
+      (let* ((name (car entry))
+             (source (cdr entry))
+             (pathname (sb-introspect:definition-source-pathname source)))
+        (when pathname
+          (push (list (cons "name" (princ-to-string name))
+                      (cons "source-file" (namestring pathname))
+                      (cons "form-path"
+                            (princ-to-string
+                             (sb-introspect:definition-source-form-path source))))
+                result)))))
+  #-sbcl
+  (declare (ignore xref-entries))
+  #-sbcl
+  nil)
+
+(defun who-calls-data (designator)
+  "Return a list of alists describing callers of the function named by DESIGNATOR."
+  #+sbcl
+  (let ((sym (%parse-symbol-designator designator)))
+    (%xref-results-to-alist (sb-introspect:who-calls sym)))
+  #-sbcl
+  (declare (ignore designator))
+  #-sbcl
+  nil)
+
+(defun who-references-data (designator)
+  "Return a list of alists describing functions that reference the variable
+   named by DESIGNATOR."
+  #+sbcl
+  (let ((sym (%parse-symbol-designator designator)))
+    (%xref-results-to-alist (sb-introspect:who-references sym)))
+  #-sbcl
+  (declare (ignore designator))
+  #-sbcl
+  nil)
+
+(defun who-binds-data (designator)
+  "Return a list of alists describing functions that bind the variable
+   named by DESIGNATOR."
+  #+sbcl
+  (let ((sym (%parse-symbol-designator designator)))
+    (%xref-results-to-alist (sb-introspect:who-binds sym)))
+  #-sbcl
+  (declare (ignore designator))
+  #-sbcl
+  nil)
+
+(defun who-specializes-data (designator)
+  "Return a list of alists describing methods that specialize on the class
+   named by DESIGNATOR."
+  #+sbcl
+  (let* ((sym (%parse-symbol-designator designator))
+         (class (find-class sym nil)))
+    (if class
+        (let ((result nil))
+          (dolist (method (closer-mop:specializer-direct-generic-functions class)
+                   (nreverse result))
+            (dolist (m (closer-mop:generic-function-methods method))
+              (when (member class (closer-mop:method-specializers m))
+                (push (list (cons "generic-function"
+                                  (let ((name (closer-mop:generic-function-name method)))
+                                    (if (symbolp name)
+                                        (format nil "~A:~A"
+                                                (package-name (symbol-package name))
+                                                (symbol-name name))
+                                        (princ-to-string name))))
+                            (cons "qualifiers"
+                                  (mapcar #'princ-to-string
+                                          (method-qualifiers m)))
+                            (cons "specializers"
+                                  (mapcar #'princ-to-string
+                                          (closer-mop:method-specializers m))))
+                      result)))))
+        nil))
+  #-sbcl
+  (declare (ignore designator))
+  #-sbcl
+  nil)
+
+(defun who-macroexpands-data (designator)
+  "Return a list of alists describing functions that expand the macro
+   named by DESIGNATOR."
+  #+sbcl
+  (let ((sym (%parse-symbol-designator designator)))
+    (%xref-results-to-alist (sb-introspect:who-macroexpands sym)))
+  #-sbcl
+  (declare (ignore designator))
+  #-sbcl
+  nil)
+
+(defun inspect-class-data (designator)
+  "Return a detailed alist describing the CLOS class named by DESIGNATOR.
+   Includes superclasses, subclasses, slots with readers/writers/initargs,
+   and direct methods."
+  (let* ((sym (%parse-symbol-designator designator))
+         (class (find-class sym nil)))
+    (unless class
+      (error "~S does not name a class." designator))
+    (closer-mop:ensure-finalized class)
+    (flet ((class-name-string (c)
+             (let ((name (class-name c)))
+               (if (and name (symbolp name))
+                   (format nil "~A:~A"
+                           (package-name (symbol-package name))
+                           (symbol-name name))
+                   (princ-to-string c))))
+           (slot-to-alist (slot)
+             (list (cons "name" (symbol-name
+                                 (closer-mop:slot-definition-name slot)))
+                   (cons "readers"
+                         (mapcar #'princ-to-string
+                                 (closer-mop:slot-definition-readers slot)))
+                   (cons "writers"
+                         (mapcar #'princ-to-string
+                                 (closer-mop:slot-definition-writers slot)))
+                   (cons "initargs"
+                         (mapcar #'princ-to-string
+                                 (closer-mop:slot-definition-initargs slot)))
+                   (cons "type"
+                         (princ-to-string
+                          (closer-mop:slot-definition-type slot)))
+                   (cons "initform"
+                         (if (closer-mop:slot-definition-initfunction slot)
+                             (princ-to-string
+                              (closer-mop:slot-definition-initform slot))
+                             "")))))
+      (list (cons "name" (class-name-string class))
+            (cons "superclasses"
+                  (mapcar #'class-name-string
+                          (closer-mop:class-direct-superclasses class)))
+            (cons "subclasses"
+                  (let ((result nil))
+                    (dolist (sub (closer-mop:class-direct-subclasses class)
+                             (nreverse result))
+                      (let ((name (class-name sub)))
+                        (when (and name (symbolp name))
+                          (push (class-name-string sub) result))))))
+            (cons "slots"
+                  (mapcar #'slot-to-alist
+                          (closer-mop:class-direct-slots class)))
+            (cons "methods"
+                  (let ((result nil))
+                    (dolist (gf (closer-mop:specializer-direct-generic-functions
+                                 class)
+                             (nreverse result))
+                      (dolist (m (closer-mop:generic-function-methods gf))
+                        (when (member class
+                                      (closer-mop:method-specializers m))
+                          (push (list (cons "generic-function"
+                                            (princ-to-string
+                                             (closer-mop:generic-function-name gf)))
+                                      (cons "qualifiers"
+                                            (mapcar #'princ-to-string
+                                                    (method-qualifiers m)))
+                                      (cons "specializers"
+                                            (mapcar #'princ-to-string
+                                                    (closer-mop:method-specializers m))))
+                                result))))))))))
+
+(defun trace-function-data (designator)
+  "Trace the function named by DESIGNATOR. Returns an alist confirming
+   the function is now traced. Uses EVAL because TRACE is a macro."
+  (let ((sym (%parse-symbol-designator designator)))
+    (unless (fboundp sym)
+      (error "~S is not a defined function." designator))
+    (eval `(trace ,sym))
+    (list (cons "symbol" designator)
+          (cons "traced" t))))
+
+(defun untrace-function-data (designator)
+  "Remove tracing from the function named by DESIGNATOR. Returns an
+   alist confirming tracing was removed. Uses EVAL because UNTRACE
+   is a macro."
+  (let ((sym (%parse-symbol-designator designator)))
+    (eval `(untrace ,sym))
+    (list (cons "symbol" designator)
+          (cons "traced" nil))))
+
+(defun who-tests-data (designator)
+  "Return a list of Confidence testcase names whose functions directly
+   call the function named by DESIGNATOR. Uses sb-introspect:who-calls
+   to find callers, then checks which callers carry the Confidence
+   testcase property."
+  #+sbcl
+  (let* ((sym (%parse-symbol-designator designator))
+         (callers (sb-introspect:who-calls sym))
+         (testcase-key :org.melusina.confidence/testcase)
+         (matched nil))
+    (unless (find-package :confidence)
+      (return-from who-tests-data nil))
+    ;; who-calls returns (NAME . DEFINITION-SOURCE) conses.
+    ;; Check if NAME is a symbol with the testcase property.
+    (dolist (entry callers)
+      (let ((name (car entry)))
+        (when (and (symbolp name)
+                   (get name testcase-key))
+          (push (format nil "~A:~A"
+                        (package-name (symbol-package name))
+                        (symbol-name name))
+                matched))))
+    (sort (remove-duplicates matched :test #'string=) #'string<))
+  #-sbcl
+  (declare (ignore designator))
+  #-sbcl
+  nil)
+
+(defun run-impacted-data (designator)
+  "Discover testcases impacted by the function named by DESIGNATOR
+   via WHO-TESTS-DATA, run each, and return per-testcase results."
+  (let ((testcase-names (who-tests-data designator)))
+    (if (null testcase-names)
+        (list (cons "function" designator)
+              (cons "testcases" nil)
+              (cons "message" "No impacted testcases found."))
+        (let ((results nil))
+          (dolist (tc-name testcase-names)
+            (handler-case
+                (let ((tc-result (run-testcase-data tc-name)))
+                  (push (list (cons "name" tc-name)
+                              (cons "status" "passed")
+                              (cons "output"
+                                    (cdr (assoc "output" tc-result
+                                                :test #'string=))))
+                        results))
+              (error (c)
+                (push (list (cons "name" tc-name)
+                            (cons "status" "failed")
+                            (cons "error" (princ-to-string c)))
+                      results))))
+          (list (cons "function" designator)
+                (cons "testcases" (nreverse results))
+                (cons "total" (length testcase-names))
+                (cons "passed" (count "passed" results
+                                      :key (lambda (r)
+                                             (cdr (assoc "status" r
+                                                         :test #'string=)))
+                                      :test #'string=))
+                (cons "failed" (count "failed" results
+                                      :key (lambda (r)
+                                             (cdr (assoc "status" r
+                                                         :test #'string=)))
+                                      :test #'string=)))))))
+
 ;;;; End of file `introspection.lisp'

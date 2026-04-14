@@ -159,7 +159,18 @@
 			       (:file "hyperspec-issues")
 			       (:file "macroexpand-form")
 			       (:file "disassemble-symbol")
-			       (:file "compile-form")))))))
+			       (:file "compile-form")
+			       ;; Slice 014: xref, CLOS inspector, trace
+			       (:file "who-calls")
+			       (:file "who-references")
+			       (:file "who-binds")
+			       (:file "who-specializes")
+			       (:file "who-macroexpands")
+			       (:file "inspect-class")
+			       (:file "trace-function")
+			       (:file "untrace-function")
+			       (:file "who-tests")
+			       (:file "run-impacted")))))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Testsuite for an atelier for Lisp developers"
@@ -238,6 +249,9 @@
 			       (:file "debugger-tests")
 			       (:file "asdf-tools-tests")
 			       (:file "documentation-tools-tests")
+			       (:file "xref-tools-tests")
+			       (:file "inspect-trace-tests")
+			       (:file "journey-tests")
 			       (:file "fresh-sbcl-load")
 			       (:file "entrypoint")))
 		 (:file "entrypoint")))))

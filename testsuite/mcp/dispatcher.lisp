@@ -63,12 +63,42 @@
                                           (find-class t))
                                     nil)))))
 
+(define-testcase validate-dispatch-tools-call-binds-current-server ()
+  "The tools/call dispatcher dynamically binds *CURRENT-SERVER* so
+   tool handlers can access the server instance. Regression test for
+   the bug where *CURRENT-SERVER* was defined after dispatcher.lisp
+   in load order, causing the LET in the dispatcher to create a
+   lexical binding instead of a dynamic one."
+  (with-isolated-registries
+    (let ((*package* (find-package :atelier/mcp)))
+      (eval (read-from-string
+             "(define-tool check-server-bound ()
+                (:description \"Return whether *current-server* is bound.\")
+                (list (cons \"bound\" (not (null *current-server*)))))")))
+    (let* ((server (make-instance 'atelier/mcp::mcp-server
+                                  :stream (make-two-way-stream
+                                           (make-string-input-stream "")
+                                           (make-string-output-stream))))
+           (resp (handle-message
+                  (parse-mcp-message
+                   (decode-from-string
+                    "{\"jsonrpc\":\"2.0\",\"id\":99,\"method\":\"tools/call\",\"params\":{\"name\":\"atelier:check-server-bound\",\"arguments\":{}}}"))
+                  server)))
+      ;; The response should be a success with bound=true
+      (assert-type resp 'mcp-success-response)
+      ;; Extract the text content and verify it contains "bound" as truthy
+      (let* ((result (response-result resp))
+             (content (gethash "content" result))
+             (text (gethash "text" (aref content 0))))
+        (assert-t* (search "true" text))))))
+
 (define-testcase validate-dispatcher-tests ()
   (validate-dispatch-initialize)
   (validate-dispatch-initialized-notification-returns-nil)
   (validate-dispatch-unknown-method)
   (validate-dispatch-tool-handler-signal-in-band)
   (validate-dispatch-resources-read-not-found)
-  (validate-dispatch-tools-list-method-present))
+  (validate-dispatch-tools-list-method-present)
+  (validate-dispatch-tools-call-binds-current-server))
 
 ;;;; End of file `dispatcher.lisp'

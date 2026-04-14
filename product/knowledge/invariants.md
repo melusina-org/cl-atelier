@@ -215,3 +215,33 @@ Numbering is global and continuous across all slices.
 **Discovered:** slice 013, phase 1
 **Invariant:** Every `define-tool` name must not be an external symbol of `COMMON-LISP`. The `define-tool` macro creates `NAME-TOOL` which requires interning `NAME` in the current package; if that package uses CL and `NAME` is a CL export, SBCL raises a package lock violation.
 **Rationale:** `define-tool apropos` failed because `CL:APROPOS` is exported. Renamed to `apropos-search`. See PAT-11.
+
+## INV-36: *current-server* must be defined before the dispatcher
+
+**Discovered:** slice 014, phase 1
+**Invariant:** The `(defvar *current-server* nil)` form must appear in a file that compiles BEFORE `dispatcher.lisp`. If it appears after (e.g., in a tool file), the `(let* ((*current-server* server) ...))` in the dispatcher creates a lexical binding instead of a dynamic one, and tools see `*current-server*` as nil.
+**Rationale:** Tests passed because they bind `*current-server*` themselves (compiled after the defvar). The live MCP protocol path goes through the dispatcher, where the lexical binding was invisible. Fixed by moving defvar to `dispatcher.lisp`.
+
+## INV-37: sb-introspect:who-* returns (NAME . DEFINITION-SOURCE) conses
+
+**Discovered:** slice 014, phase 1
+**Invariant:** SBCL's `sb-introspect:who-calls`, `who-references`, `who-binds`, `who-macroexpands` return lists of `(SYMBOL . DEFINITION-SOURCE)` conses, not bare `DEFINITION-SOURCE` objects. Always destructure with `(car entry)` for the caller name and `(cdr entry)` for the source.
+**Rationale:** Code treating entries as bare definition-sources crashed with TYPE-ERROR. Verify API shape with exploratory test before production use (PAT-12).
+
+## INV-38: connection-alive-p must detect broken SWANK sockets
+
+**Discovered:** slice 014, phase 1
+**Invariant:** `connection-alive-p` currently checks only process liveness (`uiop:process-alive-p`) and non-nil `swank-conn` slot. It does NOT probe the SWANK TCP socket. When the socket breaks (broken pipe) but the process is still alive, `ensure-child-connection` reuses the broken connection, causing persistent "broken pipe" errors until the MCP client reconnects.
+**Rationale:** Observed during development when nested child spawning crashed the SWANK connection but left the process alive. Slice 015 S1 addresses this.
+
+## INV-39: UIOP handles both stdout and stderr as functions on SBCL
+
+**Discovered:** slice 015 discovery, assertion A5
+**Invariant:** `uiop:run-program` on SBCL accepts functions for both `:output` and `:error-output` simultaneously. Both functions are called and both capture data. `uiop:launch-program` with `:output :stream :error-output :stream` returns separate accessible streams. No hand-rolled drain thread is needed for child process I/O.
+**Rationale:** The existing `stdout-drain-thread` in `make-child-connection` duplicates UIOP functionality. For child spawn, use `launch-program` with `:output :stream`, read stdout for the SWANK port, and redirect stderr to a temp file (`:error-output PATHNAME`) to avoid deadlock on large stderr output.
+
+## INV-40: Trace output goes to *trace-output*, not *standard-output*
+
+**Discovered:** slice 014, phase 1
+**Invariant:** SBCL's `trace` writes to `*trace-output*`, which is NOT captured by SWANK's `eval-and-grab-output` (which only captures `*standard-output*`). To see trace output from `eval-form`, `*trace-output*` must be redirected to `*standard-output*` in the child image.
+**Rationale:** `trace-function` tool appeared to work (no errors) but trace output was silently lost. Fixed by setting `*trace-output*` to `*standard-output*` in `trace-function-data`. Slice 015 S2 will implement proper separate capture.

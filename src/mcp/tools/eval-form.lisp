@@ -20,10 +20,6 @@
 ;;; eval-in-frame to interact with the debugger.
 ;;; Optional timeout parameter triggers interrupt after N seconds.
 
-(defvar *current-server* nil
-  "The MCP server currently handling a request. Bound by the
-   dispatcher during tool-call processing.")
-
 (define-tool eval-form (&key form timeout)
   (:description
    "Evaluate a Common Lisp form in an isolated child SBCL image.

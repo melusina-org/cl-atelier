@@ -190,3 +190,27 @@ What was reworked, why, and what could have prevented it. The most direct learni
 **Effort cost:** Minor — file rename + 2 test string replacements, ~2 minutes.
 **Preventable?** Yes, by checking `(find-symbol "APROPOS" :cl)` during planning. The pattern knowledge file explicitly warns about this.
 **Lesson:** *During planning, grep CL exports for every tool name. `(do-external-symbols (s :cl) ...)` or `(find-symbol NAME :cl)` catches conflicts before compile time.*
+
+## Slice 014, Phase 1: *current-server* defvar ordering
+
+**What was reworked:** `(defvar *current-server* nil)` was in `eval-form.lisp` (tools module) but bound by `(let* ((*current-server* server) ...))` in `dispatcher.lisp` which compiles BEFORE the tools module. The `let` created a lexical binding, not dynamic. Live MCP protocol returned "No server context" on every tool call requiring a child.
+**Trigger:** Tests passed because they bind `*current-server*` themselves (compiled after the defvar). Only the real MCP protocol path through the dispatcher was broken.
+**Effort cost:** Minor — move defvar to `dispatcher.lisp`, remove from `eval-form.lisp`, add regression test.
+**Preventable?** Yes, by having a journey test that exercises the real MCP protocol path (tools/call → dispatcher → tool handler), not just direct `handle-tool-call` calls.
+**Lesson:** *Defvar for special variables used in dynamic bindings must be compiled BEFORE the binding site. Tests that bypass the production code path (calling handle-tool-call directly instead of through the dispatcher) can't catch binding bugs.*
+
+## Slice 014, Phase 1: sb-introspect:who-* returns conses
+
+**What was reworked:** Code treated `sb-introspect:who-calls` results as bare `definition-source` objects. They are actually `(SYMBOL . DEFINITION-SOURCE)` conses. Crashed with TYPE-ERROR at runtime.
+**Trigger:** PAT-12 violated — no exploratory test verifying SBCL API shape before production use.
+**Effort cost:** Minor — destructure `(car entry)` and `(cdr entry)`.
+**Preventable?** Yes, by writing an exploratory test for `sb-introspect:who-calls` before implementing the child-worker function. Pattern PAT-12 explicitly warns about this.
+**Lesson:** *Always verify external API return shapes with an exploratory test. `sb-introspect` documentation doesn't specify the return type clearly enough to trust.*
+
+## Slice 014, Phase 1: connection-alive-p doesn't detect broken SWANK
+
+**What was reworked:** Not yet reworked — documented as INV-38 for slice 015. `connection-alive-p` checks `uiop:process-alive-p` but not SWANK socket health. When SWANK dies but the process lives, `ensure-child-connection` reuses the dead connection. Every subsequent eval-form returns "broken pipe" until MCP client reconnects.
+**Trigger:** Nested child spawning during MCP tests crashed the SWANK socket inside the child.
+**Effort cost:** Significant — required MCP reconnection every time the bug triggered during development, ~5 reconnections in this session.
+**Preventable?** Yes, by catching `broken-pipe` errors in `connection-eval` and treating them as dead-connection signals.
+**Lesson:** *Health checks must verify the protocol channel, not just the process. A live process with a dead socket is worse than a dead process — the dead process triggers respawn, the dead socket causes persistent errors.*
