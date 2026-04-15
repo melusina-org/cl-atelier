@@ -46,6 +46,10 @@
   (testsuite-fix-footer-line)
   (testsuite-autofix)
   (testsuite-template)
+  ;; Slice 009: project structure and hooks
+  (testsuite-check-system-naming)
+  (testsuite-fix-deprecated-names)
+  (testsuite-git)
   (atelier/testsuite/editor:run-all-editor-tests))
 
 ;;;; End of file `entrypoint.lisp'

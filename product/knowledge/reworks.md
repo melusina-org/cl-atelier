@@ -44,3 +44,11 @@ What was reworked, why, and what could have prevented it. The most direct learni
 
 **What was reworked:** Pass-count prediction was off by 1 (counted testcases, not assertions).
 **Lesson:** *Tight numeric acceptance criteria are only as good as the unit you counted.*
+
+## Slice 009, Phase 1: Finding hierarchy changed from file-finding to line-finding
+
+**What was reworked:** The implementation plan specified file-finding subclasses for system naming findings. The first test run crashed because text-resolution called finding-line on file-findings.
+**Trigger:** The write-back engine's resolution-text-span method requires line/column positions that only line-finding (and its subclasses) provide.
+**Effort cost:** minor — changed 3 subclass parents in finding.lisp and added line/column computation to the inspector.
+**Preventable?** yes — reading resolution-text-span during planning would have revealed the constraint.
+**Lesson:** When designing maintainers that produce text-resolutions, verify the finding class provides the slots that resolution-text-span reads.

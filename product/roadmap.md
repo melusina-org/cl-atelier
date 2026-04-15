@@ -19,6 +19,7 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | [006-linter-refinements](slice/006-linter-refinements/slice.md) | Bet | G2 | ✅ |
 | [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | ✅ |
 | [008-remove-line-length-inspector](slice/008-remove-line-length-inspector/slice.md) | Maintenance | — | ✅ |
+| [009-project-structure-and-hooks](slice/009-project-structure-and-hooks/slice.md) | New capability | G2 | ✅ |
 
 ## Next (intended for the following 1-3 slices)
 
@@ -67,3 +68,5 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | 2026-04-05 | Added: LLM-driven maintainer to Later; Elisp language support throughout; editor plugins, CFFI and Terraform ASDF components, MELPA/OCICL publication to Considering; REGION-FINDING and external tool wrappers to Later |
 | 2026-04-06 | Slices 001-008 completed over sessions through 2026-04-09 |
 | 2026-04-14 | MCP server extracted to org.melusina.mcp. Slices 009-015 removed. MCP moved to out-of-scope. Backlog renumbered. |
+| 2026-04-14 | Slice 009 (project structure + hooks) added to Now. |
+| 2026-04-14 | Slice 009 completed, moved to Completed. |

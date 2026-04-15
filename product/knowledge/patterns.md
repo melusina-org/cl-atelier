@@ -52,3 +52,10 @@ Patterns observed across slices that are likely to recur. Each entry names a sig
 **Pattern:** A plan predicts the pass-count delta by counting removed `define-testcase` forms, treating each as one assertion.
 **Signal:** A plan that counts testcases by name and predicts a delta equal to the count.
 **Mitigation:** Grep for `assert-*` forms inside removed testcases and sum those.
+
+## Text-resolution assumes line-finding
+
+**Discovered:** slice 009, phase 1
+**Pattern:** A plan specifies `file-finding` subclasses for an inspector, then pairs them with maintainers producing `text-resolution`. The write-back engine crashes because `resolution-text-span` calls `finding-line` — a slot that `file-finding` does not have.
+**Signal:** A maintainer that returns `make-text-resolution` paired with a finding class inheriting from `file-finding` (not `line-finding`).
+**Mitigation:** When designing the finding hierarchy, check whether any planned maintainer produces `text-resolution`. If so, the finding must be a `line-finding` (or `syntax-finding`) subclass.

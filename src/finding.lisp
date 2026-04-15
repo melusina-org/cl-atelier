@@ -273,6 +273,11 @@ meaningfully by parent class."
   (syntax-finding spurious-labels-finding      "A LABELS form has no mutual or self recursion; FLET (with nesting) is the correct construct.")
   (syntax-finding single-branch-if-finding     "An IF form has a NIL branch and should be written as WHEN or UNLESS.")
   (syntax-finding single-form-progn-finding    "A PROGN form wraps a single body form and is redundant.")
-  (syntax-finding when-not-finding             "A WHEN form tests (NOT X) and should be written as UNLESS."))
+  (syntax-finding when-not-finding             "A WHEN form tests (NOT X) and should be written as UNLESS.")
+  (line-finding   non-canonical-system-name-finding   "An ASDF secondary system uses a non-canonical suffix.")
+  (line-finding   deprecated-system-name-finding      "An ASDF system uses a deprecated name (e.g. /testsuite instead of /test).")
+  (line-finding   deprecated-component-name-finding   "An ASDF component uses a deprecated name (e.g. entrypoint instead of entry-point).")
+  (file-finding   missing-test-component-finding      "The test system is missing a component present in the main system.")
+  (file-finding   test-component-order-finding        "The test system's components are in a different order than the main system's."))
 
 ;;;; End of file `finding.lisp'

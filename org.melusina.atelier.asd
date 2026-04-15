@@ -51,7 +51,9 @@
 		   (:file "check-project-identification")
 		   (:file "check-single-branch-if")
 		   (:file "check-single-form-progn")
-		   (:file "check-when-not")))
+		   (:file "check-when-not")
+		   (:file "check-system-naming")
+		   (:file "check-test-mirror")))
 		 (:module "maintainers"
 		  :components
 		  ((:file "fix-trailing-whitespace")
@@ -63,7 +65,8 @@
 		   (:file "fix-labels-to-flet")
 		   (:file "fix-header-line")
 		   (:file "fix-footer-line")
-		   (:file "fix-project-identification")))
+		   (:file "fix-project-identification")
+		   (:file "fix-deprecated-names")))
 		 (:module "editor"
 		  :components ((:file "package")
 			       (:file "conditions")
@@ -72,7 +75,8 @@
 			       (:file "read-form")
 			       (:file "write-form")
 			       (:file "canonicalize")))
-		 (:file "main")))))
+		 (:file "main")
+		 (:file "git")))))
 
 (asdf:defsystem #:org.melusina.atelier/testsuite
   :description "Test suite for the Atelier for Lisp developers"
@@ -104,14 +108,17 @@
 		   (:file "check-labels-for-flet")
 		   (:file "check-header-line")
 		   (:file "check-footer-line")
-		   (:file "check-project-identification")))
+		   (:file "check-project-identification")
+		   (:file "check-system-naming")))
 		 (:module "maintainers"
 		  :components
 		  ((:file "fix-mixed-indentation")
 		   (:file "fix-labels-to-flet")
 		   (:file "fix-header-line")
-		   (:file "fix-footer-line")))
+		   (:file "fix-footer-line")
+		   (:file "fix-deprecated-names")))
 		 (:file "autofix")
+		 (:file "git")
 		 (:module "editor"
 		  :components ((:file "package")
 			       (:file "eclector-capability")
@@ -120,7 +127,6 @@
 			       (:file "write-form")
 			       (:file "normalize")
 			       (:file "fixtures")
-			       (:file "fresh-sbcl-load")
 			       (:file "entrypoint")))
 		 (:file "entrypoint")))))
 

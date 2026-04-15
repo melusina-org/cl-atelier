@@ -101,3 +101,35 @@ project with its own product directory.
 - Goal G5 (MCP server) removed from Atelier.
 - MCP-related backlog items removed.
 - MCP moved to out-of-scope in both roadmap and backlog.
+
+---
+
+## Maintainer Feedback — 2026-04-14
+**Source:** Maintainer
+**Relationship to library:** Author
+
+**Key finding:** Three new work items identified:
+
+1. **Pre-commit hook installer** — `ATELIER:INSTALL-PRE-COMMIT-HOOK` taking a
+   git repository pathname, installs a shell script that runs the linter with
+   autofix and the test suite. Simple shell script approach.
+
+2. **Project structure inspectors** — enforce canonical ASDF system naming
+   conventions:
+   - Allowed systems: `MAIN-SYSTEM`, `MAIN-SYSTEM/TEST`,
+     `MAIN-SYSTEM/DEVELOPMENT` (optional), `MAIN-SYSTEM/OPERATION` (optional),
+     `MAIN-SYSTEM/EXPERIMENT` (optional). Others are warnings.
+   - Rename inspectors: `MAIN-SYSTEM/TESTSUITE` → `MAIN-SYSTEM/TEST`,
+     file `entrypoint` → `entry-point`, file `main` → `entry-point`,
+     file `testsuite` → `test`.
+   - Test system file structure must mirror the main system structure
+     (same components, names, order), except for non-Lisp components
+     like linter/project configuration.
+
+3. **Trivia AST matching spike** — investigate whether rewriting current
+   syntax inspectors and syntax maintainers using the Trivia pattern
+   matching library would simplify the code.
+
+**Backlog impact:**
+- Items 1 and 2 are concrete, ready for slicing.
+- Item 3 is a spike — research before committing to a rewrite.

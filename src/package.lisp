@@ -182,6 +182,8 @@
    #:fix-header-line
    #:fix-footer-line
    #:fix-project-identification
+   #:fix-deprecated-system-name
+   #:fix-deprecated-component-name
    #:inspect-file
    #:inspect-line
    #:*current-pathname*
@@ -190,6 +192,10 @@
    #:perform-line-inspection
    #:perform-syntax-inspection
    #:read-file-into-line-vector
+
+   ;; Git hooks
+   #:install-pre-commit-hook
+   #:pre-commit-hook-exists
 
    ;; Concrete finding subclasses
    #:encoding-finding
@@ -207,6 +213,11 @@
    #:single-branch-if-finding
    #:single-form-progn-finding
    #:when-not-finding
+   #:non-canonical-system-name-finding
+   #:deprecated-system-name-finding
+   #:deprecated-component-name-finding
+   #:missing-test-component-finding
+   #:test-component-order-finding
 
    ;; Concrete inspectors
    #:check-file-encoding
@@ -227,6 +238,8 @@
    #:check-single-branch-if
    #:check-single-form-progn
    #:check-when-not
+   #:check-system-naming
+   #:check-test-mirror
    #:file-comment-prefix
    #:lisp-source-file-p
    #:canonical-project-identification-text

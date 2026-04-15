@@ -71,3 +71,21 @@ Numbering is global and continuous across all slices.
 **Discovered:** slice 001 (discovered late); reinforced by the `#:atelier` nickname bug in slice 006
 **Invariant:** The files under `resource/template/*.text` generate new projects that reference Atelier symbols, ASDF system names, and package nicknames. Any slice that renames an exported symbol, changes an ASDF system name, or adjusts a nickname must update the templates in the same commit.
 **Rationale:** Slice 006 hit a variant where a template used a package nickname as an ASDF dependency name.
+
+## INV-12: System naming inspector operates on .asd files only
+
+**Discovered:** slice 009, phase 1
+**Invariant:** `check-system-naming` and `check-test-mirror` dispatch on `(string-equal "asd" (pathname-type pathname))`. They must not run on `.lisp` files.
+**Rationale:** ASDF system definitions live exclusively in `.asd` files. Running the system naming inspector on `.lisp` files would find no `defsystem` forms and waste time.
+
+## INV-13: Findings that need text-resolution must be line-finding subclasses
+
+**Discovered:** slice 009, phase 1
+**Invariant:** The write-back engine's `resolution-text-span` for `text-resolution` derives character offsets from `(finding-line, finding-column)` to `(finding-end-line, finding-end-column)`. A `file-finding` (which lacks these slots) cannot produce a `text-resolution` — it will signal `no-applicable-method` at write-back time.
+**Rationale:** The original plan used `file-finding` for deprecated name findings. The first test run crashed because `text-resolution` called `finding-line` on a `file-finding`. Changed to `line-finding` subclasses.
+
+## INV-14: Pre-commit hook is a self-contained POSIX shell script
+
+**Discovered:** slice 009, phase 1
+**Invariant:** The pre-commit hook installed by `install-pre-commit-hook` uses `#!/bin/sh`, `set -eu`, and calls `sbcl --non-interactive --load <asd-file>`. It does not depend on Quicklisp being configured or on any specific ASDF source registry.
+**Rationale:** Pre-commit hooks must work in CI environments and fresh clones where Quicklisp may not be configured.

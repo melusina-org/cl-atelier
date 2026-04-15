@@ -20,6 +20,8 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | 13 | Project templates: extend for Elisp, Shell, HCL | Improvement | README + vision | S | ✓ | |
 | 14 | Linter: tflint and terraform validate wrappers | New capability | Vision 2026-04-05 | S | ✓ | |
 | 15 | Configuration file tie-breaking for superseding conflicts | New capability | Vision 2026-04-05 | M | — | Depends on #3. |
+| 16 | Pre-commit hook installer (`ATELIER:INSTALL-PRE-COMMIT-HOOK`) | New capability | Maintainer 2026-04-14 | S | ✓ | Shell script running linter+autofix and test suite. |
+| 17 | Project structure inspectors (system naming, file naming, test mirror) | New capability | Maintainer 2026-04-14 | M | ✓ | Enforces canonical ASDF system/file naming conventions. |
 
 ## Under consideration
 
@@ -30,6 +32,7 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | Profiling instrumentation | Vision 2026-04-05 | Same portability question. |
 | ASDF:COMPONENT for CFFI bridges | Vision 2026-04-05 | Scope: one .c file, one .so, reload. Not general C build. |
 | ASDF:COMPONENT for Terraform | Vision 2026-04-05 | Stack = C4 Container, Module = C4 Component. |
+| Trivia AST matching for syntax inspectors/maintainers | Maintainer 2026-04-14 | Spike: would Trivia simplify current CST inspector/maintainer code? |
 
 ## Rejected
 
@@ -50,3 +53,4 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | 2026-04-05 | Added REGION-FINDING, ASDF components, external tool wrappers |
 | 2026-04-09 | Slice 008: removed line-length inspector |
 | 2026-04-14 | MCP server extracted to org.melusina.mcp. MCP backlog items (#5-#10 old numbering) removed. Renumbered remaining items. |
+| 2026-04-14 | Added: #16 pre-commit hook installer, #17 project structure inspectors. Trivia AST matching spike added to Under Consideration. |

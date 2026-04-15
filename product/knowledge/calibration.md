@@ -42,3 +42,12 @@ Running record of where plans over- or under-estimated effort, pass counts, or o
 | 001 | A-priori API surface count | *There is no right unit for foundation slices — use functional criteria* |
 
 **Preferred style for numeric acceptance criteria:** prefer *invariants* over *tight numbers*. "Full regression passes with zero failures and zero new skips; pass count does not decrease by more than N" is stronger than "pass count = 296."
+
+## Slice 009: Project Structure and Hooks
+
+**Planned phases:** 1 — **Actual phases:** 1
+**Effort surprises:**
+- None — the slice was sized correctly as M (medium) and delivered in one phase.
+**Category patterns:**
+- File-level inspectors on .asd files are simpler than CST inspectors: no Eclector parsing, straightforward READ + search-based position tracking.
+- Test isolation for filesystem-mutating tests (pre-commit hooks) requires dedicated temp directories, not the shared system temp dir.
