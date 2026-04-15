@@ -290,6 +290,8 @@
    #:linter-op
    #:lint-system
    #:lint-string
+   #:collect-sibling-systems
+   #:collect-all-source-files
 
    ;; Utilities (used by legacy bridge)
    #:string-match

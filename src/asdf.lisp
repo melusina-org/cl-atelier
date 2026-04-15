@@ -287,6 +287,45 @@ Atelier's own systems have no configuration components by design."
       (walk system))
     (nreverse result)))
 
+(defun collect-sibling-systems (system)
+  "Return all ASDF systems defined in the same .asd file as SYSTEM.
+Includes SYSTEM itself. Returns a list of ASDF:SYSTEM objects."
+  (declare (type asdf:system system))
+  (let* ((asd-file (asdf:system-source-file system))
+         (asd-truename (when asd-file (truename asd-file)))
+         (siblings nil))
+    (when asd-truename
+      (asdf:map-systems
+       (lambda (sys)
+         (let ((sys-file (asdf:system-source-file sys)))
+           (when (and sys-file
+                      (equal (truename sys-file) asd-truename))
+             (push sys siblings))))))
+    (nreverse siblings)))
+
+(defun collect-all-source-files (system)
+  "Collect source files from all systems in SYSTEM's .asd file, plus the .asd file itself.
+Returns a deduplicated list of pathnames. The .asd file is included first so that
+file-level inspectors (e.g. check-system-naming) can inspect the system definitions."
+  (declare (type asdf:system system))
+  (let* ((asd-file (asdf:system-source-file system))
+         (siblings (collect-sibling-systems system))
+         (seen (make-hash-table :test 'equal))
+         (result nil))
+    ;; Include the .asd file first
+    (when asd-file
+      (let ((asd-truename (truename asd-file)))
+        (setf (gethash asd-truename seen) t)
+        (push asd-truename result)))
+    ;; Collect source files from all sibling systems
+    (dolist (sibling siblings)
+      (dolist (pathname (collect-system-source-files sibling))
+        (let ((truename (truename pathname)))
+          (unless (gethash truename seen)
+            (setf (gethash truename seen) t)
+            (push truename result)))))
+    (nreverse result)))
+
 (defun load-system-project-configuration (system)
   "Return a PROJECT-CONFIGURATION for SYSTEM.
 Reads the ASDF-PROJECT-CONFIGURATION component when present. For Atelier's
@@ -348,8 +387,9 @@ the final inspection pass."
          (*project-configuration* (load-system-project-configuration system))
          (*linter-configuration* (load-system-linter-configuration system)))
     (flet ((inspect-system ()
-             ;; Collect findings from every source file in the system.
-             (loop :for pathname :in (collect-system-source-files system)
+             ;; Collect findings from the .asd file and every source file
+             ;; in all systems defined in the same .asd file.
+             (loop :for pathname :in (collect-all-source-files system)
                    :nconc (perform-inspection pathname)))
            (resolutions-for-findings (findings)
              ;; Only line-findings carry line/column positions for TEXT-RESOLUTION.

@@ -81,7 +81,8 @@ Reading is done with *READ-EVAL* bound to NIL for safety."
                 :for line-after = (unless (eq form :eof) (file-position stream))
                 :until (eq form :eof)
                 :when (and (consp form)
-                           (eq (car form) :defsystem))
+                           (symbolp (car form))
+                           (string-equal "DEFSYSTEM" (symbol-name (car form))))
                   :do (push (cons form 1) forms)))
       (error () nil))
     ;; We cannot reliably get line numbers from standard READ.
@@ -225,12 +226,10 @@ Inspects .asd files only. Produces findings for:
                      (push (make-instance 'non-canonical-system-name-finding
                             :inspector 'check-system-naming
                             :severity :warning
-                            :observation (format nil
-                                                "System ~S uses non-canonical suffix ~S."
-                                                name suffix)
-                            :rationale (format nil
-                                              "Canonical suffixes are: ~{~A~^, ~}."
-                                              *canonical-system-suffixes*)
+                            :observation (format nil "System ~S uses non-canonical suffix ~S."
+                                                 name suffix)
+                            :rationale (format nil "Canonical suffixes are: ~{~A~^, ~}."
+                                               *canonical-system-suffixes*)
                             :file pathname
                             :line line-number
                             :column 0
