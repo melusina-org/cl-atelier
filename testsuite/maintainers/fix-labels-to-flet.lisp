@@ -31,7 +31,9 @@
 (define-testcase validate-labels-transform-to-flet-simple ()
   "Verify LABELS-TRANSFORM-TO-FLET produces FLET for a single-binding form."
   (let ((result (atelier:labels-transform-to-flet
-                 '(labels ((double (x) (* x 2))) (double 5)))))
+                 '(flet ((double (x)
+                           (* x 2)))
+                    (double 5)))))
     (assert-eq 'flet (first result))
     (assert-t (equal '((double (x) (* x 2))) (second result)))
     (assert-t (equal '((double 5)) (cddr result)))))
@@ -39,9 +41,11 @@
 (define-testcase validate-labels-transform-to-flet-chain ()
   "Verify LABELS-TRANSFORM-TO-FLET nests a caller around its callee."
   (let ((result (atelier:labels-transform-to-flet
-                 '(labels ((leaf (x) (* x 2))
-                           (caller (items) (mapcar #'leaf items)))
-                   (caller data)))))
+                 '(flet ((leaf (x)
+                           (* x 2)))
+                    (flet ((caller (items)
+                             (mapcar #'leaf items)))
+                      (caller data))))))
     (assert-eq 'flet (first result))
     (assert-eq 'leaf (first (first (second result))))
     (let ((inner (first (cddr result))))

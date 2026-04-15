@@ -85,9 +85,9 @@ resolutions, and return (VALUES fixed-content findings resolutions)."
                                'atelier:fix-deprecated-system-name)
         ;; No more deprecated system name findings
         (let ((deprecated-findings
-                (remove-if-not (lambda (f)
-                                 (typep f 'atelier:deprecated-system-name-finding))
-                               findings-2)))
+                (flet ((remove-item (f)
+                         (typep f 'atelier:deprecated-system-name-finding)))
+                  (remove-if-not #'remove-item findings-2))))
           (assert-nil deprecated-findings))
         ;; Content unchanged
         (assert-string= fixed-1 fixed-2)))))
@@ -128,9 +128,9 @@ resolutions, and return (VALUES fixed-content findings resolutions)."
                                'atelier:check-system-naming
                                'atelier:fix-deprecated-component-name)
         (let ((deprecated-findings
-                (remove-if-not (lambda (f)
-                                 (typep f 'atelier:deprecated-component-name-finding))
-                               findings-2)))
+                (flet ((remove-item (f)
+                         (typep f 'atelier:deprecated-component-name-finding)))
+                  (remove-if-not #'remove-item findings-2))))
           (assert-nil deprecated-findings))
         (assert-string= fixed-1 fixed-2)))))
 

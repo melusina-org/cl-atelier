@@ -27,11 +27,18 @@ that are not expected to have test counterparts.")
 These are infrastructure components that do not require test mirrors.")
 
 (defun mirror-eligible-p (component-name)
-  "Return T if COMPONENT-NAME should be included in mirror comparison."
+  "Return T if COMPONENT-NAME should be included in mirror comparison.
+Checks the built-in exclusion list and, when *LINTER-CONFIGURATION* is bound,
+the project's mirror-excluded-components list."
   (declare (type string component-name)
            (values boolean))
-  (not (member component-name *non-mirror-component-names*
-               :test #'string-equal)))
+  (and (not (member component-name *non-mirror-component-names*
+                    :test #'string-equal))
+       (not (and *linter-configuration*
+                 (member component-name
+                         (linter-configuration-mirror-excluded-components
+                          *linter-configuration*)
+                         :test #'string-equal)))))
 
 
 ;;;;

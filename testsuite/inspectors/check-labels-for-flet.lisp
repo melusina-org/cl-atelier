@@ -48,7 +48,11 @@
   "Verify that a DAG call graph is correctly identified as cycle-free."
   ;; (labels ((a () (b)) (b () 42)) (a)) — a calls b, no cycle
   (assert-t (null (atelier:labels-call-graph-has-cycles-p
-                   '(labels ((a () (b)) (b () 42)) (a))))))
+                   '(flet ((b ()
+                             42))
+                      (flet ((a ()
+                               (b)))
+                        (a)))))))
 
 (define-testcase validate-labels-self-recursion-detected ()
   "Verify that a self-recursive function is detected as a cycle."
@@ -61,7 +65,7 @@
   ;; (labels ((even-p (n) (odd-p n)) (odd-p (n) (even-p n))) ...)
   (assert-t (atelier:labels-call-graph-has-cycles-p
              '(labels ((even-p (n) (if (zerop n) t (odd-p (1- n))))
-                       (odd-p (n) (if (zerop n) nil (even-p (1- n)))))
+                       (odd-p (n) (unless (zerop n) (even-p (1- n)))))
                (even-p 4)))))
 
 

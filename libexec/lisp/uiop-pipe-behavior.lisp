@@ -1,4 +1,4 @@
-;;;; pipe-behavior.lisp — Learn how UNIX pipes behave with CL streams
+;;;; uiop-pipe-behavior.lisp — pipe-behavior.lisp — Learn how UNIX pipes behave with CL streams
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -158,4 +158,4 @@ deterministic pipe behavior."
   (validate-pipe-deadlock-prevention)
   (validate-read-char-no-hang))
 
-;;;; End of file `pipe-behavior.lisp'
+;;;; End of file `uiop-pipe-behavior.lisp'

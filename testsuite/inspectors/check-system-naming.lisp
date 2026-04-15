@@ -95,9 +95,9 @@ Return the list of findings."
       ;; No deprecated component findings (may have system naming findings
       ;; if no test system — filter for component findings only)
       (let ((component-findings
-              (remove-if-not (lambda (f)
-                               (typep f 'atelier:deprecated-component-name-finding))
-                             findings)))
+              (flet ((remove-item (f)
+                       (typep f 'atelier:deprecated-component-name-finding)))
+                (remove-if-not #'remove-item findings))))
         (assert-nil component-findings)))))
 
 

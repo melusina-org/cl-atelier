@@ -186,6 +186,7 @@
    #:fix-deprecated-component-name
    #:fix-when-not
    #:fix-single-branch-if
+   #:fix-spdx-license-header
    #:inspect-file
    #:inspect-line
    #:*current-pathname*
@@ -276,6 +277,7 @@
    #:linter-configuration-severity-overrides
    #:linter-configuration-indentation-style
    #:linter-configuration-maintainer-overrides
+   #:linter-configuration-mirror-excluded-components
    #:read-linter-configuration
    #:project-configuration-parameter-bindings
    #:*project-configuration*

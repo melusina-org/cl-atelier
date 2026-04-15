@@ -60,7 +60,6 @@ my-project/testsuite with my-project/test."
   "Rename a deprecated component name in the .asd file.
 Produces a text-resolution that replaces the deprecated component name
 with the canonical name at the finding's location."
-  (:maturity :experimental)
   (let* ((observation (finding-observation finding))
          ;; Extract deprecated and replacement names from the observation.
          ;; Observation format: "Component \"NAME\" should be renamed to \"REPLACEMENT\"."

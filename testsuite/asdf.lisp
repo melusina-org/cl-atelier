@@ -123,7 +123,7 @@
          (findings (atelier:perform-inspection fixture-path)))
     (let ((spdx-findings
             (flet ((spdx-license-header-finding-p (finding)
-		     (typep finding 'atelier:spdx-license-header-finding)))
+         (typep finding 'atelier:spdx-license-header-finding)))
               (remove-if-not #'spdx-license-header-finding-p findings))))
       (assert-t (not (null spdx-findings)))
       (assert-eq :error (atelier:finding-severity (first spdx-findings))))))

@@ -25,9 +25,7 @@ Recognises the literal token \"nil\" as the Lisp NIL value."
     (cl-ppcre:do-matches-as-strings (token "[^\\[\\],\\s]+" string)
       (push token matches))
     (flet ((parse-token (token)
-             (if (string-equal token "nil")
-                 nil
-                 (parse-integer token))))
+             (unless (string-equal token "nil") (parse-integer token))))
       (mapcar #'parse-token (reverse (subseq matches 0 (min 3 (length matches))))))))
 
 (defun read-pretty-print-fixture (pathname)

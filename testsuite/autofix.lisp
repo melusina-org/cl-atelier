@@ -45,15 +45,20 @@ Returns the list of findings produced."
 ;;;;
 
 (define-testcase validate-lint-system-autofix ()
-  "Verify that the autofix pipeline fixes source files."
+  "Verify that the autofix pipeline fixes source files.
+Asserts that trailing whitespace on a code line is removed. Does not
+assert exact file content because other maintainers (e.g. SPDX header)
+may also modify the file."
   (uiop:with-temporary-file (:pathname p :type "lisp" :keep nil)
     (with-open-file (s p :direction :output :if-exists :supersede
                        :external-format :utf-8)
       (format s "(defvar *x* 1)   ~%"))
     (let ((findings (apply-autofix-to-file p)))
       (assert-t (not (null findings)))
-      (assert-string= (format nil "(defvar *x* 1)~%")
-                      (uiop:read-file-string p :external-format :utf-8)))))
+      ;; The trailing whitespace must be gone.
+      (let ((content (uiop:read-file-string p :external-format :utf-8)))
+        (assert-t (not (null (search "(defvar *x* 1)" content))))
+        (assert-nil (search "(defvar *x* 1)   " content))))))
 
 (define-testcase validate-lint-system-no-autofix ()
   "Verify that inspection without autofix does not modify source files."
@@ -184,26 +189,28 @@ FINDING. Synthetic keys supported:
 EXPECTED-PLIST may be NIL to skip all slot checks (the class check still runs)."
   (declare (type list expected-plist))
   (assert-type finding expected-finding-class)
-  (labels ((substring-p (needle haystack)
-             (and (stringp haystack)
-                  (search needle haystack)))
-           (check-slot (key value)
+  (flet ((substring-p (needle haystack)
+           (and (stringp haystack) (search needle haystack))))
+    (flet ((check-slot (key value)
              (case key
                (:cst-node-raw
                 (assert-equal value
-                              (concrete-syntax-tree:raw
-                               (atelier:finding-cst-node finding))))
+                 (concrete-syntax-tree:raw (atelier:finding-cst-node finding))))
                (:observation-matches
-                (assert-t (not (null (substring-p value
-                                                  (atelier:finding-observation finding))))))
+                (assert-t
+                 (not
+                  (null
+                   (substring-p value (atelier:finding-observation finding))))))
                (:source-text-substring
-                (assert-t (not (null (substring-p value
-                                                  (atelier:finding-source-text finding))))))
+                (assert-t
+                 (not
+                  (null
+                   (substring-p value (atelier:finding-source-text finding))))))
                (t
                 (let ((accessor (autofix-cycle-finding-accessor key)))
                   (assert-equal value (funcall accessor finding)))))))
-    (loop :for (key value) :on expected-plist :by #'cddr
-          :do (check-slot key value))))
+      (loop :for (key value) :on expected-plist :by #'cddr
+            :do (check-slot key value)))))
 
 (defun run-autofix-cycle (inspector maintainer source)
   "Run one full autofix cycle on SOURCE and return (values RESULT FINDINGS).

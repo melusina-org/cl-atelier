@@ -139,16 +139,28 @@ The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
     :type list
     :initform nil
     :documentation "Alist of (maintainer-name . disposition) overrides.
-Disposition is :AUTO, :INTERACTIVE, or :SKIP."))
+Disposition is :AUTO, :INTERACTIVE, or :SKIP.")
+   (mirror-excluded-components
+    :initarg :mirror-excluded-components
+    :reader linter-configuration-mirror-excluded-components
+    :type list
+    :initform nil
+    :documentation "List of component name strings to exclude from test mirror comparison.
+Components listed here are transparent to both MISSING-TEST-COMPONENT-FINDING and
+TEST-COMPONENT-ORDER-FINDING. A source component excluded here does not require a
+test counterpart; a test component excluded here does not require a source counterpart.
+Excluded components are also removed before checking order."))
   (:documentation "Linter policy configuration for an ASDF system.
 Read from a .sexp file declared as an ASDF component."))
 
 (defun make-linter-configuration (&rest initargs
                                   &key disabled-inspectors severity-overrides
-                                       indentation-style maintainer-overrides)
+                                       indentation-style maintainer-overrides
+                                       mirror-excluded-components)
   "Create and return a LINTER-CONFIGURATION."
   (declare (ignore disabled-inspectors severity-overrides
-                   indentation-style maintainer-overrides))
+                   indentation-style maintainer-overrides
+                   mirror-excluded-components))
   (apply #'make-instance 'linter-configuration initargs))
 
 (defmethod print-object ((instance linter-configuration) stream)
@@ -217,7 +229,7 @@ Maps configuration slots to the parameter names used by the template system."
 ;;;; Resolution Proposed Condition
 ;;;;
 
-(define-condition resolution-proposed ()
+(define-condition resolution-proposed (warning)
   ((resolution
     :initarg :resolution
     :reader resolution-proposed-resolution
@@ -231,10 +243,17 @@ Maps configuration slots to the parameter names used by the template system."
     :reader resolution-proposed-maintainer-name
     :documentation "The symbol naming the maintainer that produced this resolution."))
   (:report (lambda (condition stream)
-             (format stream "Resolution proposed by ~S: ~A"
-                     (resolution-proposed-maintainer-name condition)
-                     (resolution-description
-                      (resolution-proposed-resolution condition)))))
+             (let* ((resolution (resolution-proposed-resolution condition))
+                    (finding (resolution-proposed-finding condition))
+                    (maint-name (resolution-proposed-maintainer-name condition)))
+               (format stream "~A proposes: ~A~%  Finding: ~A~%  File: ~A~%  ~
+                               Invoke APPLY-RESOLUTION to accept this fix, ~
+                               SKIP-RESOLUTION to leave the code unchanged."
+                       maint-name
+                       (resolution-description resolution)
+                       (finding-observation finding)
+                       (when (typep finding 'file-finding)
+                         (finding-file finding))))))
   (:documentation "Signalled during autofix before applying a resolution.
 Provides APPLY-RESOLUTION and SKIP-RESOLUTION restarts."))
 
@@ -374,10 +393,13 @@ Otherwise returns a default instance with a warning."
              (asdf:component-name system))
        (make-linter-configuration)))))
 
-(defun lint-system (system-designator &key autofix)
-  "Lint all source files in the system designated by SYSTEM-DESIGNATOR.
+(defun lint-system (system-designator &key autofix (sibling-systems t))
+  "Lint source files in the system designated by SYSTEM-DESIGNATOR.
 Return a list of findings. Reads project and linter configuration from
 ASDF components when present; otherwise uses sensible defaults.
+When SIBLING-SYSTEMS is true (the default), lint the .asd file and every
+source file in all systems defined in the same .asd file. When NIL, lint
+only the source files of the requested system.
 When AUTOFIX is true, applies automatic resolutions for each finding
 that has a registered maintainer, grouped by file, then re-inspects
 each modified file until no further fixable findings remain or the
@@ -387,9 +409,9 @@ the final inspection pass."
          (*project-configuration* (load-system-project-configuration system))
          (*linter-configuration* (load-system-linter-configuration system)))
     (flet ((inspect-system ()
-             ;; Collect findings from the .asd file and every source file
-             ;; in all systems defined in the same .asd file.
-             (loop :for pathname :in (collect-all-source-files system)
+             (loop :for pathname :in (if sibling-systems
+                                         (collect-all-source-files system)
+                                         (collect-system-source-files system))
                    :nconc (perform-inspection pathname)))
            (resolutions-for-findings (findings)
              ;; Only line-findings carry line/column positions for TEXT-RESOLUTION.
@@ -403,7 +425,16 @@ the final inspection pass."
                       ;; Signal resolution-proposed with restarts.
                       ;; Returns T if the resolution should be applied.
                       (let* ((maint-name (resolution-maintainer resolution))
-                             (disposition (effective-maintainer-disposition maint-name)))
+                             (disposition (effective-maintainer-disposition maint-name))
+                             (description (resolution-description resolution))
+                             (finding (resolution-finding resolution))
+                             (apply-report
+                               (format nil "Apply fix: ~A" description))
+                             (skip-report
+                               (format nil "Skip ~A on ~A."
+                                       maint-name
+                                       (when (typep finding 'file-finding)
+                                         (file-namestring (finding-file finding))))))
                         (case disposition
                           (:skip nil)
                           (:interactive
@@ -412,23 +443,31 @@ the final inspection pass."
                                (progn
                                  (warn 'resolution-proposed
                                        :resolution resolution
-                                       :finding (resolution-finding resolution)
+                                       :finding finding
                                        :maintainer-name maint-name)
                                  ;; If warning is not handled, skip in batch.
                                  nil)
-                             (apply-resolution () :report "Apply this resolution." t)
-                             (skip-resolution () :report "Skip this resolution." nil)))
+                             (apply-resolution ()
+                               :report (lambda (s) (write-string apply-report s))
+                               t)
+                             (skip-resolution ()
+                               :report (lambda (s) (write-string skip-report s))
+                               nil)))
                           (otherwise
                            ;; :auto — signal and auto-apply.
                            (restart-case
                                (progn
                                  (signal 'resolution-proposed
                                          :resolution resolution
-                                         :finding (resolution-finding resolution)
+                                         :finding finding
                                          :maintainer-name maint-name)
                                  t)
-                             (apply-resolution () :report "Apply this resolution." t)
-                             (skip-resolution () :report "Skip this resolution." nil)))))))
+                             (apply-resolution ()
+                               :report (lambda (s) (write-string apply-report s))
+                               t)
+                             (skip-resolution ()
+                               :report (lambda (s) (write-string skip-report s))
+                               nil)))))))
                (let ((by-file (make-hash-table :test 'equal)))
                  (dolist (finding findings)
                    (when (typep finding 'line-finding)

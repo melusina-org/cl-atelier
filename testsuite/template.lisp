@@ -154,7 +154,7 @@
       (atelier:new-lisp-project pathname)
       (atelier:new-lisp-project pathname))
     (assert-t* (uiop:file-exists-p
-		(merge-pathnames "src/package.lisp" pathname)))))
+    (merge-pathnames "src/package.lisp" pathname)))))
 
 (define-testcase testsuite-template ()
   (validate-template-idempotent-write)
