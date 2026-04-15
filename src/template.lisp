@@ -41,7 +41,7 @@
   (unless (initialized-p)
     (restart-case (error "The template resources are not initialized.")
       (initialize ()
-	(initialize))))
+  (initialize))))
   (cond
     ((typep designator 'template)
      designator)
@@ -117,7 +117,7 @@ If environment is provided, it is an alist which is added to the current
 The PATHNAME argument can actually be a pathname, a stream or the value T designating the
 standard output."
   (let ((template
-	  (find-template designator)))
+    (find-template designator)))
     (unless template
       (error "Cannot find template designated by ~S." designator))
     (write-template template pathname (template-environment environment))))
@@ -213,36 +213,36 @@ Each entry of the list is a list of the form
 
 (defmethod write-template ((template composite-template) (pathname pathname) &optional environment)
   (labels ((file-component (designator relative-pathname &optional additional-bindings)
-	     (flet ((resolve-pathname (pathname)
-		      (pathname (parameter-replace (namestring pathname) environment)))
-		    (resolve-environment (additional-bindings)
-		      (let ((resolved-additional-bindings
-			      (loop :for (key . value) :in additional-bindings
-				    :for resolved-value = (parameter-replace value environment)
-				    :collect (cons key resolved-value))))
-			(merge-parameter-bindings resolved-additional-bindings environment))))
+       (flet ((resolve-pathname (pathname)
+          (pathname (parameter-replace (namestring pathname) environment)))
+        (resolve-environment (additional-bindings)
+          (let ((resolved-additional-bindings
+            (loop :for (key . value) :in additional-bindings
+            :for resolved-value = (parameter-replace value environment)
+            :collect (cons key resolved-value))))
+      (merge-parameter-bindings resolved-additional-bindings environment))))
                (list (or (find-template designator)
-			 (error "Cannot find template designated by ~S." designator))	 
-		     (merge-pathnames (resolve-pathname relative-pathname) pathname)
-		     (resolve-environment additional-bindings))))
-	   (composite-component (designator)
-	     (let ((template
-		     (find-template designator)))
-	       (unless template
-		 (error "Cannot find template designated by ~S." designator))
+       (error "Cannot find template designated by ~S." designator))
+         (merge-pathnames (resolve-pathname relative-pathname) pathname)
+         (resolve-environment additional-bindings))))
+     (composite-component (designator)
+       (let ((template
+         (find-template designator)))
+         (unless template
+     (error "Cannot find template designated by ~S." designator))
                (loop :for template-spec :in (template-components template)
-		     :when (symbolp template-spec)
-		     :append (composite-component template-spec)
-		     :when (listp template-spec)
-		     :collect (apply #'file-component template-spec))))
-	   (plan ()
-	     (remove-duplicates
+         :when (symbolp template-spec)
+         :append (composite-component template-spec)
+         :when (listp template-spec)
+         :collect (apply #'file-component template-spec))))
+     (plan ()
+       (remove-duplicates
               (composite-component template)
               :key #'second
               :test #'equal
               :from-end t)))
     (loop :for subtask :in (plan)
-	  :do (apply #'write-template subtask))))
+    :do (apply #'write-template subtask))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro define-composite-template (identifier &rest initargs &key name description components)
@@ -418,15 +418,15 @@ These scripts are specific to Lisp projects."
   "Create a new lisp project in PATHNAME."
   (let* ((argv-parameter-bindings
            (list (cons :copyright-holder copyright-holder)
-		 (cons :copyright-year copyright-year)
-		 (cons :project-filename project-filename)
-		 (cons :project-name project-name)
-		 (cons :project-description project-description)
-		 (cons :project-long-description project-long-description)
-		 (cons :homepage homepage)
-		 (cons :license license)))
-	 (merged-parameter-bindings
-	   (merge-parameter-bindings *parameter-bindings* argv-parameter-bindings)))
+     (cons :copyright-year copyright-year)
+     (cons :project-filename project-filename)
+     (cons :project-name project-name)
+     (cons :project-description project-description)
+     (cons :project-long-description project-long-description)
+     (cons :homepage homepage)
+     (cons :license license)))
+   (merged-parameter-bindings
+     (merge-parameter-bindings *parameter-bindings* argv-parameter-bindings)))
     (let ((*parameter-bindings* merged-parameter-bindings))
       (write-template 'lisp-project (sanitize-project-pathname pathname) environment))))
 

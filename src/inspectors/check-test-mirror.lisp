@@ -96,13 +96,13 @@ Inspects .asd files only. Produces findings for:
                         findings)))
               ;; Check order of shared components
               (let ((shared-in-main
-                      (remove-if-not (lambda (c)
-                                       (member c test-components :test #'string-equal))
-                                     main-components))
+                      (flet ((remove-item (c)
+                               (member c test-components :test #'string-equal)))
+                        (remove-if-not #'remove-item main-components)))
                     (shared-in-test
-                      (remove-if-not (lambda (c)
-                                       (member c main-components :test #'string-equal))
-                                     test-components)))
+                      (flet ((remove-item (c)
+                               (member c main-components :test #'string-equal)))
+                        (remove-if-not #'remove-item test-components))))
                 (when (and shared-in-main shared-in-test
                            (not (equal shared-in-main shared-in-test)))
                   (push (make-instance 'test-component-order-finding

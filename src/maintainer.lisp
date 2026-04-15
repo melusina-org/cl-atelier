@@ -227,4 +227,23 @@ and finding classes."
           :when resolution
           :collect resolution)))
 
+
+;;;;
+;;;; Describe Finding Autofix
+;;;;
+
+(defmethod describe-object :after ((instance finding) stream)
+  "Append autofix information to the finding description.
+Lists the maintainers that can produce resolutions for this finding."
+  (let ((resolutions (resolve-finding instance)))
+    (if resolutions
+        (progn
+          (format stream "~&  Autofix:     yes (~D maintainer~:P)~%"
+                  (length resolutions))
+          (dolist (resolution resolutions)
+            (format stream "~&    ~S: ~A~%"
+                    (resolution-maintainer resolution)
+                    (resolution-description resolution))))
+        (format stream "~&  Autofix:     no~%"))))
+
 ;;;; End of file `maintainer.lisp'

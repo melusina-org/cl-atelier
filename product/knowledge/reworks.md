@@ -52,3 +52,27 @@ What was reworked, why, and what could have prevented it. The most direct learni
 **Effort cost:** minor — changed 3 subclass parents in finding.lisp and added line/column computation to the inspector.
 **Preventable?** yes — reading resolution-text-span during planning would have revealed the constraint.
 **Lesson:** When designing maintainers that produce text-resolutions, verify the finding class provides the slots that resolution-text-span reads.
+
+## Rework: check-single-form-progn false positive on splat unquote
+
+**What was reworked:** The inspector reported `(progn ,@body)` as a single-form progn. A splicing unquote may expand to zero or many forms at macro-expansion time, so this is a false positive.
+**Trigger:** User reported the bug after linting macro-heavy code.
+**Effort cost:** minor — added a `splicing-unquote-p` predicate and an extra guard in `single-body-p`.
+**Preventable?** partially — the original inspector was written before quasiquote-aware testing existed. A fixture with `` `(progn ,@body) `` would have caught it.
+**Lesson:** Syntax inspectors that walk CST trees must account for quasiquote constructs (`eclector.reader:unquote-splicing`, `eclector.reader:unquote`) as special cases.
+
+## Rework: missing autofix for when-not and single-branch-if
+
+**What was reworked:** Added `fix-when-not` and `fix-single-branch-if` maintainers. These inspectors existed since slice 004 but had no corresponding maintainers.
+**Trigger:** User reported that these findings should be autofixable.
+**Effort cost:** minor — straightforward syntax-resolution transforms.
+**Preventable?** yes — every syntax inspector should ship with a maintainer when the transform is mechanical.
+**Lesson:** When adding a syntax inspector, always ask: is the fix a mechanical AST transform? If yes, ship the maintainer in the same slice.
+
+## Rework: describe-object on finding lacks autofix information
+
+**What was reworked:** Added a `:after` method on `describe-object` for `finding` that calls `resolve-finding` and displays whether the finding is autofixable and which maintainers can handle it.
+**Trigger:** User requested visibility into the finding-maintainer relationship.
+**Effort cost:** minor — single `:after` method in `maintainer.lisp`.
+**Preventable?** no — this is a usability improvement, not a bug.
+**Lesson:** The finding→maintainer relationship is runtime-discoverable via `resolve-finding`. Surfacing it in `describe-object` makes the protocol self-documenting.

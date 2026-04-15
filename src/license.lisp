@@ -90,7 +90,7 @@ The file format is expected to have three documents separated by '---':
   (unless (initialized-p)
     (restart-case (error "The license resources are not initialized.")
       (initialize ()
-	(initialize))))
+  (initialize))))
   (cond
     ((typep designator 'license)
      designator)

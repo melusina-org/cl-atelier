@@ -66,7 +66,9 @@
 		   (:file "fix-header-line")
 		   (:file "fix-footer-line")
 		   (:file "fix-project-identification")
-		   (:file "fix-deprecated-names")))
+		   (:file "fix-deprecated-names")
+		   (:file "fix-when-not")
+		   (:file "fix-single-branch-if")))
 		 (:module "editor"
 		  :components ((:file "package")
 			       (:file "conditions")

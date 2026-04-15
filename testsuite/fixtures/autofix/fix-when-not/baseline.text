@@ -1,0 +1,14 @@
+---
+description: WHEN (NOT X) replaced with UNLESS
+inspector: check-when-not
+finding: when-not-finding
+maintainer: fix-when-not
+resolution: syntax-resolution
+---
+(when (not active-p)
+  (deactivate))
+---
+(:severity :style)
+---
+(unless active-p (deactivate))
+---

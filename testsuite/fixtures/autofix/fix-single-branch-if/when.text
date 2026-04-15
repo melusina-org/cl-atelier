@@ -1,0 +1,15 @@
+---
+description: IF with NIL else branch replaced with WHEN
+inspector: check-single-branch-if
+finding: single-branch-if-finding
+maintainer: fix-single-branch-if
+resolution: syntax-resolution
+---
+(if active-p
+    (activate)
+    nil)
+---
+(:severity :style)
+---
+(when active-p (activate))
+---

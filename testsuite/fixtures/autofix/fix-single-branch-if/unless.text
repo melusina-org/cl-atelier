@@ -1,0 +1,15 @@
+---
+description: IF with NIL then branch replaced with UNLESS
+inspector: check-single-branch-if
+finding: single-branch-if-finding
+maintainer: fix-single-branch-if
+resolution: syntax-resolution
+---
+(if active-p
+    nil
+    (deactivate))
+---
+(:severity :style)
+---
+(unless active-p (deactivate))
+---

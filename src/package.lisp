@@ -73,7 +73,7 @@
    #:license-text
    #:license-spdx-identifier
    #:find-license
-   
+
    ;; Finding hierarchy
    #:finding
    #:file-finding
@@ -184,6 +184,8 @@
    #:fix-project-identification
    #:fix-deprecated-system-name
    #:fix-deprecated-component-name
+   #:fix-when-not
+   #:fix-single-branch-if
    #:inspect-file
    #:inspect-line
    #:*current-pathname*

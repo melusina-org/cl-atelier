@@ -16,13 +16,22 @@ top-level FORM recursively. For each (PROGN BODY) with exactly one body
 form, report a SINGLE-FORM-PROGN-FINDING. (PROGN) and (PROGN A B ...) are
 not reported; an empty PROGN is a separate concern."
   (let ((findings nil))
-    (labels ((single-body-p (progn-node)
+    (labels ((splicing-unquote-p (cst-node)
+               ;; Return T if CST-NODE is (ECLECTOR.READER:UNQUOTE-SPLICING ...).
+               ;; Such a form may expand to multiple forms at macro-expansion
+               ;; time, so (PROGN ,@BODY) is not a single-form PROGN.
+               (and (cst:consp cst-node)
+                    (eq 'eclector.reader:unquote-splicing
+                        (cst:raw (cst:first cst-node)))))
+             (single-body-p (progn-node)
                ;; PROGN-NODE is known to be a CST cons whose first element is PROGN.
                ;; There must be exactly one body form — i.e., (cst:rest progn-node)
                ;; is a non-empty cons whose own rest is the empty-list terminator.
+               ;; Additionally, the single form must not be a splicing unquote.
                (let ((body (cst:rest progn-node)))
                  (and (cst:consp body)
-                      (not (cst:consp (cst:rest body))))))
+                      (not (cst:consp (cst:rest body)))
+                      (not (splicing-unquote-p (cst:first body))))))
              (walk (node)
                (when (cst:consp node)
                  (when (and (eq 'progn (cst:raw (cst:first node)))
