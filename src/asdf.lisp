@@ -393,7 +393,61 @@ Otherwise returns a default instance with a warning."
              (asdf:component-name system))
        (make-linter-configuration)))))
 
-(defun lint-system (system-designator &key autofix (sibling-systems t))
+(defun find-component-file (system deprecated-name)
+  "Find the source file for a component named DEPRECATED-NAME in SYSTEM.
+Walks the source directory looking for DEPRECATED-NAME.lisp files.
+Returns a list of matching pathnames."
+  (declare (type asdf:system system)
+           (type string deprecated-name)
+           (values list))
+  (let ((source-dir (asdf:system-source-directory system))
+        (results nil))
+    (flet ((collect-match (pathname)
+             (when (string-equal deprecated-name (pathname-name pathname))
+               (push pathname results))))
+      (dolist (sibling (collect-sibling-systems system))
+        (dolist (pathname (collect-system-source-files sibling))
+          (collect-match pathname))))
+    ;; Also check the source directory for files not in any system
+    (let ((pattern (merge-pathnames
+                    (make-pathname :directory '(:relative :wild-inferiors)
+                                  :name deprecated-name
+                                  :type "lisp")
+                    source-dir)))
+      (dolist (pathname (directory pattern))
+        (unless (member pathname results :test #'equal)
+          (push pathname results))))
+    (nreverse results)))
+
+(defun perform-component-renames (resolutions-by-file system)
+  "Rename source files for accepted deprecated-component-name resolutions.
+Scans RESOLUTIONS-BY-FILE for FIX-DEPRECATED-COMPONENT-NAME resolutions
+and renames the corresponding .lisp files on disk."
+  (declare (type hash-table resolutions-by-file)
+           (type asdf:system system))
+  (maphash
+   (lambda (pathname resolutions)
+     (declare (ignore pathname))
+     (dolist (resolution resolutions)
+       (when (eq 'fix-deprecated-component-name (resolution-maintainer resolution))
+         (let* ((finding (resolution-finding resolution))
+                (observation (finding-observation finding))
+                (name-start (position #\" observation))
+                (name-end (when name-start
+                            (position #\" observation :start (1+ name-start))))
+                (deprecated-name (when (and name-start name-end)
+                                   (subseq observation (1+ name-start) name-end)))
+                (replacement (when deprecated-name
+                               (deprecated-component-replacement deprecated-name))))
+           (when (and deprecated-name replacement)
+             (dolist (old-path (find-component-file system deprecated-name))
+               (let ((new-path (make-pathname :name replacement
+                                              :defaults old-path)))
+                 (unless (probe-file new-path)
+                   (rename-file old-path new-path)))))))))
+   resolutions-by-file))
+
+(defun lint-system (system-designator &key (autofix t) (sibling-systems t))
   "Lint source files in the system designated by SYSTEM-DESIGNATOR.
 Return a list of findings. Reads project and linter configuration from
 ASDF components when present; otherwise uses sensible defaults.
@@ -480,7 +534,9 @@ the final inspection pass."
              ;; Write each file back with its resolutions applied end-to-start.
              (maphash (lambda (pathname resolutions)
                         (apply-resolutions-to-file pathname (nreverse resolutions)))
-                      resolutions-by-file)))
+                      resolutions-by-file)
+             ;; Perform file renames for deprecated-component-name fixes.
+             (perform-component-renames resolutions-by-file system)))
       (if (not autofix)
           (inspect-system)
           ;; Autofix loop: inspect → resolve → apply → re-inspect until clean.

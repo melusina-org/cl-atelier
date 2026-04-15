@@ -1,4 +1,4 @@
-;;;; entrypoint.lisp — Entry point for the Atelier editor testsuite
+;;;; entry-point.lisp — Entry point for the Atelier editor testsuite
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -46,4 +46,4 @@
   ;; auto-discovered fixtures (T28–T40+)
   (validate-canonicalize-fixtures))
 
-;;;; End of file `entrypoint.lisp'
+;;;; End of file `entry-point.lisp'

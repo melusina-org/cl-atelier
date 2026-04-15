@@ -10,6 +10,7 @@
 ;;;; This source file is licensed as described in the file LICENSE, which
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
+;;;; SPDX-License-Identifier: MIT
 
 (asdf:defsystem #:org.melusina.atelier
   :description "An atelier for Lisp developers"
@@ -78,7 +79,7 @@
              (:file "read-form")
              (:file "write-form")
              (:file "canonicalize")))
-     (:file "main")
+     (:file "entry-point")
      (:file "git")))))
 
 (asdf:defsystem #:org.melusina.atelier/test
@@ -87,7 +88,7 @@
   :depends-on (#:org.melusina.confidence
          #:org.melusina.atelier)
   :components
-  ((:module "testsuite"
+  ((:module "test"
     :serial t
     :components ((:file "package")
      (:file "utilities")
@@ -130,8 +131,8 @@
              (:file "write-form")
              (:file "normalize")
              (:file "fixtures")
-             (:file "entrypoint")))
-     (:file "entrypoint")))))
+             (:file "entry-point")))
+     (:file "entry-point")))))
 
 (asdf:defsystem #:org.melusina.atelier/development
   :description "Development tools for Atelier"

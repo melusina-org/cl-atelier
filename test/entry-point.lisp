@@ -1,4 +1,4 @@
-;;;; entrypoint.lisp — Entrypoint for the Atelier test suite Lisp System
+;;;; entry-point.lisp — Entrypoint for the Atelier test suite Lisp System
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -52,4 +52,4 @@
   (testsuite-git)
   (atelier/testsuite/editor:run-all-editor-tests))
 
-;;;; End of file `entrypoint.lisp'
+;;;; End of file `entry-point.lisp'

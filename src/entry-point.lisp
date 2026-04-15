@@ -1,4 +1,4 @@
-;;;; main.lisp — Entrypoints for the Atelier Lisp System
+;;;; entry-point.lisp — Entrypoints for the Atelier Lisp System
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -20,4 +20,4 @@
   (template-repository-load)
   (values))
 
-;;;; End of file `main.lisp'
+;;;; End of file `entry-point.lisp'
