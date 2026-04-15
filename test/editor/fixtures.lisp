@@ -18,7 +18,7 @@
 (defun canonicalize-fixture-directory ()
   "Return the pathname to the canonicalize fixture directory."
   (merge-pathnames
-   #p"testsuite/fixtures/editor/canonicalize/"
+   #p"test/fixtures/editor/canonicalize/"
    (asdf:system-source-directory :org.melusina.atelier)))
 
 

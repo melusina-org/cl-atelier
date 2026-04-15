@@ -42,7 +42,7 @@
 
 (defun testsuite-fixtures-directory ()
   "Return the pathname to the testsuite fixtures directory."
-  (merge-pathnames #p"testsuite/fixtures/"
+  (merge-pathnames #p"test/fixtures/"
                    (asdf:system-source-directory "org.melusina.atelier")))
 
 (defun fixture (kind class-name &optional (name "baseline"))
@@ -98,7 +98,7 @@ KIND is \"inspector\", \"maintainer\", or \"pretty-print\".
 Walks testsuite/fixtures/KIND/*/ and maps each subdirectory name to
 its files matching *.EXTENSION."
   (let ((base (merge-pathnames
-               (make-pathname :directory (list :relative "testsuite" "fixtures" kind))
+               (make-pathname :directory (list :relative "test" "fixtures" kind))
                (asdf:system-source-directory "org.melusina.atelier"))))
     (loop :for dir :in (uiop:subdirectories base)
           :for dir-name = (car (last (pathname-directory dir)))
@@ -119,7 +119,7 @@ in :ATELIER are silently skipped — this gives an in-progress maintainer
 directory a safe landing place that will start being exercised as soon as
 the corresponding symbol exists."
   (let ((base (merge-pathnames
-               (make-pathname :directory '(:relative "testsuite" "fixtures" "autofix"))
+               (make-pathname :directory '(:relative "test" "fixtures" "autofix"))
                (asdf:system-source-directory "org.melusina.atelier"))))
     (when (uiop:directory-exists-p base)
       (discover-fixtures "autofix" "text"))))
@@ -130,7 +130,7 @@ the corresponding symbol exists."
 
 (defun discover-pretty-printer-fixtures ()
   "Return a list of fixture pathnames from testsuite/fixtures/pretty-print/."
-  (let ((base (merge-pathnames #p"testsuite/fixtures/pretty-print/"
+  (let ((base (merge-pathnames #p"test/fixtures/pretty-print/"
                                (asdf:system-source-directory "org.melusina.atelier"))))
     (directory (merge-pathnames "*.text" base))))
 

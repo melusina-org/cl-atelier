@@ -47,14 +47,41 @@ the project's mirror-excluded-components list."
 
 (defun extract-mirror-components (defsystem-form)
   "Extract the ordered list of mirror-eligible component names from DEFSYSTEM-FORM.
-Walks the :COMPONENTS tree, collecting (:FILE name) entries while filtering
-out non-mirror components (configuration files, static files).
-Module boundaries are flattened — only leaf file components are collected."
+Walks the :COMPONENTS tree, collecting (:FILE name) entries while skipping
+excluded components. Both file and module names are checked against the
+exclusion list: an excluded module is not descended into, so all its
+children are also excluded."
   (declare (type cons defsystem-form)
            (values list))
-  (flet ((filter-eligible (names)
-           (remove-if-not #'mirror-eligible-p names)))
-    (filter-eligible (extract-component-names defsystem-form))))
+  (let ((components-plist (cddr defsystem-form))
+        (result nil))
+    (labels ((find-components-value (plist)
+               (loop :for (key value) :on plist :by #'cddr
+                     :when (eq key :components)
+                       :return value))
+             (component-name-string (component)
+               (string-downcase
+                (etypecase (second component)
+                  (string (second component))
+                  (symbol (symbol-name (second component))))))
+             (walk (component-list)
+               (dolist (component component-list)
+                 (when (consp component)
+                   (let* ((kind (car component))
+                          (name (component-name-string component)))
+                     (when (mirror-eligible-p name)
+                       (cond
+                         ((eq kind :file)
+                          (push name result))
+                         ((eq kind :module)
+                          (let ((sub-components (find-components-value
+                                                 (cddr component))))
+                            (when sub-components
+                              (walk sub-components)))))))))))
+      (let ((top-components (find-components-value components-plist)))
+        (when top-components
+          (walk top-components))))
+    (nreverse result)))
 
 
 ;;;;

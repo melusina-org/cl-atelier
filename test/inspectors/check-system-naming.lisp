@@ -167,6 +167,40 @@ Return the list of findings."
 ;;;; Entry Point
 ;;;;
 
+(define-testcase test-check-test-mirror-excludes-module ()
+  "Verify that modules listed in mirror-excluded-components are excluded entirely."
+  (let ((content "(defsystem \"my-project\"
+  :components ((:file \"package\")
+               (:module \"inspectors\"
+                :components ((:file \"check-foo\")
+                             (:file \"check-bar\")))
+               (:file \"core\")))
+(defsystem \"my-project/test\"
+  :components ((:file \"package\")
+               (:file \"core\")))
+")
+        (atelier::*linter-configuration*
+          (atelier:make-linter-configuration
+           :mirror-excluded-components '("inspectors"))))
+    (let ((findings (write-asd-content-and-inspect content 'atelier:check-test-mirror)))
+      (assert-nil findings))))
+
+(define-testcase test-check-test-mirror-excludes-file-from-config ()
+  "Verify that files listed in mirror-excluded-components are excluded."
+  (let ((content "(defsystem \"my-project\"
+  :components ((:file \"package\")
+               (:file \"bridge\")
+               (:file \"core\")))
+(defsystem \"my-project/test\"
+  :components ((:file \"package\")
+               (:file \"core\")))
+")
+        (atelier::*linter-configuration*
+          (atelier:make-linter-configuration
+           :mirror-excluded-components '("bridge"))))
+    (let ((findings (write-asd-content-and-inspect content 'atelier:check-test-mirror)))
+      (assert-nil findings))))
+
 (define-testcase testsuite-check-system-naming ()
   "Run all system naming and test mirror inspector tests."
   (test-check-system-naming-canonical)
@@ -177,6 +211,8 @@ Return the list of findings."
   (test-check-test-mirror-missing)
   (test-check-test-mirror-order)
   (test-check-test-mirror-clean)
-  (test-check-test-mirror-excludes-config))
+  (test-check-test-mirror-excludes-config)
+  (test-check-test-mirror-excludes-module)
+  (test-check-test-mirror-excludes-file-from-config))
 
 ;;;; End of file `check-system-naming.lisp'
