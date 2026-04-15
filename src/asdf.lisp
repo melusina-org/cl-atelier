@@ -12,6 +12,22 @@
 
 
 ;;;;
+;;;; Dynamic Context for Lint System
+;;;;
+;;;; These DEFVAR forms must appear before lint-system's LET* binding.
+;;;; They were previously in runner.lisp, but asdf.lisp is loaded before
+;;;; runner.lisp in the ASDF serial order. Without the DEFVAR, SBCL
+;;;; compiles the LET* bindings as lexical and they are invisible to
+;;;; callees (check-test-mirror, mirror-eligible-p, etc.).
+
+(defvar *project-configuration* nil
+  "The project configuration for the system currently being linted.")
+
+(defvar *linter-configuration* nil
+  "The linter configuration for the system currently being linted.")
+
+
+;;;;
 ;;;; Project Configuration
 ;;;;
 

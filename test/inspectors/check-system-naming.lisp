@@ -201,6 +201,48 @@ Return the list of findings."
     (let ((findings (write-asd-content-and-inspect content 'atelier:check-test-mirror)))
       (assert-nil findings))))
 
+(define-testcase test-check-test-mirror-config-visible-via-perform-inspection ()
+  "Verify that *LINTER-CONFIGURATION* is visible inside perform-inspection.
+This test catches the load-order bug where asdf.lisp is compiled before
+the DEFVAR in runner.lisp, causing LET* bindings to be lexical."
+  (let ((content "(defsystem \"my-project\"
+  :components ((:file \"package\")
+               (:module \"extras\"
+                :components ((:file \"extra-a\")
+                             (:file \"extra-b\")))
+               (:file \"core\")))
+(defsystem \"my-project/test\"
+  :components ((:file \"package\")
+               (:file \"core\")))
+"))
+    (uiop:call-with-temporary-file
+     (lambda (stream pathname)
+       (write-string content stream)
+       (finish-output stream)
+       (close stream)
+       (let ((asd-path (make-pathname :name (pathname-name pathname)
+                                      :type "asd"
+                                      :defaults pathname)))
+         (rename-file pathname asd-path)
+         (unwind-protect
+              (let ((atelier::*linter-configuration*
+                      (atelier:make-linter-configuration
+                       :mirror-excluded-components '("extras"))))
+                ;; perform-inspection exercises the full pipeline:
+                ;; collect-inspectors-by-level → inspect-file → mirror-eligible-p
+                ;; If *linter-configuration* is not dynamically visible,
+                ;; mirror-eligible-p ignores the exclusion and reports findings.
+                (let ((findings (atelier:perform-inspection asd-path)))
+                  (let ((mirror-findings
+                          (flet ((remove-item (f)
+                                   (typep f 'atelier:missing-test-component-finding)))
+                            (remove-if-not #'remove-item findings))))
+                    ;; "extras" module excluded → no missing findings for extra-a/extra-b
+                    (assert-nil mirror-findings))))
+           (when (probe-file asd-path)
+             (delete-file asd-path)))))
+     :keep t)))
+
 (define-testcase testsuite-check-system-naming ()
   "Run all system naming and test mirror inspector tests."
   (test-check-system-naming-canonical)
@@ -213,6 +255,7 @@ Return the list of findings."
   (test-check-test-mirror-clean)
   (test-check-test-mirror-excludes-config)
   (test-check-test-mirror-excludes-module)
-  (test-check-test-mirror-excludes-file-from-config))
+  (test-check-test-mirror-excludes-file-from-config)
+  (test-check-test-mirror-config-visible-via-perform-inspection))
 
 ;;;; End of file `check-system-naming.lisp'

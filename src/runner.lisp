@@ -51,11 +51,11 @@ Return a list of findings for this line, or NIL. LINE is a string.
 (defvar *current-pathname* nil
   "The pathname of the file currently being inspected.")
 
-(defvar *project-configuration* nil
-  "The project configuration for the system currently being linted.")
-
-(defvar *linter-configuration* nil
-  "The linter configuration for the system currently being linted.")
+;;; *PROJECT-CONFIGURATION* and *LINTER-CONFIGURATION* are defined
+;;; in asdf.lisp (loaded before runner.lisp in the ASDF serial order)
+;;; because lint-system in asdf.lisp must LET-bind them as special
+;;; variables. If the DEFVAR appears after the LET, SBCL compiles
+;;; the LET as lexical and the binding is invisible to callees.
 
 (defvar *current-cst-root* nil
   "The list of top-level CST forms of the file currently being inspected.
