@@ -16,12 +16,28 @@
 ;;;;
 
 (defvar *atelier-pprint-dispatch*
-  (copy-pprint-dispatch nil)
+  (let ((table (copy-pprint-dispatch nil)))
+    ;; WHEN and UNLESS: test on the same line, body indented 2 spaces
+    ;; on subsequent lines. Always break after the test.
+    (flet ((pprint-when-unless (stream form)
+             (pprint-logical-block (stream form :prefix "(" :suffix ")")
+               ;; Operator: WHEN or UNLESS
+               (write (pprint-pop) :stream stream)
+               (write-char #\Space stream)
+               ;; Test form on the same line as the operator
+               (write (pprint-pop) :stream stream)
+               ;; Body forms indented 2 from the opening paren
+               (pprint-indent :block 1 stream)
+               (loop (pprint-exit-if-list-exhausted)
+                     (pprint-newline :mandatory stream)
+                     (write (pprint-pop) :stream stream)))))
+      (set-pprint-dispatch '(cons (member when)) #'pprint-when-unless 0 table)
+      (set-pprint-dispatch '(cons (member unless)) #'pprint-when-unless 0 table))
+    table)
   "Atelier's pprint dispatch table for code emission.
-Copied from the initial (implementation-default) table at load time.
-Never modified after load time. Bind dynamically inside code writers;
-never set globally. The initial table already handles DEFUN, LET, FLET,
-LABELS, LOOP, and standard special forms with correct indentation.")
+Copied from the initial (implementation-default) table at load time,
+with Atelier-specific overrides for WHEN/UNLESS indentation.
+Bind dynamically inside code writers; never set globally.")
 
 
 ;;;;

@@ -104,9 +104,7 @@ branches for non-matching features are dropped."))
 conditionals against FEATURES."
   (declare (type list features))
   (let ((body-cst (toplevel-form-body form)))
-    (if body-cst
-        (cst-to-sexp body-cst features)
-        nil)))
+    (when body-cst (cst-to-sexp body-cst features))))
 
 (defun cst-to-sexp (cst features)
   "Convert an Eclector CST node to an s-expression, evaluating reader

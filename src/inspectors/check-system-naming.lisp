@@ -78,8 +78,7 @@ Reading is done with *READ-EVAL* bound to NIL for safety."
         (with-open-file (stream pathname :direction :input
                                          :external-format :utf-8)
           (loop :for form = (read stream nil :eof)
-                :for line-after = (when (not (eq form :eof))
-                                    (file-position stream))
+                :for line-after = (unless (eq form :eof) (file-position stream))
                 :until (eq form :eof)
                 :when (and (consp form)
                            (eq (car form) :defsystem))

@@ -10,5 +10,6 @@ resolution: syntax-resolution
 ---
 (:severity :style)
 ---
-(unless active-p (deactivate))
+(unless active-p
+  (deactivate))
 ---

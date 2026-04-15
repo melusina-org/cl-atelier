@@ -11,5 +11,6 @@ resolution: syntax-resolution
 ---
 (:severity :style)
 ---
-(when active-p (activate))
+(when active-p
+  (activate))
 ---
