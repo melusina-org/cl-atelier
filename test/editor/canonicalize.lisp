@@ -1,4 +1,4 @@
-;;;; normalize.lisp — Tests for normalize-toplevel-form
+;;;; canonicalize.lisp — Tests for normalize-toplevel-form
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -69,4 +69,4 @@
       (assert-t* (search ":yes" output))
       (assert-t* (search ":no" output)))))
 
-;;;; End of file `normalize.lisp'
+;;;; End of file `canonicalize.lisp'

@@ -1,2 +1,2 @@
 (:indentation-style :spaces
- :mirror-excluded-components ("configuration" "inspectors" "maintainers"))
+ :mirror-excluded-components ("configuration" "conditions" "entry-point" "inspectors" "maintainers"))

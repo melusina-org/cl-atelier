@@ -1,4 +1,4 @@
-;;;; eclector-capability.lisp — Eclector #+/#- preservation capability tests
+;;;; eclector-client.lisp — Eclector #+/#- preservation capability tests
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -31,4 +31,4 @@
     (assert-t* (search "#+sbcl :yes" output))
     (assert-t* (search "#-sbcl :no" output))))
 
-;;;; End of file `eclector-capability.lisp'
+;;;; End of file `eclector-client.lisp'

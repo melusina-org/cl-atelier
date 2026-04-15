@@ -36,6 +36,7 @@
      (:file "runner")
      (:file "pretty-printer")
      (:file "write-back")
+     (:file "git")
      (:module "inspectors"
       :components
       ((:file "check-file-encoding")
@@ -79,8 +80,7 @@
              (:file "read-form")
              (:file "write-form")
              (:file "canonicalize")))
-     (:file "entry-point")
-     (:file "git")))))
+     (:file "entry-point")))))
 
 (asdf:defsystem #:org.melusina.atelier/test
   :description "Test suite for the Atelier for Lisp developers"
@@ -92,8 +92,8 @@
     :serial t
     :components ((:file "package")
      (:file "utilities")
-     (:file "parameter")
      (:file "license")
+     (:file "parameter")
      (:file "template")
      (:file "finding")
      (:file "resolution")
@@ -103,6 +103,7 @@
      (:file "runner")
      (:file "pretty-printer")
      (:file "write-back")
+     (:file "git")
      (:module "inspectors"
       :components
       ((:file "check-file-encoding")
@@ -122,14 +123,14 @@
        (:file "fix-footer-line")
        (:file "fix-deprecated-names")))
      (:file "autofix")
-     (:file "git")
      (:module "editor"
       :components ((:file "package")
-             (:file "eclector-capability")
-             (:file "lint-string")
              (:file "toplevel-form")
+             (:file "eclector-client")
+             (:file "lint-string")
+             (:file "read-form")
              (:file "write-form")
-             (:file "normalize")
+             (:file "canonicalize")
              (:file "fixtures")
              (:file "entry-point")))
      (:file "entry-point")))))
