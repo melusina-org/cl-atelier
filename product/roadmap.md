@@ -5,7 +5,9 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 
 ## Now (in progress)
 
-*(No slice currently in progress.)*
+| Slice | Phase | Goal | Notes |
+|-------|-------|------|-------|
+| [010-pretty-printer-emacs-compatibility](slice/010-pretty-printer-emacs-compatibility/slice.md) | Planned | G2, G4 | Fixture, Emacs reformat tool, convergence |
 
 ## Next (intended for the following 1–3 slices)
 
