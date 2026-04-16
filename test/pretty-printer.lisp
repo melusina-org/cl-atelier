@@ -54,10 +54,20 @@ Returns (values front-matter input-form column right-margins expected-strings)."
 ;;;; Emacs Reformatting Tool
 ;;;;
 
-(defvar *emacs-pretty-printer-configuration* nil
+(defvar *emacs-pretty-printer-configuration*
+  "(progn
+     (package-initialize)
+     (require 'slime)
+     (require 'slime-indentation)
+     (setq indent-tabs-mode nil
+           lisp-lambda-list-keyword-parameter-alignment t
+           lisp-loop-indent-forms-like-keywords t
+           lisp-loop-indent-subclauses nil)
+     (put 'concatenate 'common-lisp-indent-function '(4 &body)))"
   "Default Elisp s-expression string eval'd before Emacs reformats a file.
-NIL means no custom setup.  Used by REFORMAT-FILE-WITH-EMACS as the
-default for its :ELISP-SETUP keyword argument.")
+Loads SLIME indentation contrib and sets indentation variables to match
+the project's Emacs conventions.  Used by REFORMAT-FILE-WITH-EMACS as
+the default for its :ELISP-SETUP keyword argument.")
 
 (defun reformat-file-with-emacs (pathname &key (elisp-setup
                                                 *emacs-pretty-printer-configuration*))
