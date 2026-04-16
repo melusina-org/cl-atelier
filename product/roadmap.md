@@ -1,11 +1,33 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-14
+**Last updated:** 2026-04-16
 
 The roadmap is a projection of the backlog's top items into time horizons. It does not introduce new items — every item in Now or Next must appear in the backlog.
 
 ## Now (in progress)
 
 *(No slice currently in progress.)*
+
+## Next (intended for the following 1–3 slices)
+
+| Item | Type | Goal addressed | Notes |
+|------|------|----------------|-------|
+| Pretty-printer / SLIME-SLY compatibility (#1) | Improvement | G2, G4 | Align pprint dispatch with Emacs indentation; `.dir-locals.el`. Unblocks code formatter. |
+| Trivia pattern matching for inspectors/maintainers (#2) | Improvement | G2 | Spike then migration. More declarative inspector/maintainer code. |
+| Code formatter for CL (#3) | New capability | G4 | Depends on #1. Idempotent, REPL+CLI. |
+| CLI thin wrapper (#4) | New capability | G2, G4 | Depends on #3. `atelier lint`, `atelier fix`, `atelier format`. |
+
+## Later (probable but not yet scheduled)
+
+| Item | Goal addressed | Notes |
+|------|----------------|-------|
+| Projectional editor capabilities (#5) | G4 | Design spike needed. Form-level CRUD, file ops, future shell/terraform. |
+| LLM-driven maintainer (#6) | G3 | AGENT-RESOLUTION with structured prompt. |
+| ShellCheck wrapper inspector (#7) | G2 | External tool integration via REGION-FINDING / LINE-FINDING. |
+| Elisp byte-compiler + package-lint wrappers (#8) | G2 | External tool integration. |
+| tflint / terraform validate wrappers (#9) | G2 | External tool integration. |
+| Project templates: extend for Elisp, HCL (#10) | G2 | Shell templates already exist. |
+| Configuration tie-breaking (#11) | G2 | Superseding conflict resolution in linter-configuration. |
+| Documentation generation (#12) | G6 | HTML + machine-readable index. |
 
 ## Completed
 
@@ -21,23 +43,6 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | [008-remove-line-length-inspector](slice/008-remove-line-length-inspector/slice.md) | Maintenance | — | ✅ |
 | [009-project-structure-and-hooks](slice/009-project-structure-and-hooks/slice.md) | New capability | G2 | ✅ |
 
-## Next (intended for the following 1-3 slices)
-
-| Item | Type | Goal addressed | Notes |
-|------|------|----------------|-------|
-| LLM-driven maintainer for any finding class (#9) | New capability | G3 | First-class MAINTAINER kind; structured prompt derived from observation + rationale + source context. |
-| Line-level and CST-level CL inspectors (#5, #6) | Completion | G2 | Validates full write-back pipeline. |
-
-## Later (probable but not yet scheduled)
-
-| Item | Goal addressed | Notes |
-|------|----------------|-------|
-| ShellCheck, Elisp, and Terraform wrapper inspectors (#7, #8, #9) | G2 | External tools integrated via REGION-FINDING / LINE-FINDING. |
-| Common Lisp code formatter (#10) | G4 | |
-| CLI thin wrapper (#11) | G2, G4 | After linter and formatter are solid. |
-| Documentation generation (#12) | G6 | |
-| Pipeline idempotency (`lint-system :autofix t` whole-file fixed point) | G2, G3 | Stronger property than per-maintainer self-idempotency. Required for safe pre-commit hooks and CI gates. |
-
 ## Considering (may or may not happen — feedback welcome)
 
 | Item | Open question |
@@ -45,9 +50,7 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | Code coverage (#13) | sb-cover is SBCL-only. Is portability required? |
 | Profiling (#14) | Same portability question. |
 | ASDF:COMPONENT for CFFI bridges (#15) | Scope: one source file, one .so, reload into image. |
-| ASDF:COMPONENT for Terraform (#16) | terraform-file, terraform-module (C4 Component), terraform-stack (C4 Container with verifiable interface contract). |
-| Editor plugins (SLIME/SLY/Eglot) | Aspirational. No concrete plan. |
-| Quicklisp distribution, OCICL publication, MELPA packages | Aspirational. When does this become necessary — at v1.0, or earlier? |
+| ASDF:COMPONENT for Terraform (#16) | terraform-file, terraform-module (C4 Component), terraform-stack (C4 Container). |
 
 ## Out of scope (not planned — listed to prevent repeated requests)
 
@@ -70,3 +73,4 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | 2026-04-14 | MCP server extracted to org.melusina.mcp. Slices 009-015 removed. MCP moved to out-of-scope. Backlog renumbered. |
 | 2026-04-14 | Slice 009 (project structure + hooks) added to Now. |
 | 2026-04-14 | Slice 009 completed, moved to Completed. |
+| 2026-04-16 | Backlog cleanup. Next: pretty-printer/SLIME-SLY (#1), Trivia pattern matching (#2), code formatter (#3), CLI wrapper (#4). Later: projectional editor, LLM maintainer, external tool wrappers, templates, config tie-breaking, doc generation. |
