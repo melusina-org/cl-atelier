@@ -162,6 +162,8 @@
    ;; Pretty-printer
    #:*atelier-pprint-dispatch*
    #:pretty-print-form
+   #:reformat-file
+   #:reformat-system
 
    ;; Write-back engine
    #:apply-resolutions

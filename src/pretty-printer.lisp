@@ -77,4 +77,112 @@ Returns the formatted string without a trailing newline."
              (cons (first lines)
                    (mapcar #'indent-continuation-line (rest lines)))))))))
 
+;;;;
+;;;; File Reformatting
+;;;;
+
+(defun extract-file-header (content)
+  "Return the file header portion of CONTENT.
+The header is all text before the first line that begins with an
+open parenthesis at column zero.  Returns the empty string when
+the file starts with a toplevel form."
+  (declare (type string content)
+           (values string))
+  (let ((lines (string-lines content)))
+    (let ((header-lines
+            (loop :for line :in lines
+                  :while (or (zerop (length line))
+                             (char/= #\( (char line 0)))
+                  :collect line)))
+      (if header-lines
+          (concatenate 'string (join-lines header-lines) (string #\Newline))
+          ""))))
+
+(defun extract-file-footer (content)
+  "Return the file footer portion of CONTENT.
+The footer is the last line if it begins with four semicolons,
+matching the project convention ';;;; End of file ...'.
+Returns the empty string when no footer is present."
+  (declare (type string content)
+           (values string))
+  (let* ((lines (string-lines content))
+         (last (car (last lines))))
+    (if (and last
+             (>= (length last) 4)
+             (string= ";;;;" last :end2 4))
+        last
+        "")))
+
+(defun reformat-file (pathname)
+  "Reformat PATHNAME using Atelier's pretty-printer.
+Reads all toplevel forms, pretty-prints each via PRETTY-PRINT-FORM,
+and writes the result back atomically.  Preserves the file header
+\(all lines before the first toplevel form\) and footer.  Emits two
+blank lines between toplevel forms.
+Does not run the linter — purely read, pretty-print, write."
+  (declare (type (or pathname string) pathname)
+           (values pathname))
+  (let* ((pathname (pathname pathname))
+         (content (alexandria:read-file-into-string
+                   pathname :external-format :utf-8))
+         (header (extract-file-header content))
+         (footer (extract-file-footer content))
+         (*package* (find-package :common-lisp-user))
+         (*read-eval* nil)
+         (forms nil))
+    ;; Read all toplevel forms from the body (after the header).
+    (let ((body-start (length header)))
+      (loop :with pos = body-start
+            :for (form new-pos) = (multiple-value-list
+                                   (read-from-string content nil content
+                                                     :start pos))
+            :until (eq form content)
+            :do (when (and (consp form)
+                           (eq (car form) 'cl:in-package))
+                  (let ((pkg (find-package (cadr form))))
+                    (when pkg (setf *package* pkg))))
+                (push form forms)
+                (setf pos new-pos)))
+    (setf forms (nreverse forms))
+    ;; Pretty-print each form.
+    (flet ((format-form (form)
+             (pretty-print-form form 0)))
+      (let* ((formatted-forms (mapcar #'format-form forms))
+             (body (join-lines formatted-forms
+                               (coerce '(#\Newline #\Newline #\Newline)
+                                       'string)))
+             (result (concatenate 'string
+                                  header
+                                  body
+                                  (string #\Newline)
+                                  (when (plusp (length footer))
+                                    (concatenate 'string
+                                                 (string #\Newline)
+                                                 footer
+                                                 (string #\Newline))))))
+        ;; Atomic write-back (INV-8).
+        (let ((tmp (uiop:tmpize-pathname pathname)))
+          (with-open-file (stream tmp :direction :output
+                                      :if-exists :supersede
+                                      :external-format :utf-8)
+            (write-string result stream))
+          (uiop:rename-file-overwriting-target tmp pathname)))))
+  pathname)
+
+(defun reformat-system (system-designator &key (sibling-systems t))
+  "Reformat all Common Lisp source files in SYSTEM-DESIGNATOR.
+When SIBLING-SYSTEMS is true (the default), includes all systems
+defined in the same .asd file.  Calls REFORMAT-FILE on each
+CL source file.  Does not reformat the .asd file itself."
+  (declare (type (or string symbol) system-designator)
+           (values null))
+  (let* ((system (asdf:find-system system-designator))
+         (files (if sibling-systems
+                    (collect-all-source-files system)
+                    (collect-system-source-files system))))
+    (dolist (pathname files)
+      (when (string-equal "lisp" (pathname-type pathname))
+        (reformat-file pathname))))
+  nil)
+
 ;;;; End of file `pretty-printer.lisp'
