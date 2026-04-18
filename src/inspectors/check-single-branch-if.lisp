@@ -54,8 +54,9 @@ neither branch is NIL are not reported."
                (when (cst:consp node)
                  (when (eq 'if (cst:raw (cst:first node)))
                    (check-if node))
-                 (walk (cst:first node))
-                 (walk (cst:rest node)))))
+                 (loop :for tail = node :then (cst:rest tail)
+                       :while (cst:consp tail)
+                       :do (walk (cst:first tail))))))
       (walk form))
     (nreverse findings)))
 

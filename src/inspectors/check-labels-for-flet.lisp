@@ -117,8 +117,9 @@ nested FLET is the correct construct."
                               :observation "LABELS form has no mutual or self-recursive calls."
                               :rationale "LABELS introduces mutual visibility among all bindings; when the local call graph is a DAG, nested FLET expresses the structure more precisely.")
                              findings))))
-                 (walk (cst:first node))
-                 (walk (cst:rest node)))))
+                 (loop :for tail = node :then (cst:rest tail)
+                       :while (cst:consp tail)
+                       :do (walk (cst:first tail))))))
       (walk form))
     (nreverse findings)))
 

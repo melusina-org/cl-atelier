@@ -34,8 +34,9 @@ suggesting (UNLESS X BODY...)."
                           :observation "WHEN form tests (NOT X); use UNLESS instead."
                           :rationale "UNLESS expresses the negated guard directly; WHEN (NOT X) reads as a double negation.")
                          findings))
-                 (walk (cst:first node))
-                 (walk (cst:rest node)))))
+                 (loop :for tail = node :then (cst:rest tail)
+                       :while (cst:consp tail)
+                       :do (walk (cst:first tail))))))
       (walk form))
     (nreverse findings)))
 

@@ -47,9 +47,10 @@ keyword symbols. Return a list of BARE-LOOP-KEYWORD-FINDING instances, or NIL."
                (when (cst:consp node)
                  (when (eq 'loop (cst:raw (cst:first node)))
                    (check-loop-body (cst:rest node)))
-                 ;; Recurse to find nested LOOP forms
-                 (walk (cst:first node))
-                 (walk (cst:rest node)))))
+                 ;; Recurse over the list's elements to find nested LOOP forms.
+                 (loop :for tail = node :then (cst:rest tail)
+                       :while (cst:consp tail)
+                       :do (walk (cst:first tail))))))
       (walk form))
     (nreverse findings)))
 

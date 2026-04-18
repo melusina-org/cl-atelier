@@ -43,8 +43,9 @@ not reported; an empty PROGN is a separate concern."
                           :observation "PROGN wraps a single body form; the wrapper is redundant."
                           :rationale "A PROGN with one body form adds no sequencing and no scope; the body form can stand alone.")
                          findings))
-                 (walk (cst:first node))
-                 (walk (cst:rest node)))))
+                 (loop :for tail = node :then (cst:rest tail)
+                       :while (cst:consp tail)
+                       :do (walk (cst:first tail))))))
       (walk form))
     (nreverse findings)))
 

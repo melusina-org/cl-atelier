@@ -45,9 +45,9 @@ BARE-LAMBDA-FINDING instances for each violation found, or NIL."
                                                      operator)
                                 :rationale "Bare lambdas passed to higher-order functions obscure intent; use FLET with a descriptive name.")
                                findings)))))
-                 ;; Recurse into both branches of the cons
-                 (walk (cst:first node))
-                 (walk (cst:rest node)))))
+                 (loop :for tail = node :then (cst:rest tail)
+                       :while (cst:consp tail)
+                       :do (walk (cst:first tail))))))
       (walk form))
     (nreverse findings)))
 
