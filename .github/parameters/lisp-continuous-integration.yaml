@@ -1,6 +1,6 @@
 main-system: 'org.melusina.atelier'
 unit-tests:
-  system: 'org.melusina.atelier/testsuite'
+  system: 'org.melusina.atelier/test'
   entrypoint: 'run-all-tests'
 linter:
   system: 'org.melusina.atelier/development'

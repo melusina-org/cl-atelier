@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (defmacro run-predicate (command &key directory)
   `(multiple-value-bind (standard-output error-output exit-code)

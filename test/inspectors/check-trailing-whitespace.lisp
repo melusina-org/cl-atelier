@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-check-trailing-whitespace-clean ()
   "Verify that a file without trailing whitespace produces no findings."

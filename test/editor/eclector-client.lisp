@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite/editor)
+(in-package #:atelier/test/editor)
 
 (define-testcase validate-eclector-preserves-feature-expression ()
   "Verify that the preserving CST client captures #+/#- as skipped-cst nodes."

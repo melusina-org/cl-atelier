@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-perform-inspection ()
   "Verify that the runner calls file and line inspectors and collects findings."

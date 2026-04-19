@@ -2,7 +2,7 @@
 
 **Slice:** [product/slice/007-maintainer-and-inspector-expansion/slice.md](slice.md)
 **Phase:** 1 of 1
-**Scope:** Rename `testsuite/fixtures/maintainer/` to `testsuite/fixtures/autofix/`; redesign fixture format to make the `(inspector, finding, maintainer, resolution)` quadruple explicit; migrate the 10 existing maintainer fixtures; add self-idempotency (N=1) assertion; cross-populate each fixture's expected fixed code into the pretty-printer fixture set; add three new CST inspectors (IF→WHEN/UNLESS, single-form PROGN, WHEN-NOT→UNLESS).
+**Scope:** Rename `test/fixtures/maintainer/` to `test/fixtures/autofix/`; redesign fixture format to make the `(inspector, finding, maintainer, resolution)` quadruple explicit; migrate the 10 existing maintainer fixtures; add self-idempotency (N=1) assertion; cross-populate each fixture's expected fixed code into the pretty-printer fixture set; add three new CST inspectors (IF→WHEN/UNLESS, single-form PROGN, WHEN-NOT→UNLESS).
 
 ---
 
@@ -20,7 +20,7 @@ Slice 007 was rescoped on 2026-04-09: fix-line-too-long implementation was remov
 |---|------|----------|-----------|
 | R1 | One or more existing maintainers fail the self-idempotency assertion after migration, blocking the slice | Scope boundary | The kill criterion in `slice.md` allows at most one failing maintainer to block. If found, isolate the fixture, mark the underlying bug, and skip the assertion for that fixture with a documented exclusion (recorded in invariants and notes). |
 | R2 | Plist slot-check scheme doesn't cleanly express the CST-node assertion for syntax findings | Library API | Define a synthetic accessor `cst-node-raw` that reduces `(cst:raw (finding-cst-node finding))`. Fixtures using CST-node checks use `:cst-node-raw` as a slot key. Documented in the fixture format spec. |
-| R3 | Directory rename (`maintainer/` → `autofix/`) breaks ASDF paths, git history, or downstream tooling | Portability | Use `git mv` to preserve history. `.asd` file references only `testsuite/fixtures/...` via `asdf:system-source-directory`; no hard-coded paths to `maintainer/` outside `testsuite/utilities.lisp` and `testsuite/autofix.lisp`. Grep confirmed before the move. |
+| R3 | Directory rename (`maintainer/` → `autofix/`) breaks ASDF paths, git history, or downstream tooling | Portability | Use `git mv` to preserve history. `.asd` file references only `test/fixtures/...` via `asdf:system-source-directory`; no hard-coded paths to `maintainer/` outside `test/utilities.lisp` and `test/autofix.lisp`. Grep confirmed before the move. |
 | R4 | Cross-populated pretty-printer fixtures produce read/print round-trip failures for existing fixed-code documents (exposing a latent pretty-printer bug) | Library API | Run the cross-populated assertion once in a scratch buffer before committing the migration. If any fail, file the pretty-printer bug separately; the idempotency scope does not block on pretty-printer bugs, so exclude affected fixtures from the pretty-printer cross-population with a documented reason. |
 | R5 | New fixture format's 4-document structure (front-matter + 3 body documents) exceeds what `read-file-documents-with-yaml-front-matter` currently supports | Library API | Read current function; extend it to handle N documents instead of hard-coding 2. Unit-test the parser on the new format before migrating fixtures. |
 | R6 | Renaming the test function breaks any external caller (REPL bindings, other test files) | Scope boundary | Grep repo for `validate-one-maintainer-fixture` before renaming; update all call sites in the same commit. |
@@ -175,7 +175,7 @@ src/
 │   ├── check-single-branch-if.lisp          [new]
 │   ├── check-single-form-progn.lisp         [new]
 │   └── check-when-not.lisp                  [new]
-testsuite/
+test/
 ├── utilities.lisp                           [modify] — extend read-file-documents-with-yaml-front-matter; rewrite read-maintainer-fixture → read-autofix-cycle-fixture; update fixture/ accessors; discover-autofix-cycle-fixtures
 ├── autofix.lisp                             [modify] — rewrite validate-one-maintainer-fixture → validate-one-autofix-cycle-fixture; level-dispatched inspection; plist slot check; self-idempotency assertion; pretty-printer cross-population entry point
 ├── fixtures/
@@ -208,14 +208,14 @@ testsuite/
 │   ├── check-single-branch-if.lisp          [new]
 │   ├── check-single-form-progn.lisp         [new]
 │   └── check-when-not.lisp                  [new]
-testsuite/fixtures/maintainer/               [REMOVED — directory deleted via git mv]
+test/fixtures/maintainer/               [REMOVED — directory deleted via git mv]
 org.melusina.atelier.asd                     [modify] — register 3 new inspector source files and 3 new test files
 CLAUDE.md                                    [modify] — update fixture directory path and test function name in the fixture section
 ```
 
 **Decision rule for new fixture files:** inspector fixtures go under
-`testsuite/fixtures/inspector/<inspector-name>/<case-name>.lisp`.
-Autofix-cycle fixtures go under `testsuite/fixtures/autofix/<maintainer-name>/<case-name>.text`.
+`test/fixtures/inspector/<inspector-name>/<case-name>.lisp`.
+Autofix-cycle fixtures go under `test/fixtures/autofix/<maintainer-name>/<case-name>.text`.
 The directory name carries the maintainer/inspector identity; the case name
 describes the scenario.
 
@@ -228,7 +228,7 @@ In `org.melusina.atelier.asd`:
 - **`:org.melusina.atelier/src/inspectors` module** — append three components
   after the existing inspector files: `check-single-branch-if`,
   `check-single-form-progn`, `check-when-not`.
-- **`:org.melusina.atelier/testsuite/inspectors` module** — append three
+- **`:org.melusina.atelier/test/inspectors` module** — append three
   corresponding test files.
 
 No new ASDF systems. No new dependencies. No load-order changes: the new
@@ -259,7 +259,7 @@ New exports in `src/package.lisp`, grouped by concept:
 
 No changes to the public API surface of `atelier` itself for the autofix
 cycle rework. The fixture format and test function names are
-`atelier/testsuite`-internal.
+`atelier/test`-internal.
 
 ---
 
@@ -278,7 +278,7 @@ No new classes in the resolution hierarchy.
 
 ## Protocol Definitions
 
-### `read-autofix-cycle-fixture` (new, in `testsuite/utilities.lisp`)
+### `read-autofix-cycle-fixture` (new, in `test/utilities.lisp`)
 
 ```lisp
 (defun read-autofix-cycle-fixture (pathname)
@@ -292,12 +292,12 @@ exactly three body documents, or if any of the mandatory front-matter fields
 is missing.")
 ```
 
-### `discover-autofix-cycle-fixtures` (new, in `testsuite/utilities.lisp`)
+### `discover-autofix-cycle-fixtures` (new, in `test/utilities.lisp`)
 
 ```lisp
 (defun discover-autofix-cycle-fixtures ()
   "Return an alist (maintainer-symbol . list-of-fixture-pathnames).
-Walks testsuite/fixtures/autofix/*/ and maps each subdirectory name to its
+Walks test/fixtures/autofix/*/ and maps each subdirectory name to its
 .text files. Fixtures for maintainers whose symbols cannot be found in
 :atelier are silently skipped with a warning.")
 ```
@@ -358,40 +358,40 @@ Rule: every implementation step's verification test must only depend on forms wr
 
 | Step | File | Action | Form(s) | Test name | Cat |
 |------|------|--------|---------|-----------|:---:|
-| 1 | `testsuite/utilities.lisp` [modify] | Verify `read-file-documents-with-yaml-front-matter` returns all `---`-separated documents (not a fixed N). Extend if needed. | `read-file-documents-with-yaml-front-matter` | — | — |
-| 2 | `testsuite/utilities.lisp` [modify] | Implement `read-autofix-cycle-fixture`. Reads front-matter, extracts mandatory symbol fields, reads three body documents. Signals a clear error when any mandatory field is missing. | `read-autofix-cycle-fixture` | — | — |
-| 3 | `testsuite/utilities.lisp` [modify] | Implement `discover-autofix-cycle-fixtures`. Walks `testsuite/fixtures/autofix/*/`. Returns empty list if directory does not yet exist. | `discover-autofix-cycle-fixtures` | — | — |
-| 4 | `testsuite/utilities.lisp` [modify] | Add `:autofix` kind to `fixture` function. Leave the existing `:maintainer` kind in place for one step as a transition aid. | `fixture` (extended) | — | — |
-| 5 | `testsuite/fixtures/` [dir rename] | `git mv testsuite/fixtures/maintainer testsuite/fixtures/autofix`. Preserves git history. | — | — | — |
-| 6 | `testsuite/fixtures/autofix/fix-earmuffs/baseline.text` [modify] | Migrate this one fixture to the new 4-part format as a probe. Keeps the implementation step (7) verifiable against a real fixture. | — | — | — |
-| 7 | `testsuite/autofix.lisp` [modify] | Implement `validate-one-autofix-cycle-fixture` — primary assertion only, no idempotency yet. Dispatches on `inspector-level`: `:syntax` calls `inspect-syntax` on parsed CST; `:line` calls `inspect-line` per line with `*current-pathname*` and `*current-line-vector*` bound. Runs the maintainer, collects resolutions, applies, asserts at the correct level. Includes the plist slot-check helper with synthetic accessors (`:cst-node-raw`, `:observation-matches`, `:source-text-substring`). | `validate-one-autofix-cycle-fixture`, `autofix-cycle-finding-slot-check` | `(validate-one-autofix-cycle-fixture 'fix-earmuffs)` — verifies against the fix-earmuffs probe fixture migrated in step 6 | fast |
-| 8 | `testsuite/autofix.lisp` [modify] | Extend `validate-one-autofix-cycle-fixture` with the second-pass self-idempotency assertion. | — | `(validate-one-autofix-cycle-fixture 'fix-earmuffs)` | fast |
-| 9 | `testsuite/autofix.lisp` [modify] | Implement `validate-autofix-cycle-fixtures` entry point — iterates `discover-autofix-cycle-fixtures`, calling the single-fixture test for each. | `validate-autofix-cycle-fixtures` | `(validate-autofix-cycle-fixtures)` — currently exercises only fix-earmuffs | fast |
-| 10 | `testsuite/autofix.lisp` [modify] | Implement `validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points`. For each discovered autofix-cycle fixture, read its expected-fixed-code document and assert it is a fixed point of `read ⟫ pretty-print-form`. | `validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points` | `(validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points)` | fast |
-| 11 | `testsuite/fixtures/autofix/fix-constant-naming/baseline.text` [modify] | Migrate to new 4-part format. | — | `(validate-one-autofix-cycle-fixture 'fix-constant-naming)` | fast |
-| 12 | `testsuite/fixtures/autofix/fix-bare-lambda/*.text` [modify] | Migrate baseline and chain cases. | — | `(validate-one-autofix-cycle-fixture 'fix-bare-lambda)` | fast |
-| 13 | `testsuite/fixtures/autofix/fix-bare-loop-keywords/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-bare-loop-keywords)` | fast |
-| 14 | `testsuite/fixtures/autofix/fix-labels-to-flet/*.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-labels-to-flet)` | fast |
-| 15 | `testsuite/fixtures/autofix/fix-trailing-whitespace/baseline.text` [modify] | Migrate. Line-level; textual comparison. | — | `(validate-one-autofix-cycle-fixture 'fix-trailing-whitespace)` | fast |
-| 16 | `testsuite/fixtures/autofix/fix-mixed-indentation/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-mixed-indentation)` | fast |
-| 17 | `testsuite/fixtures/autofix/fix-header-line/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-header-line)` | fast |
-| 18 | `testsuite/fixtures/autofix/fix-footer-line/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-footer-line)` | fast |
-| 19 | `testsuite/fixtures/autofix/fix-project-identification/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-project-identification)` | fast |
-| 20 | `testsuite/autofix.lisp` [modify] | Delete the old `validate-one-maintainer-fixture` and its callers. Update `testsuite-autofix` entry point to call `validate-autofix-cycle-fixtures` and `validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points`. | — | `(validate-autofix-cycle-fixtures)` + `(validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points)` | fast |
-| 21 | `testsuite/utilities.lisp` [modify] | Remove the transitional `:maintainer` kind from `fixture`. | — | — | — |
+| 1 | `test/utilities.lisp` [modify] | Verify `read-file-documents-with-yaml-front-matter` returns all `---`-separated documents (not a fixed N). Extend if needed. | `read-file-documents-with-yaml-front-matter` | — | — |
+| 2 | `test/utilities.lisp` [modify] | Implement `read-autofix-cycle-fixture`. Reads front-matter, extracts mandatory symbol fields, reads three body documents. Signals a clear error when any mandatory field is missing. | `read-autofix-cycle-fixture` | — | — |
+| 3 | `test/utilities.lisp` [modify] | Implement `discover-autofix-cycle-fixtures`. Walks `test/fixtures/autofix/*/`. Returns empty list if directory does not yet exist. | `discover-autofix-cycle-fixtures` | — | — |
+| 4 | `test/utilities.lisp` [modify] | Add `:autofix` kind to `fixture` function. Leave the existing `:maintainer` kind in place for one step as a transition aid. | `fixture` (extended) | — | — |
+| 5 | `test/fixtures/` [dir rename] | `git mv test/fixtures/maintainer test/fixtures/autofix`. Preserves git history. | — | — | — |
+| 6 | `test/fixtures/autofix/fix-earmuffs/baseline.text` [modify] | Migrate this one fixture to the new 4-part format as a probe. Keeps the implementation step (7) verifiable against a real fixture. | — | — | — |
+| 7 | `test/autofix.lisp` [modify] | Implement `validate-one-autofix-cycle-fixture` — primary assertion only, no idempotency yet. Dispatches on `inspector-level`: `:syntax` calls `inspect-syntax` on parsed CST; `:line` calls `inspect-line` per line with `*current-pathname*` and `*current-line-vector*` bound. Runs the maintainer, collects resolutions, applies, asserts at the correct level. Includes the plist slot-check helper with synthetic accessors (`:cst-node-raw`, `:observation-matches`, `:source-text-substring`). | `validate-one-autofix-cycle-fixture`, `autofix-cycle-finding-slot-check` | `(validate-one-autofix-cycle-fixture 'fix-earmuffs)` — verifies against the fix-earmuffs probe fixture migrated in step 6 | fast |
+| 8 | `test/autofix.lisp` [modify] | Extend `validate-one-autofix-cycle-fixture` with the second-pass self-idempotency assertion. | — | `(validate-one-autofix-cycle-fixture 'fix-earmuffs)` | fast |
+| 9 | `test/autofix.lisp` [modify] | Implement `validate-autofix-cycle-fixtures` entry point — iterates `discover-autofix-cycle-fixtures`, calling the single-fixture test for each. | `validate-autofix-cycle-fixtures` | `(validate-autofix-cycle-fixtures)` — currently exercises only fix-earmuffs | fast |
+| 10 | `test/autofix.lisp` [modify] | Implement `validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points`. For each discovered autofix-cycle fixture, read its expected-fixed-code document and assert it is a fixed point of `read ⟫ pretty-print-form`. | `validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points` | `(validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points)` | fast |
+| 11 | `test/fixtures/autofix/fix-constant-naming/baseline.text` [modify] | Migrate to new 4-part format. | — | `(validate-one-autofix-cycle-fixture 'fix-constant-naming)` | fast |
+| 12 | `test/fixtures/autofix/fix-bare-lambda/*.text` [modify] | Migrate baseline and chain cases. | — | `(validate-one-autofix-cycle-fixture 'fix-bare-lambda)` | fast |
+| 13 | `test/fixtures/autofix/fix-bare-loop-keywords/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-bare-loop-keywords)` | fast |
+| 14 | `test/fixtures/autofix/fix-labels-to-flet/*.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-labels-to-flet)` | fast |
+| 15 | `test/fixtures/autofix/fix-trailing-whitespace/baseline.text` [modify] | Migrate. Line-level; textual comparison. | — | `(validate-one-autofix-cycle-fixture 'fix-trailing-whitespace)` | fast |
+| 16 | `test/fixtures/autofix/fix-mixed-indentation/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-mixed-indentation)` | fast |
+| 17 | `test/fixtures/autofix/fix-header-line/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-header-line)` | fast |
+| 18 | `test/fixtures/autofix/fix-footer-line/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-footer-line)` | fast |
+| 19 | `test/fixtures/autofix/fix-project-identification/baseline.text` [modify] | Migrate. | — | `(validate-one-autofix-cycle-fixture 'fix-project-identification)` | fast |
+| 20 | `test/autofix.lisp` [modify] | Delete the old `validate-one-maintainer-fixture` and its callers. Update `testsuite-autofix` entry point to call `validate-autofix-cycle-fixtures` and `validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points`. | — | `(validate-autofix-cycle-fixtures)` + `(validate-autofix-cycle-fixtures-as-pretty-printer-fixed-points)` | fast |
+| 21 | `test/utilities.lisp` [modify] | Remove the transitional `:maintainer` kind from `fixture`. | — | — | — |
 | 22 | `src/finding.lisp` [modify] | Add three new finding classes via `define-findings`. | `single-branch-if-finding`, `single-form-progn-finding`, `when-not-finding` | — | — |
 | 23 | `src/package.lisp` [modify] | Export three new finding classes and three new inspector names. | — | — | — |
 | 24 | `src/inspectors/check-single-branch-if.lisp` [new] | Implement. Recursive walk. Detect `(if T E nil)`, `(if T nil E)`, `(if T E)`. | `check-single-branch-if` | — | — |
-| 25 | `testsuite/fixtures/inspector/check-single-branch-if/` [new] | Create four fixtures (when, unless, clean, implicit-nil). | — | — | — |
-| 26 | `testsuite/inspectors/check-single-branch-if.lisp` [new] | Test case delegating to fixture auto-discovery. | `validate-check-single-branch-if` | `(validate-check-single-branch-if)` | fast |
+| 25 | `test/fixtures/inspector/check-single-branch-if/` [new] | Create four fixtures (when, unless, clean, implicit-nil). | — | — | — |
+| 26 | `test/inspectors/check-single-branch-if.lisp` [new] | Test case delegating to fixture auto-discovery. | `validate-check-single-branch-if` | `(validate-check-single-branch-if)` | fast |
 | 27 | `src/inspectors/check-single-form-progn.lisp` [new] | Implement. Detect `(progn F)` with exactly one body form. | `check-single-form-progn` | — | — |
-| 28 | `testsuite/fixtures/inspector/check-single-form-progn/` [new] | Create three fixtures (baseline, clean, empty). | — | — | — |
-| 29 | `testsuite/inspectors/check-single-form-progn.lisp` [new] | Test case. | `validate-check-single-form-progn` | `(validate-check-single-form-progn)` | fast |
+| 28 | `test/fixtures/inspector/check-single-form-progn/` [new] | Create three fixtures (baseline, clean, empty). | — | — | — |
+| 29 | `test/inspectors/check-single-form-progn.lisp` [new] | Test case. | `validate-check-single-form-progn` | `(validate-check-single-form-progn)` | fast |
 | 30 | `src/inspectors/check-when-not.lisp` [new] | Implement. Detect `(when (not X) ...)`. | `check-when-not` | — | — |
-| 31 | `testsuite/fixtures/inspector/check-when-not/` [new] | Create two fixtures (baseline, clean). | — | — | — |
-| 32 | `testsuite/inspectors/check-when-not.lisp` [new] | Test case. | `validate-check-when-not` | `(validate-check-when-not)` | fast |
+| 31 | `test/fixtures/inspector/check-when-not/` [new] | Create two fixtures (baseline, clean). | — | — | — |
+| 32 | `test/inspectors/check-when-not.lisp` [new] | Test case. | `validate-check-when-not` | `(validate-check-when-not)` | fast |
 | 33 | `org.melusina.atelier.asd` [modify] | Register three new inspector source files and three new test files in the respective modules. | — | — | — |
-| 34 | `CLAUDE.md` [modify] | Update the fixture section: rename `testsuite/fixtures/maintainer/` to `testsuite/fixtures/autofix/`, rename `validate-one-maintainer-fixture` to `validate-one-autofix-cycle-fixture`, document the new 4-part format and the N=1 self-idempotency contract. | — | — | — |
+| 34 | `CLAUDE.md` [modify] | Update the fixture section: rename `test/fixtures/maintainer/` to `test/fixtures/autofix/`, rename `validate-one-maintainer-fixture` to `validate-one-autofix-cycle-fixture`, document the new 4-part format and the N=1 self-idempotency contract. | — | — | — |
 | 35 | — | Full regression. | — | `(asdf:test-system "org.melusina.atelier")` | fast |
 
 ---
@@ -432,7 +432,7 @@ New invariants for this phase:
 
 | # | Invariant |
 |---|-----------|
-| I46 | Autofix-cycle fixtures live under `testsuite/fixtures/autofix/<maintainer-name>/`. Each fixture declares `inspector`, `finding`, `maintainer`, `resolution` in its YAML front-matter as mandatory symbol fields interned in `:atelier`. |
+| I46 | Autofix-cycle fixtures live under `test/fixtures/autofix/<maintainer-name>/`. Each fixture declares `inspector`, `finding`, `maintainer`, `resolution` in its YAML front-matter as mandatory symbol fields interned in `:atelier`. |
 | I47 | Autofix-cycle fixtures have exactly three body documents separated by `---`: input source, expected finding slots plist, expected fixed code. |
 | I48 | For SYNTAX-INSPECTOR fixtures, the primary assertion compares forms via `(equal expected-form result-form)` where both are produced by `read-from-string`. For LINE-INSPECTOR fixtures, the default is `string=` on the raw text. |
 | I49 | Every autofix-cycle fixture asserts **self-idempotency at N=1**: re-running the same `(inspector, maintainer)` pair on the result yields the same result as the first pass. Non-idempotent maintainers are bugs. |
@@ -445,14 +445,14 @@ New invariants for this phase:
 ## Test Fixtures
 
 **Autofix-cycle fixtures (migrated):** 10 existing fixtures under
-`testsuite/fixtures/maintainer/*/` are moved to `testsuite/fixtures/autofix/*/`
+`test/fixtures/maintainer/*/` are moved to `test/fixtures/autofix/*/`
 via `git mv` (preserving history) and rewritten to the new 4-part format.
 Each keeps its input source and expected fixed code; the finding-slots plist
 is filled in per fixture.
 
 The 20 fix-line-too-long text fixtures under
-`testsuite/fixtures/maintainer/fix-line-too-long/` are moved to
-`testsuite/fixtures/autofix/fix-line-too-long/` as-is (preserving history)
+`test/fixtures/maintainer/fix-line-too-long/` are moved to
+`test/fixtures/autofix/fix-line-too-long/` as-is (preserving history)
 but are **not migrated to the new format and are not exercised by the test
 suite** in this phase. A fixture-loader guard silently skips fixtures whose
 first line is not `---` or whose front-matter lacks mandatory fields.
@@ -487,7 +487,7 @@ No further reference files needed for this phase.
 
 | # | Criterion | Verification |
 |---|-----------|-------------|
-| AC1 | Directory renamed: `testsuite/fixtures/autofix/` exists; `testsuite/fixtures/maintainer/` does not | Filesystem check; git history shows `git mv` |
+| AC1 | Directory renamed: `test/fixtures/autofix/` exists; `test/fixtures/maintainer/` does not | Filesystem check; git history shows `git mv` |
 | AC2 | All 10 existing maintainer fixtures migrated to the new 4-part format and loading successfully | `(validate-autofix-cycle-fixtures)` runs without "fixture load error" signals |
 | AC3 | All 10 migrated fixtures pass their primary assertion (inspector finds the expected finding; maintainer produces the expected fix) | `(validate-autofix-cycle-fixtures)` passes all 10 |
 | AC4 | All 10 migrated fixtures pass the self-idempotency assertion at N=1 | Same test — zero fixtures trip the second-pass assertion |

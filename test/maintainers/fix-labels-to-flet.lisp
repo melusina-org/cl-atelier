@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-fix-labels-to-flet-registered ()
   "Verify FIX-LABELS-TO-FLET is registered in the maintainer registry."

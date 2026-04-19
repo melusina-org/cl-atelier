@@ -16,7 +16,7 @@
 ### S1: Fixture auto-discovery
 **As a** tool author, **I want** test fixtures to be auto-discovered from the filesystem, **so that** adding a fixture file creates a test without code changes.
 **Acceptance criteria:**
-- Given a `.text` file in `testsuite/fixtures/maintainer/<name>/`, when the test suite runs, then the fixture is loaded and compared automatically.
+- Given a `.text` file in `test/fixtures/maintainer/<name>/`, when the test suite runs, then the fixture is loaded and compared automatically.
 - Given `(maintainer-fixture 'atelier:fix-bare-lambda)`, then the baseline fixture pathname is returned.
 - Given `(pretty-printer-fixture "flet-single-binding")`, then the fixture pathname is returned.
 - Given `(inspector-fixture 'atelier:check-bare-lambda)`, then the fixture pathname is returned.

@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-check-project-identification-correct ()
   "Verify no finding for a file with correct project identification."

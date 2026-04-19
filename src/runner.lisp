@@ -227,6 +227,27 @@ Bind *CURRENT-PATHNAME* so inspectors can reference the file."
             (linter-configuration-disabled-inspectors *linter-configuration*)
             :test #'eq)))
 
+(defun inspector-excluded-for-file-p (inspector-name pathname)
+  "Return T if INSPECTOR-NAME is excluded from inspecting PATHNAME.
+Consults INSPECTOR-FILE-EXCLUSIONS from *LINTER-CONFIGURATION*. The
+configured paths are matched as suffixes of PATHNAME's namestring, which
+lets relative paths such as \"test/inspectors/foo.lisp\" match every file
+whose absolute path ends with that suffix."
+  (declare (type symbol inspector-name)
+           (type (or null pathname) pathname))
+  (when (and *linter-configuration* pathname)
+    (let ((patterns (cdr (assoc inspector-name
+                                (linter-configuration-inspector-file-exclusions
+                                 *linter-configuration*)
+                                :test #'eq)))
+          (namestring (namestring pathname)))
+      (flet ((matches-pattern-p (pattern)
+               (and (>= (length namestring) (length pattern))
+                    (string= pattern namestring
+                             :start2 (- (length namestring)
+                                        (length pattern))))))
+        (some #'matches-pattern-p patterns)))))
+
 (defun apply-severity-override (finding inspector-name)
   "Return FINDING with its severity overridden if *LINTER-CONFIGURATION* specifies one.
 Return FINDING unchanged if no override applies."
@@ -345,13 +366,25 @@ as there is no interactive caller to prompt."
 ;;;; Inspection Pipeline
 ;;;;
 
+(defun collect-inspectors-for-file (level-class pathname)
+  "Return the subset of LEVEL-CLASS inspectors that should run on PATHNAME.
+Combines COLLECT-INSPECTORS-BY-LEVEL with INSPECTOR-EXCLUDED-FOR-FILE-P
+so per-file exclusions from *LINTER-CONFIGURATION* are honoured at every
+inspection level."
+  (declare (type symbol level-class)
+           (type (or null pathname) pathname))
+  (flet ((running-p (inspector-instance)
+           (not (inspector-excluded-for-file-p
+                 (inspector-name inspector-instance) pathname))))
+    (remove-if-not #'running-p (collect-inspectors-by-level level-class))))
+
 (defun perform-file-inspection (pathname)
   "Run all registered file-level inspectors on PATHNAME.
 Return a list of findings from file-inspector instances, applying any
 severity overrides from *LINTER-CONFIGURATION*."
   (declare (type pathname pathname)
            (values list))
-  (let ((file-inspectors (collect-inspectors-by-level 'file-inspector)))
+  (let ((file-inspectors (collect-inspectors-for-file 'file-inspector pathname)))
     (loop :for inspector-instance :in file-inspectors
           :for inspector-findings = (inspect-file inspector-instance pathname)
           :when inspector-findings
@@ -364,7 +397,7 @@ INSPECT-FILE. Return a list of findings, applying any severity overrides
 from *LINTER-CONFIGURATION*."
   (declare (type pathname pathname)
            (values list))
-  (let ((line-inspectors (collect-inspectors-by-level 'line-inspector)))
+  (let ((line-inspectors (collect-inspectors-for-file 'line-inspector pathname)))
     (when line-inspectors
       (let ((lines (read-file-into-line-vector pathname))
             (*current-pathname* pathname))
@@ -380,7 +413,7 @@ are shared across all syntax inspectors. Return a list of findings, or
 NIL when the file cannot be parsed by Eclector."
   (declare (type pathname pathname)
            (values list))
-  (let ((syntax-inspectors (collect-inspectors-by-level 'syntax-inspector)))
+  (let ((syntax-inspectors (collect-inspectors-for-file 'syntax-inspector pathname)))
     (when syntax-inspectors
       (let ((forms (parse-lisp-file pathname)))
         (when forms

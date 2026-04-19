@@ -23,8 +23,8 @@
 | AC3 | Re-calling signals pre-commit-hook-exists with restarts | Pass | test-install-pre-commit-hook-exists, test-install-pre-commit-hook-replace |
 | AC4 | No .git/ signals error | Pass | test-install-pre-commit-hook-no-git |
 | AC5 | Non-canonical system suffix produces non-canonical-system-name-finding | Pass | test-check-system-naming-non-canonical |
-| AC6 | /testsuite produces deprecated-system-name-finding | Pass | test-check-system-naming-deprecated |
-| AC7 | entrypoint/main/testsuite produce deprecated-component-name-finding | Pass | test-check-component-naming-deprecated |
+| AC6 | /test produces deprecated-system-name-finding | Pass | test-check-system-naming-deprecated |
+| AC7 | entrypoint/main/test produce deprecated-component-name-finding | Pass | test-check-component-naming-deprecated |
 | AC8 | Missing test component produces missing-test-component-finding | Pass | test-check-test-mirror-missing |
 | AC9 | Wrong order produces test-component-order-finding | Pass | test-check-test-mirror-order |
 | AC10 | fix-deprecated-system-name rewrites and is idempotent | Pass | test-fix-deprecated-system-name, test-fix-deprecated-system-name-idempotent |

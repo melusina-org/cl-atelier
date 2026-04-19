@@ -1,6 +1,6 @@
 Rework needed after implementation 1
 
-In the testsuite `testsuite/src/finding.lisp`:
+In the testsuite `test/src/finding.lisp`:
 
 
 Identifiers:

@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite/editor)
+(in-package #:atelier/test/editor)
 
 
 ;;;;

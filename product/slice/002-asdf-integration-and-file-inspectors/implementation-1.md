@@ -70,7 +70,7 @@ src/
         ├── codestyle-0005.lisp   [unchanged]
         └── codestyle-0006.lisp   [delete] — superseded by check-spdx-license-header
 
-testsuite/
+test/
 ├── package.lisp                  [modify] — add new imports
 ├── inspector.lisp                [rewrite] — individual class tests
 ├── maintainer.lisp               [rewrite] — individual class tests
@@ -111,7 +111,7 @@ package → utilities → configuration → license → parameter → template
 
 Remove `codestyle-0001` and `codestyle-0006` from inspector module.
 
-### `org.melusina.atelier/testsuite` (modified)
+### `org.melusina.atelier/test` (modified)
 
 Add: `asdf`, `runner`, `(:module "inspectors" — check-file-encoding, check-spdx-license-header)`.
 Remove: `codestyle-0001`, `codestyle-0006` from legacy-inspector module.
@@ -269,18 +269,18 @@ LINTER-CONFIGURATION policy. Return a list of findings.")
 | 11 | `src/legacy/inspector/codestyle-0006.lisp` [delete] | Superseded | — | — | — |
 | 12 | `src/legacy/package.lisp` [modify] | Remove deleted inspector references | — | — | — |
 | 13 | `src/legacy/lint.lisp` [modify] | Remove references to deleted inspectors | — | — | — |
-| 14 | `testsuite/inspector.lisp` [rewrite] | Tests for reworked inspectors | `validate-inspector-individual-class` | fast |
-| 15 | `testsuite/maintainer.lisp` [rewrite] | Tests for reworked maintainers | `validate-maintainer-individual-class`, `validate-maintainer-finding-class-dispatch` | fast |
-| 16 | `testsuite/fixtures/` [new] | Create fixture files for inspector tests | — | — |
-| 17 | `testsuite/asdf.lisp` [new] | S1, S2, S3 tests | `validate-read-project-configuration`, `validate-linter-op-on-system`, etc. | slow |
-| 18 | `testsuite/runner.lisp` [new] | S6 tests | `validate-run-file-inspectors`, `validate-run-file-inspectors-respects-policy` | fast/slow |
-| 19 | `testsuite/inspectors/check-file-encoding.lisp` [new] | S4 tests | `validate-check-file-encoding-*` | fast/slow |
-| 20 | `testsuite/inspectors/check-spdx-license-header.lisp` [new] | S5 tests | `validate-check-spdx-header-*` | fast/slow |
-| 21 | `testsuite/inspector/codestyle-0001.lisp` [delete] | Superseded | — | — |
-| 22 | `testsuite/inspector/codestyle-0006.lisp` [delete] | Superseded | — | — |
-| 23 | `testsuite/lint.lisp` [modify] | Remove deleted test references | — | — |
-| 24 | `testsuite/entrypoint.lisp` [modify] | Add new test groups | — | — |
-| 25 | `testsuite/package.lisp` [modify] | Update imports | — | — |
+| 14 | `test/inspector.lisp` [rewrite] | Tests for reworked inspectors | `validate-inspector-individual-class` | fast |
+| 15 | `test/maintainer.lisp` [rewrite] | Tests for reworked maintainers | `validate-maintainer-individual-class`, `validate-maintainer-finding-class-dispatch` | fast |
+| 16 | `test/fixtures/` [new] | Create fixture files for inspector tests | — | — |
+| 17 | `test/asdf.lisp` [new] | S1, S2, S3 tests | `validate-read-project-configuration`, `validate-linter-op-on-system`, etc. | slow |
+| 18 | `test/runner.lisp` [new] | S6 tests | `validate-run-file-inspectors`, `validate-run-file-inspectors-respects-policy` | fast/slow |
+| 19 | `test/inspectors/check-file-encoding.lisp` [new] | S4 tests | `validate-check-file-encoding-*` | fast/slow |
+| 20 | `test/inspectors/check-spdx-license-header.lisp` [new] | S5 tests | `validate-check-spdx-header-*` | fast/slow |
+| 21 | `test/inspector/codestyle-0001.lisp` [delete] | Superseded | — | — |
+| 22 | `test/inspector/codestyle-0006.lisp` [delete] | Superseded | — | — |
+| 23 | `test/lint.lisp` [modify] | Remove deleted test references | — | — |
+| 24 | `test/entrypoint.lisp` [modify] | Add new test groups | — | — |
+| 25 | `test/package.lisp` [modify] | Update imports | — | — |
 | 26 | `libexec/lisp/development.lisp` [modify] | Update if needed | — | — |
 
 ---
@@ -317,7 +317,7 @@ LINTER-CONFIGURATION policy. Return a list of findings.")
 
 ## Test Fixtures
 
-**Fixture files** (`testsuite/fixtures/`): small Lisp and Shell files with known encoding and SPDX header states.
+**Fixture files** (`test/fixtures/`): small Lisp and Shell files with known encoding and SPDX header states.
 **Non-UTF-8 fixture**: generated programmatically at test time (write invalid bytes to a temp file) to avoid git corruption (R5).
 **Fixture ASDF system**: a minimal `.asd` + source files in a temp directory, created at test time.
 
@@ -342,7 +342,7 @@ None.
 | AC7 | Runner respects linter-configuration disabled inspectors | `validate-run-file-inspectors-respects-policy` passes |
 | AC8 | Legacy codestyle-0001 and codestyle-0006 are removed | Files deleted, testsuite passes without them |
 | AC9 | ≥ 3 concrete inspectors registered | `(length (atelier:list-inspectors))` ≥ 3 |
-| AC10 | Full test suite passes | `(atelier/testsuite:run-all-tests)` — all tests pass |
+| AC10 | Full test suite passes | `(atelier/test:run-all-tests)` — all tests pass |
 
 ---
 
@@ -352,5 +352,5 @@ None.
 2. All fast tests pass.
 3. All slow tests pass (fixture files present when running from source tree).
 4. `(asdf:load-system "org.melusina.atelier")` and `(asdf:load-system "org.melusina.atelier/legacy")` succeed.
-5. `(atelier/testsuite:run-all-tests)` passes.
+5. `(atelier/test:run-all-tests)` passes.
 6. No SBCL-specific code without `#+sbcl` guard.

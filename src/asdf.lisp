@@ -165,18 +165,30 @@ Disposition is :AUTO, :INTERACTIVE, or :SKIP.")
 Components listed here are transparent to both MISSING-TEST-COMPONENT-FINDING and
 TEST-COMPONENT-ORDER-FINDING. A source component excluded here does not require a
 test counterpart; a test component excluded here does not require a source counterpart.
-Excluded components are also removed before checking order."))
+Excluded components are also removed before checking order.")
+   (inspector-file-exclusions
+    :initarg :inspector-file-exclusions
+    :reader linter-configuration-inspector-file-exclusions
+    :type list
+    :initform nil
+    :documentation "Alist mapping inspector-name symbol to a list of file path
+strings. A file whose namestring ends with any of the listed paths is skipped
+by the corresponding inspector. Paths are compared as suffixes of the absolute
+namestring so that paths relative to the project source directory match
+naturally."))
   (:documentation "Linter policy configuration for an ASDF system.
 Read from a .sexp file declared as an ASDF component."))
 
 (defun make-linter-configuration (&rest initargs
                                   &key disabled-inspectors severity-overrides
                                        indentation-style maintainer-overrides
-                                       mirror-excluded-components)
+                                       mirror-excluded-components
+                                       inspector-file-exclusions)
   "Create and return a LINTER-CONFIGURATION."
   (declare (ignore disabled-inspectors severity-overrides
                    indentation-style maintainer-overrides
-                   mirror-excluded-components))
+                   mirror-excluded-components
+                   inspector-file-exclusions))
   (apply #'make-instance 'linter-configuration initargs))
 
 (defmethod print-object ((instance linter-configuration) stream)
@@ -197,10 +209,14 @@ Read from a .sexp file declared as an ASDF component."))
 
 (defun read-linter-configuration (pathname)
   "Read a LINTER-CONFIGURATION from the .sexp file at PATHNAME.
-The file must contain a plist. It is read with *READ-EVAL* bound to NIL."
+The file must contain a plist. It is read with *READ-EVAL* bound to NIL
+and *PACKAGE* bound to :ATELIER so that bare symbols such as inspector
+and maintainer names resolve to the Atelier package without requiring
+explicit package qualification."
   (declare (type pathname pathname)
            (values linter-configuration))
   (let* ((*read-eval* nil)
+         (*package* (find-package :atelier))
          (plist (with-open-file (stream pathname :direction :input)
                   (read stream))))
     (apply #'make-linter-configuration plist)))

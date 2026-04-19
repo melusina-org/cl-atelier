@@ -33,7 +33,7 @@ to achieve this agreement is documented and provided.
 formatting, **a** maintainer **can** point to a single `.lisp` file
 that exercises all formatting decisions.
 **Acceptance criteria:**
-- Given a file `testsuite/fixtures/pretty-print/reference.lisp`,
+- Given a file `test/fixtures/pretty-print/reference.lisp`,
   when it contains representative Common Lisp constructs (see list below),
   then it covers at minimum:
   - Constants and parameters initialized with complex property-lists

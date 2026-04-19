@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-fix-header-line ()
   "Verify fix-header-line produces a text-resolution with the correct canonical header.

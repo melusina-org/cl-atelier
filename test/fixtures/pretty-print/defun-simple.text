@@ -9,6 +9,6 @@ right-margin: [nil, 40]
   (* unit-price (- 1.0 discount-rate)))
 ---
 (defun compute-discount
-       (unit-price discount-rate)
+    (unit-price discount-rate)
   (* unit-price (- 1.0 discount-rate)))
 ---

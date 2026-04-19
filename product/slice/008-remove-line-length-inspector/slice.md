@@ -17,7 +17,7 @@ After this slice, Atelier no longer reports or attempts to fix long lines.
 
 - `check-line-length` stops running. `line-too-long-finding` no longer appears in any report.
 - `fix-line-too-long` is removed from the maintainer registry.
-- The 20 carried-over fixtures under `testsuite/fixtures/autofix/fix-line-too-long/` are deleted.
+- The 20 carried-over fixtures under `test/fixtures/autofix/fix-line-too-long/` are deleted.
 - Users who care about line length rely on the pretty-printer (`pretty-print-form`) to re-flow code, and on their own judgement for anything the pretty-printer leaves long. This matches the gofmt school: the linter does not police line length; the formatter attempts to do the right thing; anything still too long is a human call.
 
 This is a deliberate scope *reduction* based on the research in `product/reference/line-length-research.md`. The short version of the research: ESLint and Ruff do not auto-fix their line-length rules; Black and Prettier wrap structurally but explicitly allow lines to overflow when they cannot split safely; Go refuses to have the rule at all. Atelier chooses the Go position, on the reasoning that the pretty-printer is already the single authority on canonical Lisp text (slice 007 invariant) and a separate line-length reporter adds noise without adding correctness.
@@ -52,14 +52,14 @@ This is a deliberate scope *reduction* based on the research in `product/referen
 
 ### S3 — Remove the tests and fixtures
 
-**In order to** keep the test suite free of skipped or dead fixtures, **a** developer **can** run `(atelier/testsuite:run-all-tests)` and see no test references to line-length.
+**In order to** keep the test suite free of skipped or dead fixtures, **a** developer **can** run `(atelier/test:run-all-tests)` and see no test references to line-length.
 
 **Acceptance criteria:**
-- Given `testsuite/inspectors/check-line-length.lisp` is deleted, when the testsuite system loads, then the load succeeds.
-- Given `(testsuite-check-line-length)` is removed from `testsuite/entrypoint.lisp`, when the testsuite runs, then no testcase named `validate-check-line-length-*` executes.
-- Given `testsuite/fixtures/autofix/fix-line-too-long/` is deleted (all 20 `.text` fixtures and the directory itself), when the auto-discovering fixture loader runs, then no attempt is made to load any `fix-line-too-long` fixture.
-- Given the fixture-skip comment block in `testsuite/utilities.lisp:119` exists to carry these fixtures along, when the fixtures are gone, then the skip logic is also removed (or simplified if it is still needed for other directories — verify during planning).
-- Given the full regression `(atelier/testsuite:run-all-tests)` is run, when it completes, then the pass count equals the pre-slice pass count minus exactly the three removed testcases (`validate-check-line-length-short`, `validate-check-line-length-long`, `validate-check-line-length-skips-definitions`), with zero failures and zero new skips.
+- Given `test/inspectors/check-line-length.lisp` is deleted, when the testsuite system loads, then the load succeeds.
+- Given `(testsuite-check-line-length)` is removed from `test/entrypoint.lisp`, when the testsuite runs, then no testcase named `validate-check-line-length-*` executes.
+- Given `test/fixtures/autofix/fix-line-too-long/` is deleted (all 20 `.text` fixtures and the directory itself), when the auto-discovering fixture loader runs, then no attempt is made to load any `fix-line-too-long` fixture.
+- Given the fixture-skip comment block in `test/utilities.lisp:119` exists to carry these fixtures along, when the fixtures are gone, then the skip logic is also removed (or simplified if it is still needed for other directories — verify during planning).
+- Given the full regression `(atelier/test:run-all-tests)` is run, when it completes, then the pass count equals the pre-slice pass count minus exactly the three removed testcases (`validate-check-line-length-short`, `validate-check-line-length-long`, `validate-check-line-length-skips-definitions`), with zero failures and zero new skips.
 
 ### S4 — Update documentation and project metadata
 
@@ -74,10 +74,10 @@ This is a deliberate scope *reduction* based on the research in `product/referen
 
 ## Quality Criteria
 
-- [ ] Full regression (`(atelier/testsuite:run-all-tests)`) passes with zero failures. The pass count decreases by exactly 3 (the three removed line-length testcases).
+- [ ] Full regression (`(atelier/test:run-all-tests)`) passes with zero failures. The pass count decreases by exactly 3 (the three removed line-length testcases).
 - [ ] A clean `(ql:quickload "org.melusina.atelier")` in a fresh SBCL image produces no warnings about undefined functions, classes, or exported symbols.
 - [ ] `(atelier:list-inspectors)` and `(atelier:list-maintainers)` both return lists whose length has decreased by exactly one, with no reference to the removed symbols.
-- [ ] `grep -r 'line-too-long\|check-line-length\|fix-line-too-long\|line-too-long-finding' src/ testsuite/` returns zero matches after the slice (excluding `product/reference/line-length-research.md`, which is retained).
+- [ ] `grep -r 'line-too-long\|check-line-length\|fix-line-too-long\|line-too-long-finding' src/ test/` returns zero matches after the slice (excluding `product/reference/line-length-research.md`, which is retained).
 - [ ] No other maintainer or inspector changes behaviour. This is a pure deletion slice.
 
 ## Definition of Ready
@@ -107,6 +107,6 @@ This is a deliberate scope *reduction* based on the research in `product/referen
 
 This is a mechanical-deletion slice. The planning interview should be short: confirm the four stories, decide on the order (S1 → S2 → S3 → S4 is the natural dependency order, since S3 and S4 assume S1 and S2 are done), and confirm there is nothing new to learn architecturally. The only real risk is that `line-too-long-finding` is referenced somewhere outside the files surveyed above; the Strategist's grep found 40 files total, of which the source and test files are cleanly enumerated in the stories. The Tactician should re-run the grep as the first planning step to confirm no new references have appeared.
 
-One open question for the Tactician: the `testsuite/utilities.lisp:119` fixture-skip block was written in slice 007 specifically to carry the `fix-line-too-long/` directory along "without being exercised." With the directory gone, the skip logic is dead code. Verify whether it exists only for this directory (in which case delete it) or also handles other directories (in which case leave it).
+One open question for the Tactician: the `test/utilities.lisp:119` fixture-skip block was written in slice 007 specifically to carry the `fix-line-too-long/` directory along "without being exercised." With the directory gone, the skip logic is dead code. Verify whether it exists only for this directory (in which case delete it) or also handles other directories (in which case leave it).
 
 No OSS components, no architectural decisions, no new tests to write — just deletions and documentation updates.

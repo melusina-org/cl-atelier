@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-make-text-resolution ()
   "Verify that MAKE-TEXT-RESOLUTION creates a TEXT-RESOLUTION with the expected slots."

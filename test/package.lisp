@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(defpackage #:atelier/testsuite
+(defpackage #:atelier/test
   (:use #:common-lisp)
   (:import-from #:confidence
    #:define-testcase
@@ -22,6 +22,8 @@
    #:assert-string=
    #:assert-type)
   (:export
-   #:run-all-tests))
+   #:run-all-tests
+   #:run-fast-tests
+   #:run-slow-tests))
 
 ;;;; End of file `package.lisp'

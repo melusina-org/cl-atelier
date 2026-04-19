@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (defmacro with-fixed-parameter-bindings
     ((&key (copyright-holder "A. U. Thor")
@@ -68,9 +68,9 @@ Examples:
                      ((:autofix :pretty-printer) "text"))))
     (merge-pathnames
      (if (eq kind :pretty-printer)
-         (make-pathname :directory (list :relative "testsuite" "fixtures" subdir)
+         (make-pathname :directory (list :relative "test" "fixtures" subdir)
                         :name class-dir :type extension)
-         (make-pathname :directory (list :relative "testsuite" "fixtures" subdir class-dir)
+         (make-pathname :directory (list :relative "test" "fixtures" subdir class-dir)
                         :name name :type extension))
      (asdf:system-source-directory "org.melusina.atelier"))))
 

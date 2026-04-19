@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite/editor)
+(in-package #:atelier/test/editor)
 
 (define-testcase validate-write-simple-defun ()
   "Verify write-toplevel-form-to-string on a simple defun."

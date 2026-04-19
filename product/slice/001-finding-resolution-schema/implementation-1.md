@@ -79,7 +79,7 @@ src/
         ├── codestyle-0005.lisp  [moved, in-package changed]
         └── codestyle-0006.lisp  [moved, in-package changed]
 
-testsuite/
+test/
 ├── package.lisp              [modify] — add atelier/legacy imports
 ├── finding.lisp              [new] — S1 tests
 ├── resolution.lisp           [new] — S2 tests
@@ -134,7 +134,7 @@ Files `lint.lisp` and module `inspector/` are removed from this system.
                  (:file "bridge")))))
 ```
 
-### `org.melusina.atelier/testsuite` (modified)
+### `org.melusina.atelier/test` (modified)
 
 Add dependency: `#:org.melusina.atelier/legacy`
 
@@ -341,14 +341,14 @@ maintainer                         [concrete, named-instance via define-named-cl
 | 17 | `src/lint.lisp` [delete] | Remove original file (content moved to step 9) | — | — | — |
 | 18 | `src/inspector/codestyle-0001.lisp` through `codestyle-0006.lisp` [delete] | Remove original files (content moved to steps 10–15) | — | — | — |
 | 19 | `libexec/lisp/development.lisp` [modify] | Change `atelier:lint` → `atelier/legacy:lint`, add `/legacy` to reload list | — | — | — |
-| 20 | `testsuite/finding.lisp` [new] | Tests for S1 | `test-finding-construction`, `test-finding-hierarchy`, `test-finding-severity-validation` | `test-finding-*` | fast |
-| 21 | `testsuite/resolution.lisp` [new] | Tests for S2 | `test-resolution-construction`, `test-resolution-kind-validation`, `test-composite-resolution-structure` | `test-resolution-*` | fast |
-| 22 | `testsuite/inspector.lisp` [new] | Tests for S3, S6 | `test-define-inspector-and-list`, `test-inspector-last-load-wins`, `test-inspector-metadata`, `test-named-instance-identity`, `test-named-instance-redefine` | `test-inspector-*` | fast |
-| 23 | `testsuite/maintainer.lisp` [new] | Tests for S4, S5 | `test-define-maintainer-and-list`, `test-maintainer-superseding`, `test-maintainer-both-maximal`, `test-maintainer-nil-fallthrough`, `test-prepare-resolution-returns-resolution`, `test-prepare-resolution-returns-nil` | `test-maintainer-*` | fast |
-| 24 | `testsuite/bridge.lisp` [new] | Tests for S7 | `test-hint-at-file-to-finding`, `test-hint-at-file-line-to-finding`, `test-lint-with-findings` | `test-bridge-*` | fast/slow |
-| 25 | `testsuite/lint.lisp` [modify] | Update all `atelier::` references to `atelier/legacy::` | — | — | — |
-| 26 | `testsuite/package.lisp` [modify] | Add imports for new test dependencies | — | — | — |
-| 27 | `testsuite/entrypoint.lisp` [modify] | Add `testsuite-finding`, `testsuite-resolution`, `testsuite-inspector`, `testsuite-maintainer`, `testsuite-bridge` | — | — | — |
+| 20 | `test/finding.lisp` [new] | Tests for S1 | `test-finding-construction`, `test-finding-hierarchy`, `test-finding-severity-validation` | `test-finding-*` | fast |
+| 21 | `test/resolution.lisp` [new] | Tests for S2 | `test-resolution-construction`, `test-resolution-kind-validation`, `test-composite-resolution-structure` | `test-resolution-*` | fast |
+| 22 | `test/inspector.lisp` [new] | Tests for S3, S6 | `test-define-inspector-and-list`, `test-inspector-last-load-wins`, `test-inspector-metadata`, `test-named-instance-identity`, `test-named-instance-redefine` | `test-inspector-*` | fast |
+| 23 | `test/maintainer.lisp` [new] | Tests for S4, S5 | `test-define-maintainer-and-list`, `test-maintainer-superseding`, `test-maintainer-both-maximal`, `test-maintainer-nil-fallthrough`, `test-prepare-resolution-returns-resolution`, `test-prepare-resolution-returns-nil` | `test-maintainer-*` | fast |
+| 24 | `test/bridge.lisp` [new] | Tests for S7 | `test-hint-at-file-to-finding`, `test-hint-at-file-line-to-finding`, `test-lint-with-findings` | `test-bridge-*` | fast/slow |
+| 25 | `test/lint.lisp` [modify] | Update all `atelier::` references to `atelier/legacy::` | — | — | — |
+| 26 | `test/package.lisp` [modify] | Add imports for new test dependencies | — | — | — |
+| 27 | `test/entrypoint.lisp` [modify] | Add `testsuite-finding`, `testsuite-resolution`, `testsuite-inspector`, `testsuite-maintainer`, `testsuite-bridge` | — | — | — |
 
 ---
 
@@ -385,7 +385,7 @@ maintainer                         [concrete, named-instance via define-named-cl
 
 **Bridge tests:**
 - Fast tests: construct `hint-at-file` and `hint-at-file-line` instances directly, call `hint-to-finding`, verify the resulting finding slots.
-- Slow test (`test-lint-with-findings`): uses existing fixture files (e.g., `testsuite/` source files) as linting targets. Skip condition: files not found on disk (always present when running from source tree).
+- Slow test (`test-lint-with-findings`): uses existing fixture files (e.g., `test/` source files) as linting targets. Skip condition: files not found on disk (always present when running from source tree).
 
 ---
 
@@ -405,7 +405,7 @@ None for this phase.
 | AC4 | `define-maintainer` with `:supersedes` produces correct partial order: only maximal maintainers run in `resolve-finding` | `test-maintainer-superseding` passes |
 | AC5 | `prepare-resolution` returns a `resolution` or `NIL` | `test-prepare-resolution-returns-resolution` and `test-prepare-resolution-returns-nil` pass |
 | AC6 | `hint-to-finding` converts `hint-at-file` → `file-finding` and `hint-at-file-line` → `line-finding` with correct slot mapping | `test-hint-at-file-to-finding` and `test-hint-at-file-line-to-finding` pass |
-| AC7 | Existing testsuite passes after legacy move (all `testsuite-linter` tests) | `(atelier/testsuite:run-all-tests)` — all tests pass |
+| AC7 | Existing testsuite passes after legacy move (all `testsuite-linter` tests) | `(atelier/test:run-all-tests)` — all tests pass |
 | AC8 | `(asdf:load-system "org.melusina.atelier")` loads successfully with Eclector as a hard dependency | System loads without error in a fresh SBCL image |
 | AC9 | Public API exports ≥ 25 symbols | `(length (loop :for s :being :the :external-symbols :of :atelier :when (or (find-class s nil) (fboundp s) (boundp s)) :collect s))` ≥ 25 |
 | AC10 | `atelier/development:lint` still lints the project successfully via the legacy system | `(atelier/development:lint)` completes without error |
@@ -419,5 +419,5 @@ This phase is complete when:
 2. All fast tests pass (< 2 seconds total).
 3. All slow tests pass (or individually explained if skipped).
 4. `(asdf:load-system "org.melusina.atelier")` and `(asdf:load-system "org.melusina.atelier/legacy")` both succeed in a fresh image.
-5. `(atelier/testsuite:run-all-tests)` passes.
+5. `(atelier/test:run-all-tests)` passes.
 6. No SBCL-specific code without `#+sbcl` guard.

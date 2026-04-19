@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-make-file-finding ()
   "Verify that MAKE-FILE-FINDING creates a FILE-FINDING with the expected slots."

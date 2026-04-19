@@ -44,7 +44,7 @@ None.
 
 ## New risks discovered
 **Live-image package variance (pre-existing):** `asdf:load-system :force t` fails in a
-live SBCL image for both `org.melusina.atelier` and `org.melusina.atelier/testsuite`
+live SBCL image for both `org.melusina.atelier` and `org.melusina.atelier/test`
 because SBCL's `*ON-PACKAGE-VARIANCE*` treats package redefinition with extra symbols
 as a `compile-file` failure (returns `failure-p = T`). This affects the template
 integration tests which trigger ASDF recompilation of the main system. All new test
@@ -56,7 +56,7 @@ groups pass when loaded directly. This is pre-existing and does not affect a fre
 pipeline be structured as `perform-inspection` calling three named stage functions:
 `perform-file-inspection`, `perform-line-inspection`, `perform-syntax-inspection`.
 This makes each stage independently testable and the pipeline visible at a glance.
-All callers in `src/asdf.lisp`, `testsuite/runner.lisp`, and `testsuite/asdf.lisp`
+All callers in `src/asdf.lisp`, `test/runner.lisp`, and `test/asdf.lisp`
 updated accordingly.
 
 **`make-syntax-finding-from-form` takes `finding-class` as positional arg:**

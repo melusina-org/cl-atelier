@@ -11,10 +11,10 @@
 
 | Step | File | Action | Description |
 |------|------|--------|-------------|
-| 1 | `testsuite/utilities.lisp` | Modify | Add `maintainer-fixture`, `pretty-printer-fixture`, `inspector-fixture` accessor functions |
-| 2 | `testsuite/fixtures/` | Reorganize | Move existing fixtures to per-inspector/maintainer subdirectories |
-| 3 | `testsuite/utilities.lisp` | Modify | Add `discover-maintainer-fixtures`, `discover-pretty-printer-fixtures` auto-discovery |
-| 4 | `testsuite/entrypoint.lisp` | Modify | Add auto-discovered fixture testcase |
+| 1 | `test/utilities.lisp` | Modify | Add `maintainer-fixture`, `pretty-printer-fixture`, `inspector-fixture` accessor functions |
+| 2 | `test/fixtures/` | Reorganize | Move existing fixtures to per-inspector/maintainer subdirectories |
+| 3 | `test/utilities.lisp` | Modify | Add `discover-maintainer-fixtures`, `discover-pretty-printer-fixtures` auto-discovery |
+| 4 | `test/entrypoint.lisp` | Modify | Add auto-discovered fixture testcase |
 | 5 | `resource/license/*.text` | Modify | Add `spdx:` field to YAML front matter for all license resources |
 | 6 | `src/license.lisp` | Modify | Add `spdx-identifier` slot to `license` class, update loader |
 | 7 | `src/package.lisp` | Modify | Export `license-spdx-identifier` |

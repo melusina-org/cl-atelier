@@ -9,7 +9,7 @@
 
 - **S1 — Remove the inspector and its finding class** — all acceptance criteria passed. `src/inspectors/check-line-length.lisp` deleted, `line-too-long-finding` removed from `src/finding.lisp`, `check-line-length` and `line-too-long-finding` unexported from `src/package.lisp`, ASDF main system updated. `(find-symbol "CHECK-LINE-LENGTH" :atelier)` returns NIL.
 - **S2 — Remove the maintainer** — all acceptance criteria passed. `src/maintainers/fix-line-too-long.lisp` deleted, `fix-line-too-long` unexported, ASDF main system updated. `(atelier:list-maintainers)` returns 10 entries, `fix-line-too-long` not among them.
-- **S3 — Remove the tests and fixtures** — all acceptance criteria passed. `testsuite/inspectors/check-line-length.lisp` deleted, `(testsuite-check-line-length)` call removed from `testsuite/entrypoint.lisp`, all 20 fixtures under `testsuite/fixtures/autofix/fix-line-too-long/` deleted along with the directory itself, `testsuite/utilities.lisp` docstring updated.
+- **S3 — Remove the tests and fixtures** — all acceptance criteria passed. `test/inspectors/check-line-length.lisp` deleted, `(testsuite-check-line-length)` call removed from `test/entrypoint.lisp`, all 20 fixtures under `test/fixtures/autofix/fix-line-too-long/` deleted along with the directory itself, `test/utilities.lisp` docstring updated.
 - **S4 — Update documentation and project metadata** — all acceptance criteria passed. `CLAUDE.md` (inspector count and Line inspectors list), `README.md` (inspector bullet and `:disabled-inspectors` example), `product/backlog.md` (item 16 reworded + revision history entry), `product/roadmap.md` (Later row removed + two revision history entries) all updated.
 
 ## Acceptance criteria results
@@ -22,7 +22,7 @@
 | 4 | `(find-symbol "CHECK-LINE-LENGTH" :atelier)` returns NIL | ✓ | Step 18: `CHECK-LINE-LENGTH=NIL LINE-TOO-LONG-FINDING=NIL FIX-LINE-TOO-LONG=NIL` |
 | 5 | Inspector and maintainer list lengths each decreased by 1 | ✓ | Step 18: `INSPECTORS=15 MAINTAINERS=10` |
 | 6 | Grep audit across code and user-facing docs returns zero matches | ✓ | Step 24 |
-| 7 | `testsuite/fixtures/autofix/fix-line-too-long/` does not exist | ✓ | Step 6 `git rm -rf` |
+| 7 | `test/fixtures/autofix/fix-line-too-long/` does not exist | ✓ | Step 6 `git rm -rf` |
 | 8 | CLAUDE.md line 9 reads "15 inspectors, 10 automatic maintainers"; line 88 clean | ✓ | Step 19 |
 | 9 | README.md contains no `check-line-length` | ✓ | Step 20 |
 
@@ -54,7 +54,7 @@ None. Every step in the plan executed on first attempt with the exception of two
 
 ## Technical decisions made
 
-- **Risk 3 resolved in favour of keeping the skip logic.** `testsuite/utilities.lisp`'s `discover-autofix-cycle-fixtures` uses a generic `find-symbol` filter at line 105, not a hard-coded check for `fix-line-too-long`. The skip logic is a legitimate safety net for future in-progress directories, so only the docstring was updated to remove the obsolete reference. The code itself is unchanged.
+- **Risk 3 resolved in favour of keeping the skip logic.** `test/utilities.lisp`'s `discover-autofix-cycle-fixtures` uses a generic `find-symbol` filter at line 105, not a hard-coded check for `fix-line-too-long`. The skip logic is a legitimate safety net for future in-progress directories, so only the docstring was updated to remove the obsolete reference. The code itself is unchanged.
 - **`*default-maximum-line-length*` was not exported.** Step 16 checked the package file and confirmed it was internal, so no export removal was needed.
 
 ## Notes for Strategist retrospective

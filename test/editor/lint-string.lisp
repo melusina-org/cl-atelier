@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite/editor)
+(in-package #:atelier/test/editor)
 
 (define-testcase validate-lint-string-earmuffs ()
   "Verify that lint-string applies fix-earmuffs on a defvar."

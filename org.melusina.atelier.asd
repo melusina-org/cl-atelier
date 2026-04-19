@@ -55,7 +55,8 @@
        (:file "check-single-form-progn")
        (:file "check-when-not")
        (:file "check-system-naming")
-       (:file "check-test-mirror")))
+       (:file "check-test-mirror")
+       (:file "check-testsuite-package-name")))
      (:module "maintainers"
       :components
       ((:file "fix-trailing-whitespace")
@@ -71,7 +72,8 @@
        (:file "fix-deprecated-names")
        (:file "fix-when-not")
        (:file "fix-single-branch-if")
-       (:file "fix-spdx-license-header")))
+       (:file "fix-spdx-license-header")
+       (:file "fix-testsuite-package-name")))
      (:module "editor"
       :components ((:file "package")
              (:file "conditions")
@@ -114,7 +116,8 @@
        (:file "check-header-line")
        (:file "check-footer-line")
        (:file "check-project-identification")
-       (:file "check-system-naming")))
+       (:file "check-system-naming")
+       (:file "check-testsuite-package-name")))
      (:module "maintainers"
       :components
       ((:file "fix-mixed-indentation")

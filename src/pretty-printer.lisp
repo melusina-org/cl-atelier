@@ -608,10 +608,26 @@ stay on one line."
               (write (pprint-pop)))))
 
 (defun pprint-function-call (form)
+  "Print a generic function call.
+The form stays on one line when it fits. When it does not fit, the break
+point before the first argument indents at :BLOCK 0 — one column inside
+the opening paren, matching the Emacs convention for single-argument
+calls wrapped under the operator. Subsequent between-argument breaks
+switch to :CURRENT 0 so continuation arguments align under the first
+argument column. Trailing keyword/value pairs detected by PLIST-ARGS-P
+are emitted one per line at the current alignment."
   (pprint-logical-block (nil form :prefix "(" :suffix ")")
     (write (pprint-pop))
     (pprint-exit-if-list-exhausted)
+    (pprint-indent :block 0)
     (write-char #\Space)
+    ;; For single-argument calls we allow a fill-break before the arg so the
+    ;; engine can split tight contexts such as LOOP clauses. For multi-arg
+    ;; calls we keep the first arg adjacent to the operator and let the
+    ;; between-argument :FILL breaks handle wrapping.
+    (if (null (cddr form))
+        (pprint-newline :fill)
+        (pprint-newline :miser))
     (pprint-indent :current 0)
     (loop :for rest-args :on (rest form)
           :until (plist-args-p rest-args)

@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (defmacro with-spdx-test-configuration ((&key (license "MIT")) &body body)
   "Execute BODY with project and linter configuration bound for SPDX tests."

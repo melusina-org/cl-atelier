@@ -5,7 +5,7 @@
 **Goal:** G2 — Linter covers file, line, region, CST level with ASDF
 **OKR contribution:** G2 — sharpen the diagnostic-cycle test protocol and expand the inspector catalogue
 **Hypothesis assumption:** The `(inspector, finding, maintainer, resolution)` quadruple is the real unit under test in our autofix fixtures. Making that explicit in the fixture format — with structural (CST / AST) comparison and a self-idempotency assertion — will surface any latent bugs in existing maintainers without requiring changes to the write-back engine.
-**Hypothesis prediction:** Renaming `testsuite/fixtures/maintainer/` to `testsuite/fixtures/autofix/` and migrating the 10 existing maintainer fixtures to the new four-part format (input / expected finding slots / expected fixed code) will preserve all current test behaviour and pass a self-idempotency assertion on every existing fixture. Three new CST inspectors (IF→WHEN/UNLESS, single-form PROGN, WHEN-NOT→UNLESS) will extend the style-check catalogue without touching the autofix pipeline.
+**Hypothesis prediction:** Renaming `test/fixtures/maintainer/` to `test/fixtures/autofix/` and migrating the 10 existing maintainer fixtures to the new four-part format (input / expected finding slots / expected fixed code) will preserve all current test behaviour and pass a self-idempotency assertion on every existing fixture. Three new CST inspectors (IF→WHEN/UNLESS, single-form PROGN, WHEN-NOT→UNLESS) will extend the style-check catalogue without touching the autofix pipeline.
 **Hypothesis disposition:** ✅ Validated — the underlying pipeline is already proven through 10 maintainers and 13 inspectors (slices 001–006).
 **Leading indicator:** 10 existing autofix-cycle fixtures migrated to the new format; self-idempotency assertion holds for all 10; at least 3 new CST inspectors with auto-discovered fixtures passing.
 **Kill criterion:** If migrating the existing fixtures reveals that more than one existing maintainer is non-idempotent, or if the new fixture format requires special-casing for more than one maintainer, the design needs rethinking before further inspector work.
@@ -20,7 +20,7 @@
 
 For the developer using `(atelier:lint-system "my-system" :autofix t)`, the user-visible surface gains three new style checks: a warning to rewrite `(if TEST THEN nil)` as `(when TEST THEN)`, a warning against `(progn FORM)` with a single body form, and a warning to rewrite `(when (not TEST) ...)` as `(unless TEST ...)`.
 
-For the maintainer of Atelier, the internal surface gains a sharper test protocol. The `testsuite/fixtures/autofix/` directory replaces `testsuite/fixtures/maintainer/`, and every fixture declares its full diagnostic cycle explicitly: which inspector produces which finding class, which maintainer consumes it, and which resolution class the maintainer emits. The test harness asserts that the maintainer yields a self-idempotent result (N=1 convergence) — running the autofix cycle twice on the same input produces the same AST as running it once.
+For the maintainer of Atelier, the internal surface gains a sharper test protocol. The `test/fixtures/autofix/` directory replaces `test/fixtures/maintainer/`, and every fixture declares its full diagnostic cycle explicitly: which inspector produces which finding class, which maintainer consumes it, and which resolution class the maintainer emits. The test harness asserts that the maintainer yields a self-idempotent result (N=1 convergence) — running the autofix cycle twice on the same input produces the same AST as running it once.
 
 ## Personas served
 - End user: Common Lisp developer — gets three new idiomatic-style checks.
@@ -32,9 +32,9 @@ For the maintainer of Atelier, the internal surface gains a sharper test protoco
 **As an** Atelier maintainer, **I want** the `(inspector, finding, maintainer, resolution)` quadruple to be explicit in every fixture, **so that** test failures point at the exact component that broke.
 
 **Acceptance criteria:**
-- Given a fixture in `testsuite/fixtures/autofix/`, when it is read, then its YAML front matter declares `inspector`, `finding`, `maintainer`, `resolution`, and `description` fields.
+- Given a fixture in `test/fixtures/autofix/`, when it is read, then its YAML front matter declares `inspector`, `finding`, `maintainer`, `resolution`, and `description` fields.
 - Given a fixture, when it is read, then the body contains exactly three `---`-separated documents: input source, expected finding slot values (plist), expected fixed code.
-- Given the directory `testsuite/fixtures/maintainer/`, when the slice completes, then that directory no longer exists and `testsuite/fixtures/autofix/` holds all fixtures.
+- Given the directory `test/fixtures/maintainer/`, when the slice completes, then that directory no longer exists and `test/fixtures/autofix/` holds all fixtures.
 - Given the function `validate-one-maintainer-fixture`, when the slice completes, then it has been renamed `validate-one-autofix-cycle-fixture` and its docstring describes what the autofix cycle is.
 - Given the 10 existing maintainer fixtures, when the slice completes, then all 10 have been migrated to the new format and pass their primary assertions.
 
@@ -63,7 +63,7 @@ For the maintainer of Atelier, the internal surface gains a sharper test protoco
 - Given a migrated autofix-cycle fixture whose inspector is a LINE-INSPECTOR, when the pretty-printer test suite runs, then the fixture is excluded from the cross-population — its expected document is a text fragment with semantically meaningful whitespace, not a canonical Lisp form.
 - Given the existing syntax-level maintainer fixtures, when this assertion runs after migration, then it holds for all of them.
 
-**Scope note:** `fix-mixed-indentation` does not get an autofix-cycle fixture at all — its expected output (e.g. `  (defvar *x* 1)` with semantically meaningful leading whitespace) does not fit the fixture format cleanly. Its behaviour is verified by the existing ad-hoc `define-testcase` at `testsuite/maintainers/fix-mixed-indentation.lisp`. Discoverable fixtures are a convenience, not a goal in themselves.
+**Scope note:** `fix-mixed-indentation` does not get an autofix-cycle fixture at all — its expected output (e.g. `  (defvar *x* 1)` with semantically meaningful leading whitespace) does not fit the fixture format cleanly. Its behaviour is verified by the existing ad-hoc `define-testcase` at `test/maintainers/fix-mixed-indentation.lisp`. Discoverable fixtures are a convenience, not a goal in themselves.
 
 ### S5: CST inspector — check-single-branch-if (IF→WHEN/UNLESS)
 **As a** CL developer, **I want** the linter to flag `(if TEST THEN nil)` as "use WHEN" and `(if TEST nil ELSE)` as "use UNLESS", **so that** my code follows idiomatic Common Lisp style.
@@ -112,7 +112,7 @@ For the maintainer of Atelier, the internal surface gains a sharper test protoco
 ## Definition of Done
 - [x] All stories (S1–S7) complete with acceptance criteria passing
 - [x] Quality attribute criteria passing
-- [x] `testsuite/fixtures/autofix/` replaces `testsuite/fixtures/maintainer/`
+- [x] `test/fixtures/autofix/` replaces `test/fixtures/maintainer/`
 - [x] Existing fixtures migrated (5 of 6 — fix-mixed-indentation removed from the fixture set per directive; see retrospective); 3 new CST inspectors with fixtures added
 - [x] All implementation phases have completion notes
 - [x] `product/slice/007-maintainer-and-inspector-expansion/retrospective.md` created

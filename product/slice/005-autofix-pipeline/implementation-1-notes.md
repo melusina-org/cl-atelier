@@ -52,12 +52,12 @@ None — all stories from `slice.md` were delivered in this phase. The slice is 
 
 ## New risks discovered
 
-**Test maintainer registry pollution.** Test maintainers registered by `testsuite/maintainer.lisp` accumulate in the global `*maintainers*` hash table across test runs. When `resolve-finding` is called in integration tests, it finds all registered maintainers including test ones. This caused two failure modes:
+**Test maintainer registry pollution.** Test maintainers registered by `test/maintainer.lisp` accumulate in the global `*maintainers*` hash table across test runs. When `resolve-finding` is called in integration tests, it finds all registered maintainers including test ones. This caused two failure modes:
 
 1. Test maintainers dispatch on the base `finding` class and attempted to produce `text-resolution`s for `spdx-license-header-finding` (a pure `file-finding` with no `finding-line`), causing a "no applicable method for `finding-line`" error.
 2. Multiple maintainers producing resolutions for the same span triggered the overlap detector.
 
-**Mitigation applied:** The `apply-autofix-to-file` integration test helper shadows `*maintainers*` with a filtered table containing only maintainers in the `atelier` package (excluding `atelier/testsuite`). The production `lint-system` is unaffected because test maintainers are not present in production.
+**Mitigation applied:** The `apply-autofix-to-file` integration test helper shadows `*maintainers*` with a filtered table containing only maintainers in the `atelier` package (excluding `atelier/test`). The production `lint-system` is unaffected because test maintainers are not present in production.
 
 **Suggested follow-up:** Consider a `with-maintainer-registry` macro or a `define-automatic-maintainer` option to scope registration to a dynamic extent, so test maintainers do not persist across testcase boundaries.
 

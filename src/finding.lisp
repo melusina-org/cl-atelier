@@ -277,6 +277,7 @@ meaningfully by parent class."
   (line-finding   non-canonical-system-name-finding   "An ASDF secondary system uses a non-canonical suffix.")
   (line-finding   deprecated-system-name-finding      "An ASDF system uses a deprecated name (e.g. /testsuite instead of /test).")
   (line-finding   deprecated-component-name-finding   "An ASDF component uses a deprecated name (e.g. entrypoint instead of entry-point).")
+  (line-finding   testsuite-package-name-finding      "A Lisp package name uses the deprecated /testsuite suffix instead of /test.")
   (file-finding   missing-test-component-finding      "The test system is missing a component present in the main system.")
   (file-finding   test-component-order-finding        "The test system's components are in a different order than the main system's."))
 

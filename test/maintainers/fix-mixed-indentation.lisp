@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-fix-mixed-indentation ()
   "Verify fix-mixed-indentation produces a text-resolution replacing the tab with spaces.

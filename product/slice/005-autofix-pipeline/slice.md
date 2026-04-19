@@ -187,7 +187,7 @@ A maintainer's transform feeds into the pretty-printer during write-back, but ea
 ### Fixture directory layout
 
 ```
-testsuite/fixtures/
+test/fixtures/
 ├── pretty-print/                    ← S4: string comparison
 │   ├── flet-single-binding.text
 │   ├── flet-multi-arg.text

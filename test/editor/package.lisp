@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(defpackage #:atelier/testsuite/editor
+(defpackage #:atelier/test/editor
   (:use #:cl)
   (:import-from #:org.melusina.confidence
     #:define-testcase

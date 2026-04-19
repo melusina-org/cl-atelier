@@ -49,7 +49,7 @@ Automatic maintainers at slice start: 0. At close: 7 (fix-trailing-whitespace, f
 
 ## Test results at close
 
-290/290 tests passing (`atelier/testsuite:run-all-tests`).
+290/290 tests passing (`atelier/test:run-all-tests`).
 
 ## Risks that materialised
 

@@ -76,7 +76,7 @@ non-canonical system names in the `.asd` file.
   is not one of `test`, `development`, `operation`, `experiment`, when
   the linter runs, then a `non-canonical-system-name` finding is
   produced with severity `:warning`.
-- Given an `.asd` file with `(defsystem "my-project/testsuite")`, when
+- Given an `.asd` file with `(defsystem "my-project/test")`, when
   the linter runs, then a `deprecated-system-name` finding is produced
   recommending rename to `my-project/test`.
 - Given an `.asd` file with only canonical system names, when the linter
@@ -123,7 +123,7 @@ Lisp developer **can** run `lint-system :autofix t` and have
 file.
 
 **Acceptance criteria:**
-- Given a `deprecated-system-name` finding for `my-project/testsuite`,
+- Given a `deprecated-system-name` finding for `my-project/test`,
   when autofix runs, then the `defsystem` form in the `.asd` file is
   rewritten with the name `"my-project/test"`.
 - The maintainer is self-idempotent at N=1.

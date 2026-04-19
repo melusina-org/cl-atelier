@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase test-license-repository-load-definition ()
   (uiop:with-temporary-file (:pathname pathname :stream stream :keep t)

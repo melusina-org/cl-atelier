@@ -37,7 +37,7 @@ Patterns observed across slices that are likely to recur. Each entry names a sig
 **Discovered:** slice 006
 **Pattern:** A bulk replacement across the tree catches matches inside test fixtures that deliberately contain the pattern.
 **Signal:** A slice doing tree-wide replacement whose pattern plausibly appears in test fixtures.
-**Mitigation:** Grep `testsuite/fixtures/` before any bulk pass; review `git diff testsuite/` after.
+**Mitigation:** Grep `test/fixtures/` before any bulk pass; review `git diff test/` after.
 
 ## Test-registry pollution across test runs
 

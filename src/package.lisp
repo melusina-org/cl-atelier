@@ -189,6 +189,7 @@
    #:fix-when-not
    #:fix-single-branch-if
    #:fix-spdx-license-header
+   #:fix-testsuite-package-name
    #:inspect-file
    #:inspect-line
    #:*current-pathname*
@@ -221,6 +222,7 @@
    #:non-canonical-system-name-finding
    #:deprecated-system-name-finding
    #:deprecated-component-name-finding
+   #:testsuite-package-name-finding
    #:missing-test-component-finding
    #:test-component-order-finding
 
@@ -245,6 +247,7 @@
    #:check-when-not
    #:check-system-naming
    #:check-test-mirror
+   #:check-testsuite-package-name
    #:file-comment-prefix
    #:lisp-source-file-p
    #:canonical-project-identification-text
@@ -280,6 +283,7 @@
    #:linter-configuration-indentation-style
    #:linter-configuration-maintainer-overrides
    #:linter-configuration-mirror-excluded-components
+   #:linter-configuration-inspector-file-exclusions
    #:read-linter-configuration
    #:project-configuration-parameter-bindings
    #:*project-configuration*

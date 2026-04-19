@@ -53,7 +53,7 @@ src/
 ├── package.lisp                     [modify] — new exports
 ├── finding.lisp                     [modify] — new finding subclasses
 
-testsuite/
+test/
 ├── inspectors/
 │   └── check-system-naming.lisp    [new] — tests for S2, S3, S4
 ├── maintainers/
@@ -106,7 +106,7 @@ All new finding subclasses inherit from `file-finding`:
 ```
 file-finding
 ├── non-canonical-system-name-finding    (S2 — unrecognised system suffix)
-├── deprecated-system-name-finding       (S2 — /testsuite → /test)
+├── deprecated-system-name-finding       (S2 — /test → /test)
 ├── deprecated-component-name-finding    (S3 — entrypoint → entry-point, etc.)
 ├── missing-test-component-finding       (S4 — component in main but not in test)
 └── test-component-order-finding         (S4 — test components out of order)
@@ -208,10 +208,10 @@ Restarts on `pre-commit-hook-exists`:
 | 5 | `src/inspectors/check-system-naming.lisp` | new | `check-system-naming` inspector | `test-check-system-naming-*` | fast |
 | 6 | `src/inspectors/check-test-mirror.lisp` | new | `check-test-mirror` inspector | `test-check-test-mirror-*` | fast |
 | 7 | `src/maintainers/fix-deprecated-names.lisp` | new | `fix-deprecated-system-name`, `fix-deprecated-component-name` | `test-fix-deprecated-*` | fast |
-| 8 | `testsuite/git.lisp` | new | All S1 tests | — | — |
-| 9 | `testsuite/inspectors/check-system-naming.lisp` | new | All S2, S3, S4 tests | — | — |
-| 10 | `testsuite/maintainers/fix-deprecated-names.lisp` | new | All S5, S6 tests | — | — |
-| 11 | `testsuite/entrypoint.lisp` | modify | Call new test suites | — | — |
+| 8 | `test/git.lisp` | new | All S1 tests | — | — |
+| 9 | `test/inspectors/check-system-naming.lisp` | new | All S2, S3, S4 tests | — | — |
+| 10 | `test/maintainers/fix-deprecated-names.lisp` | new | All S5, S6 tests | — | — |
+| 11 | `test/entrypoint.lisp` | modify | Call new test suites | — | — |
 | 12 | Full test suite | verify | `(asdf:test-system "org.melusina.atelier")` | — | — |
 
 ## Invariants

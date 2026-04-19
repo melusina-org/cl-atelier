@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 
 ;;;;
@@ -23,7 +23,7 @@ Returns the list of findings produced."
            (let ((clean (make-hash-table :test 'eq)))
              (maphash (lambda (name m)
                         (unless (eq (symbol-package name)
-                                    (find-package :atelier/testsuite))
+                                    (find-package :atelier/test))
                           (setf (gethash name clean) m)))
                       atelier::*maintainers*)
              clean))

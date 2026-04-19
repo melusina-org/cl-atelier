@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (define-testcase validate-check-header-line-correct-lisp ()
   "Verify no finding for a Lisp file with a correct canonical header."

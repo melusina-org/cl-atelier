@@ -57,7 +57,7 @@ src/
 │   ├── check-bare-lambda.lisp                [new] — S3
 │   └── check-loop-keywords.lisp              [new] — S4
 
-testsuite/
+test/
 ├── inspectors/
 │   ├── check-earmuffs.lisp                   [new] — S1 tests
 │   ├── check-constant-naming.lisp            [new] — S2 tests
@@ -82,7 +82,7 @@ org.melusina.atelier.asd                      [modify] — add new inspector fil
 
 Add: `check-earmuffs`, `check-constant-naming`, `check-bare-lambda`, `check-loop-keywords`.
 
-### `org.melusina.atelier/testsuite` — inspectors module
+### `org.melusina.atelier/test` — inspectors module
 
 Add: `check-earmuffs`, `check-constant-naming`, `check-bare-lambda`, `check-loop-keywords`.
 
@@ -208,16 +208,16 @@ None new. Eclector parse errors are caught with `handler-case` in `parse-lisp-fi
 | 7 | `src/inspectors/check-loop-keywords.lisp` [new] | Implement | `check-loop-keywords`, `inspect-syntax` method | — | — |
 | 8 | `src/package.lisp` [modify] | Add new exports | — | — | — |
 | 9 | `org.melusina.atelier.asd` [modify] | Add new inspector and test files | — | — | — |
-| 10 | `testsuite/fixtures/earmuffs-good.lisp` [new] | Fixture with correct earmuffs | — | — | — |
-| 11 | `testsuite/fixtures/earmuffs-bad.lisp` [new] | Fixture with missing earmuffs | — | — | — |
-| 12 | `testsuite/fixtures/constant-naming-bad.lisp` [new] | Fixture with wrong constant name | — | — | — |
-| 13 | `testsuite/fixtures/bare-lambda.lisp` [new] | Fixture with bare and named function variants | — | — | — |
-| 14 | `testsuite/fixtures/bare-loop-keywords.lisp` [new] | Fixture with bare and keyword loop symbols | — | — | — |
-| 15 | `testsuite/inspectors/check-earmuffs.lisp` [new] | S1 tests | `validate-check-earmuffs-*` | slow |
-| 16 | `testsuite/inspectors/check-constant-naming.lisp` [new] | S2 tests | `validate-check-constant-naming-*` | slow |
-| 17 | `testsuite/inspectors/check-bare-lambda.lisp` [new] | S3 tests | `validate-check-bare-lambda-*` | slow |
-| 18 | `testsuite/inspectors/check-loop-keywords.lisp` [new] | S4 tests | `validate-check-loop-keywords-*` | slow |
-| 19 | `testsuite/entrypoint.lisp` [modify] | Add new test groups | — | — | — |
+| 10 | `test/fixtures/earmuffs-good.lisp` [new] | Fixture with correct earmuffs | — | — | — |
+| 11 | `test/fixtures/earmuffs-bad.lisp` [new] | Fixture with missing earmuffs | — | — | — |
+| 12 | `test/fixtures/constant-naming-bad.lisp` [new] | Fixture with wrong constant name | — | — | — |
+| 13 | `test/fixtures/bare-lambda.lisp` [new] | Fixture with bare and named function variants | — | — | — |
+| 14 | `test/fixtures/bare-loop-keywords.lisp` [new] | Fixture with bare and keyword loop symbols | — | — | — |
+| 15 | `test/inspectors/check-earmuffs.lisp` [new] | S1 tests | `validate-check-earmuffs-*` | slow |
+| 16 | `test/inspectors/check-constant-naming.lisp` [new] | S2 tests | `validate-check-constant-naming-*` | slow |
+| 17 | `test/inspectors/check-bare-lambda.lisp` [new] | S3 tests | `validate-check-bare-lambda-*` | slow |
+| 18 | `test/inspectors/check-loop-keywords.lisp` [new] | S4 tests | `validate-check-loop-keywords-*` | slow |
+| 19 | `test/entrypoint.lisp` [modify] | Add new test groups | — | — | — |
 
 ---
 
@@ -267,7 +267,7 @@ None.
 | AC6 | `parse-lisp-file` parses fixture files into CST forms | `validate-parse-lisp-file` passes |
 | AC7 | Findings carry valid CST node references and correct line/column | Verified in each inspector test |
 | AC8 | ≥ 4 syntax inspectors registered | `(length (remove-if-not ...))` ≥ 4 |
-| AC9 | Full test suite passes | `(atelier/testsuite:run-all-tests)` — all tests pass |
+| AC9 | Full test suite passes | `(atelier/test:run-all-tests)` — all tests pass |
 
 ---
 
@@ -277,5 +277,5 @@ None.
 2. All fast tests pass.
 3. All slow tests pass (fixture files present from source tree).
 4. `(asdf:load-system "org.melusina.atelier")` and `(asdf:load-system "org.melusina.atelier/legacy")` succeed.
-5. `(atelier/testsuite:run-all-tests)` passes.
+5. `(atelier/test:run-all-tests)` passes.
 6. No SBCL-specific code without `#+sbcl` guard.

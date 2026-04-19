@@ -22,7 +22,7 @@ None for this slice. Slice 002 established: `inspect-file` generic (3-arg, being
 | # | Risk | Category | Mitigation |
 |---|------|----------|-----------|
 | R1 | Changing `inspect-file` from 3 args to 2 breaks existing inspectors | Scope boundary | Update `check-file-encoding` and `check-spdx-license-header` in same step; run full suite |
-| R2 | Removing legacy codestyle-0002 breaks legacy testsuite | Scope boundary | Update `testsuite/lint.lisp` and legacy module in same step |
+| R2 | Removing legacy codestyle-0002 breaks legacy testsuite | Scope boundary | Update `test/lint.lisp` and legacy module in same step |
 | R3 | Line reading may differ across platforms (CRLF vs LF) | Portability | Use `read-line` which handles both |
 | R4 | Mixed indentation flags Makefile-style files | Scope boundary | Default `:spaces`; document that Makefile projects configure `:tabs` |
 
@@ -61,7 +61,7 @@ src/
     ├── inspector/codestyle-0002.lisp          [delete] — S5
     └── lint.lisp                             [modify] — remove codestyle-0002 reference
 
-testsuite/
+test/
 ├── inspectors/
 │   ├── check-file-encoding.lisp              [modify] — update for 2-arg
 │   ├── check-spdx-license-header.lisp        [modify] — update for 2-arg
@@ -94,7 +94,7 @@ Add: `check-trailing-whitespace`, `check-line-length`, `check-mixed-indentation`
 
 Remove: `codestyle-0002`.
 
-### `org.melusina.atelier/testsuite` — inspectors module
+### `org.melusina.atelier/test` — inspectors module
 
 Add: `check-trailing-whitespace`, `check-line-length`, `check-mixed-indentation`.
 Remove: `codestyle-0002` from legacy-inspector module.
@@ -197,20 +197,20 @@ None new.
 | 11 | `org.melusina.atelier.asd` [modify] | Add new inspector files, remove legacy codestyle-0002 | — | — | — |
 | 12 | `src/legacy/inspector/codestyle-0002.lisp` [delete] | Superseded | — | — | — |
 | 13 | `src/legacy/lint.lisp` [modify] | Remove codestyle-0002 reference | — | — | — |
-| 14 | `testsuite/fixtures/trailing-whitespace.lisp` [new] | Fixture with trailing spaces | — | — | — |
-| 15 | `testsuite/fixtures/long-lines.lisp` [new] | Fixture with long lines, definitions, single-word lines | — | — | — |
-| 16 | `testsuite/fixtures/mixed-indentation-spaces.lisp` [new] | Fixture with tabs in spaces-only file | — | — | — |
-| 17 | `testsuite/fixtures/mixed-indentation-tabs.lisp` [new] | Fixture with spaces in tabs-only file | — | — | — |
-| 18 | `testsuite/inspectors/check-file-encoding.lisp` [modify] | Update for 2-arg inspect-file | — | — | — |
-| 19 | `testsuite/inspectors/check-spdx-license-header.lisp` [modify] | Update for 2-arg inspect-file | — | — | — |
-| 20 | `testsuite/runner.lisp` [modify] | Update for 2-arg, test line-inspector inclusion | — | — | — |
-| 21 | `testsuite/asdf.lisp` [modify] | Add indentation-style test | `validate-indentation-style-configuration` | fast |
-| 22 | `testsuite/inspectors/check-trailing-whitespace.lisp` [new] | S1 tests | `validate-check-trailing-whitespace-*` | slow |
-| 23 | `testsuite/inspectors/check-line-length.lisp` [new] | S2 tests | `validate-check-line-length-*` | slow |
-| 24 | `testsuite/inspectors/check-mixed-indentation.lisp` [new] | S3 tests | `validate-check-mixed-indentation-*` | slow |
-| 25 | `testsuite/inspector/codestyle-0002.lisp` [delete] | Superseded | — | — | — |
-| 26 | `testsuite/lint.lisp` [modify] | Remove codestyle-0002 test reference | — | — | — |
-| 27 | `testsuite/entrypoint.lisp` [modify] | Add new test groups | — | — | — |
+| 14 | `test/fixtures/trailing-whitespace.lisp` [new] | Fixture with trailing spaces | — | — | — |
+| 15 | `test/fixtures/long-lines.lisp` [new] | Fixture with long lines, definitions, single-word lines | — | — | — |
+| 16 | `test/fixtures/mixed-indentation-spaces.lisp` [new] | Fixture with tabs in spaces-only file | — | — | — |
+| 17 | `test/fixtures/mixed-indentation-tabs.lisp` [new] | Fixture with spaces in tabs-only file | — | — | — |
+| 18 | `test/inspectors/check-file-encoding.lisp` [modify] | Update for 2-arg inspect-file | — | — | — |
+| 19 | `test/inspectors/check-spdx-license-header.lisp` [modify] | Update for 2-arg inspect-file | — | — | — |
+| 20 | `test/runner.lisp` [modify] | Update for 2-arg, test line-inspector inclusion | — | — | — |
+| 21 | `test/asdf.lisp` [modify] | Add indentation-style test | `validate-indentation-style-configuration` | fast |
+| 22 | `test/inspectors/check-trailing-whitespace.lisp` [new] | S1 tests | `validate-check-trailing-whitespace-*` | slow |
+| 23 | `test/inspectors/check-line-length.lisp` [new] | S2 tests | `validate-check-line-length-*` | slow |
+| 24 | `test/inspectors/check-mixed-indentation.lisp` [new] | S3 tests | `validate-check-mixed-indentation-*` | slow |
+| 25 | `test/inspector/codestyle-0002.lisp` [delete] | Superseded | — | — | — |
+| 26 | `test/lint.lisp` [modify] | Remove codestyle-0002 test reference | — | — | — |
+| 27 | `test/entrypoint.lisp` [modify] | Add new test groups | — | — | — |
 
 ---
 
@@ -229,13 +229,13 @@ None new.
 
 ## Test Fixtures
 
-**`testsuite/fixtures/trailing-whitespace.lisp`** — a well-formed Lisp file with trailing spaces on specific lines. Must follow canonical header/footer format.
+**`test/fixtures/trailing-whitespace.lisp`** — a well-formed Lisp file with trailing spaces on specific lines. Must follow canonical header/footer format.
 
-**`testsuite/fixtures/long-lines.lisp`** — a well-formed Lisp file with: a normal line, a line > 100 chars, a `(defun ...)` line > 100 chars (should be skipped), a single-word line > 100 chars (should be skipped).
+**`test/fixtures/long-lines.lisp`** — a well-formed Lisp file with: a normal line, a line > 100 chars, a `(defun ...)` line > 100 chars (should be skipped), a single-word line > 100 chars (should be skipped).
 
-**`testsuite/fixtures/mixed-indentation-spaces.lisp`** — a file using spaces for indentation with one line using a tab.
+**`test/fixtures/mixed-indentation-spaces.lisp`** — a file using spaces for indentation with one line using a tab.
 
-**`testsuite/fixtures/mixed-indentation-tabs.lisp`** — a file using tabs for indentation with one line using spaces.
+**`test/fixtures/mixed-indentation-tabs.lisp`** — a file using tabs for indentation with one line using spaces.
 
 All fixtures must follow canonical project format (header, footer, license block) to avoid legacy linter complaints.
 
@@ -269,5 +269,5 @@ None.
 2. All fast tests pass.
 3. All slow tests pass (fixture files present from source tree).
 4. `(asdf:load-system "org.melusina.atelier")` and `(asdf:load-system "org.melusina.atelier/legacy")` succeed.
-5. `(atelier/testsuite:run-all-tests)` passes.
+5. `(atelier/test:run-all-tests)` passes.
 6. No SBCL-specific code without `#+sbcl` guard.

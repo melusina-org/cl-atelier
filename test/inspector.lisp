@@ -8,7 +8,7 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
 (defmacro with-clean-inspector-registry (&body body)
   `(let ((atelier:*inspectors* (make-hash-table :test 'eq)))

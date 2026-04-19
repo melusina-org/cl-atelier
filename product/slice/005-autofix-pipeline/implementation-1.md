@@ -76,7 +76,7 @@ src/asdf.lisp                      [modify] lint-system gains :autofix keyword
 ### New test files
 
 ```
-testsuite/
+test/
 ├── pretty-printer.lisp            [new] Fixture-driven pretty-printer tests
 ├── write-back.lisp                [new] Write-back engine tests
 ├── fixtures/
@@ -108,8 +108,8 @@ testsuite/
 ### Modified test files
 
 ```
-testsuite/package.lisp             [modify] New imports
-testsuite/entrypoint.lisp          [modify] New testcase calls
+test/package.lisp             [modify] New imports
+test/entrypoint.lisp          [modify] New testcase calls
 ```
 
 ### Modified ASDF definition
@@ -162,7 +162,7 @@ org.melusina.atelier.asd           [modify] New modules and files in both system
                (:file "main")))
 ```
 
-### `org.melusina.atelier/testsuite` — updated load order
+### `org.melusina.atelier/test` — updated load order
 
 ```lisp
 (:module "testsuite"
@@ -299,22 +299,22 @@ No new condition types. Errors during write-back (e.g., I/O failures) propagate 
 
 | Step | File | Action | Form(s) | Test name | Cat. |
 |------|------|--------|---------|-----------|:----:|
-| A1 | `testsuite/fixtures/pretty-print/*.text` [new] | Create | 7 YAML fixture files | — | — |
-| A2 | `testsuite/fixtures/maintainer/*.text` [new] | Create | 6 YAML fixture files | — | — |
+| A1 | `test/fixtures/pretty-print/*.text` [new] | Create | 7 YAML fixture files | — | — |
+| A2 | `test/fixtures/maintainer/*.text` [new] | Create | 6 YAML fixture files | — | — |
 
 ### Block B — Pretty-printer
 
 | Step | File | Action | Form(s) | Test name | Cat. |
 |------|------|--------|---------|-----------|:----:|
 | B1 | `src/pretty-printer.lisp` [new] | Implement | `*atelier-pprint-dispatch*`, `pprint-loop`, `pretty-print-form` | — | — |
-| B2 | `testsuite/pretty-printer.lisp` [new] | Implement | `read-pretty-print-fixture`, `validate-one-pretty-print-fixture`, `validate-pretty-print-fixtures` | `validate-pretty-print-fixtures` | fast |
+| B2 | `test/pretty-printer.lisp` [new] | Implement | `read-pretty-print-fixture`, `validate-one-pretty-print-fixture`, `validate-pretty-print-fixtures` | `validate-pretty-print-fixtures` | fast |
 
 ### Block C — Write-back engine
 
 | Step | File | Action | Form(s) | Test name | Cat. |
 |------|------|--------|---------|-----------|:----:|
 | C1 | `src/write-back.lisp` [new] | Implement | `line-column-to-offset`, `resolution-text-span`, `apply-resolutions-to-file` | — | — |
-| C2 | `testsuite/write-back.lisp` [new] | Implement | `validate-resolution-text-span`, `validate-multiple-resolutions-ordering`, `validate-multi-line-span-replacement`, `validate-text-resolution-write-back`, `validate-syntax-resolution-write-back` | `validate-write-back` | fast+slow |
+| C2 | `test/write-back.lisp` [new] | Implement | `validate-resolution-text-span`, `validate-multiple-resolutions-ordering`, `validate-multi-line-span-replacement`, `validate-text-resolution-write-back`, `validate-syntax-resolution-write-back` | `validate-write-back` | fast+slow |
 
 ### Block D — Line-level maintainers
 
@@ -322,9 +322,9 @@ No new condition types. Errors during write-back (e.g., I/O failures) propagate 
 |------|------|--------|---------|-----------|:----:|
 | D1 | `src/maintainers/fix-trailing-whitespace.lisp` [new] | Implement | `define-automatic-maintainer fix-trailing-whitespace` | — | — |
 | D2 | `src/maintainers/fix-mixed-indentation.lisp` [new] | Implement | `define-automatic-maintainer fix-mixed-indentation` | — | — |
-| D3 | `testsuite/maintainers/fix-trailing-whitespace.lisp` [new] | Implement | `validate-fix-trailing-whitespace` | `validate-fix-trailing-whitespace` | fast |
-| D4 | `testsuite/maintainers/fix-mixed-indentation.lisp` [new] | Implement | `validate-fix-mixed-indentation` | `validate-fix-mixed-indentation` | fast |
-| D5 | `testsuite/maintainers/fix-trailing-whitespace.lisp` [modify] | Add | `validate-line-maintainers-registered` | `validate-line-maintainers-registered` | fast |
+| D3 | `test/maintainers/fix-trailing-whitespace.lisp` [new] | Implement | `validate-fix-trailing-whitespace` | `validate-fix-trailing-whitespace` | fast |
+| D4 | `test/maintainers/fix-mixed-indentation.lisp` [new] | Implement | `validate-fix-mixed-indentation` | `validate-fix-mixed-indentation` | fast |
+| D5 | `test/maintainers/fix-trailing-whitespace.lisp` [modify] | Add | `validate-line-maintainers-registered` | `validate-line-maintainers-registered` | fast |
 
 ### Block E — CST text-resolution maintainers
 
@@ -333,17 +333,17 @@ No new condition types. Errors during write-back (e.g., I/O failures) propagate 
 | E1 | `src/maintainers/fix-earmuffs.lisp` [new] | Implement | `define-automatic-maintainer fix-earmuffs` | — | — |
 | E2 | `src/maintainers/fix-constant-naming.lisp` [new] | Implement | `define-automatic-maintainer fix-constant-naming` | — | — |
 | E3 | `src/maintainers/fix-bare-loop-keywords.lisp` [new] | Implement | `define-automatic-maintainer fix-bare-loop-keywords` | — | — |
-| E4 | `testsuite/maintainers/fix-earmuffs.lisp` [new] | Implement | `validate-fix-earmuffs` | `validate-fix-earmuffs` | fast |
-| E5 | `testsuite/maintainers/fix-constant-naming.lisp` [new] | Implement | `validate-fix-constant-naming` | `validate-fix-constant-naming` | fast |
-| E6 | `testsuite/maintainers/fix-bare-loop-keywords.lisp` [new] | Implement | `validate-fix-bare-loop-keywords` | `validate-fix-bare-loop-keywords` | fast |
-| E7 | `testsuite/maintainers/fix-earmuffs.lisp` [modify] | Add | `validate-syntax-text-maintainers-registered` | `validate-syntax-text-maintainers-registered` | fast |
+| E4 | `test/maintainers/fix-earmuffs.lisp` [new] | Implement | `validate-fix-earmuffs` | `validate-fix-earmuffs` | fast |
+| E5 | `test/maintainers/fix-constant-naming.lisp` [new] | Implement | `validate-fix-constant-naming` | `validate-fix-constant-naming` | fast |
+| E6 | `test/maintainers/fix-bare-loop-keywords.lisp` [new] | Implement | `validate-fix-bare-loop-keywords` | `validate-fix-bare-loop-keywords` | fast |
+| E7 | `test/maintainers/fix-earmuffs.lisp` [modify] | Add | `validate-syntax-text-maintainers-registered` | `validate-syntax-text-maintainers-registered` | fast |
 
 ### Block F — Syntax-resolution maintainer (bare lambda)
 
 | Step | File | Action | Form(s) | Test name | Cat. |
 |------|------|--------|---------|-----------|:----:|
 | F1 | `src/maintainers/fix-bare-lambda.lisp` [new] | Implement | `define-automatic-maintainer fix-bare-lambda`, `generate-flet-name` | — | — |
-| F2 | `testsuite/maintainers/fix-bare-lambda.lisp` [new] | Implement | `validate-fix-bare-lambda`, `validate-fix-bare-lambda-registered` | `validate-fix-bare-lambda` | fast |
+| F2 | `test/maintainers/fix-bare-lambda.lisp` [new] | Implement | `validate-fix-bare-lambda`, `validate-fix-bare-lambda-registered` | `validate-fix-bare-lambda` | fast |
 
 ### Block G — Integration
 
@@ -352,9 +352,9 @@ No new condition types. Errors during write-back (e.g., I/O failures) propagate 
 | G1 | `src/asdf.lisp` [modify] | Modify | `lint-system` — add `&key autofix`, autofix loop | — | — |
 | G2 | `src/package.lisp` [modify] | Modify | Add new exports | — | — |
 | G3 | `org.melusina.atelier.asd` [modify] | Modify | Add new modules and files | — | — |
-| G4 | `testsuite/package.lisp` [modify] | Modify | — | — | — |
-| G5 | `testsuite/entrypoint.lisp` [modify] | Modify | Add new testcase calls | — | — |
-| G6 | `testsuite/autofix.lisp` [new] | Implement | `validate-lint-system-autofix`, `validate-lint-system-no-autofix`, `validate-lint-system-partial-autofix` | `validate-autofix` | slow |
+| G4 | `test/package.lisp` [modify] | Modify | — | — | — |
+| G5 | `test/entrypoint.lisp` [modify] | Modify | Add new testcase calls | — | — |
+| G6 | `test/autofix.lisp` [new] | Implement | `validate-lint-system-autofix`, `validate-lint-system-no-autofix`, `validate-lint-system-partial-autofix` | `validate-autofix` | slow |
 
 ### Execution order
 
@@ -364,7 +364,7 @@ G2, G3, G4, G5 first (structural scaffolding) → A1, A2 (fixtures) → B1, B2 (
 
 ## Test Fixture Design
 
-### Pretty-printer fixtures (`testsuite/fixtures/pretty-print/*.text`)
+### Pretty-printer fixtures (`test/fixtures/pretty-print/*.text`)
 
 YAML-separated documents. Front-matter contains `description`, `column`, and `right-margin` (array parsed from single-line square-bracket notation, max 3 entries). Document 0 is input. Documents 1..N are expected outputs, one per `right-margin` entry. A final `---` marker closes the last document.
 
@@ -389,7 +389,7 @@ Test harness: `READ-FROM-STRING` the input, call `pretty-print-form` at each `(c
 
 When `right-margin` is absent, default to `[nil]` (single unlimited-width test).
 
-### Maintainer fixtures (`testsuite/fixtures/maintainer/*.text`)
+### Maintainer fixtures (`test/fixtures/maintainer/*.text`)
 
 YAML-separated documents. Front-matter contains `description` and `inspector`. Document 0 is input. Document 1 is expected output. A final `---` marker closes the last document. Comparison is via `EQUAL` on `READ-FROM-STRING` of both documents (AST comparison).
 

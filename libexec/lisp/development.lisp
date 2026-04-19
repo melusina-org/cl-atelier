@@ -43,7 +43,7 @@
    '("org.melusina.confidence"
      "org.melusina.atelier"
      "org.melusina.atelier/development"
-     "org.melusina.atelier/testsuite")))
+     "org.melusina.atelier/test")))
 
 
 ;;;;

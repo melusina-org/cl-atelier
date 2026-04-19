@@ -8,9 +8,17 @@
 
 ;;;; SPDX-License-Identifier: MIT
 
-(in-package #:atelier/testsuite)
+(in-package #:atelier/test)
 
-(define-testcase run-all-tests ()
+
+;;;;
+;;;; Fast Tests
+;;;;
+;;;; In-memory only — no filesystem, no subprocess, no temporary files.
+;;;; These are safe to run on every change and in inner development loops.
+
+(define-testcase run-fast-tests ()
+  "Run every testsuite whose assertions stay in memory."
   (atelier:initialize)
   (testsuite-utilities)
   (testsuite-parameter)
@@ -19,37 +27,54 @@
   (testsuite-resolution)
   (testsuite-inspector)
   (testsuite-maintainer)
+  (testsuite-check-labels-for-flet)
+  (testsuite-check-testsuite-package-name)
+  (testsuite-fix-header-line)
+  (testsuite-fix-footer-line)
+  (testsuite-fix-labels-to-flet)
+  (testsuite-fix-mixed-indentation))
+
+
+;;;;
+;;;; Slow Tests
+;;;;
+;;;; Touch the filesystem, spawn subprocesses, or read fixture files.
+;;;; Run before commits and in CI. The editor suite is included here
+;;;; because VALIDATE-CANONICALIZE-FIXTURES reads fixture files.
+
+(define-testcase run-slow-tests ()
+  "Run every testsuite that touches the filesystem or spawns a process."
+  (atelier:initialize)
   (testsuite-runner)
   (testsuite-asdf)
   ;; Inspector tests not covered by fixture auto-discovery
   ;; (temporary files, synthetic inputs, helper unit tests, or shared
-  ;; testsuite/fixtures/ root files rather than testsuite/fixtures/inspector/).
+  ;; test/fixtures/ root files rather than test/fixtures/inspector/).
   (testsuite-check-file-encoding)
   (testsuite-check-spdx-license-header)
   (testsuite-check-trailing-whitespace)
   (testsuite-check-mixed-indentation)
-  (testsuite-check-labels-for-flet)
   (testsuite-check-header-line)
   (testsuite-check-footer-line)
   (testsuite-check-project-identification)
   (testsuite-pretty-printer)
   (testsuite-write-back)
-  ;; Maintainer tests not covered by autofix-cycle fixture auto-discovery.
-  ;; fix-mixed-indentation is tested ad-hoc (see slice 007 rationale);
-  ;; fix-header-line and fix-footer-line assert generated replacement content
-  ;; on synthetic findings; fix-labels-to-flet keeps helper unit tests
-  ;; and an end-to-end pipeline test because no autofix-cycle fixture exists
-  ;; for it yet.
-  (testsuite-fix-mixed-indentation)
-  (testsuite-fix-labels-to-flet)
-  (testsuite-fix-header-line)
-  (testsuite-fix-footer-line)
   (testsuite-autofix)
   (testsuite-template)
   ;; Slice 009: project structure and hooks
   (testsuite-check-system-naming)
   (testsuite-fix-deprecated-names)
   (testsuite-git)
-  (atelier/testsuite/editor:run-all-editor-tests))
+  (atelier/test/editor:run-all-editor-tests))
+
+
+;;;;
+;;;; Aggregate Entry Point
+;;;;
+
+(define-testcase run-all-tests ()
+  "Run the fast suite followed by the slow suite."
+  (run-fast-tests)
+  (run-slow-tests))
 
 ;;;; End of file `entry-point.lisp'

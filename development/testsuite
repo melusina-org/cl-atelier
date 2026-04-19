@@ -14,7 +14,7 @@
 # are also available at https://opensource.org/licenses/MIT
 
 : ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
-: ${testsuitesystem:="org.melusina.atelier/testsuite"}
+: ${testsuitesystem:="org.melusina.atelier/test"}
 : ${testsuitepackage:=${testsuitesystem#'org.melusina.'}}
 : ${testsuiteclean:='no'}
 : ${testsuitelisp:='sbcl'}

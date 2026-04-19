@@ -9,7 +9,7 @@ Numbering is global and continuous across all slices.
 ## INV-1: Discoverable fixtures are a convenience, not a goal
 
 **Discovered:** slice 007, phase 1
-**Invariant:** Autofix-cycle fixtures and inspector fixtures under `testsuite/fixtures/` are a testing convenience. If a maintainer's expected output does not fit the fixture format (e.g., semantically meaningful whitespace, or content the pretty-printer would canonicalise differently), the right answer is an ad-hoc `define-testcase` in `testsuite/maintainers/`, **not** a special case in the fixture loader.
+**Invariant:** Autofix-cycle fixtures and inspector fixtures under `test/fixtures/` are a testing convenience. If a maintainer's expected output does not fit the fixture format (e.g., semantically meaningful whitespace, or content the pretty-printer would canonicalise differently), the right answer is an ad-hoc `define-testcase` in `test/maintainers/`, **not** a special case in the fixture loader.
 **Rationale:** During slice 007, `fix-mixed-indentation` was force-fit into the discoverable format and produced a test that could never round-trip through the pretty-printer. Removing the fixture and moving the maintainer to an ad-hoc testcase was the clean answer. The principle is now in `CLAUDE.md`.
 
 ## INV-2: Per-maintainer self-idempotency at N=1 is required

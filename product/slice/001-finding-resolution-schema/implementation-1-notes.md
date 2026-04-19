@@ -52,9 +52,9 @@
 
 ## Technical decisions made
 - Template files (`LISP-DEVELOPMENT.text`, `LISP-DEVELOPMENT-LINT.text`, `LISP-ASDF.text`) updated to reference `atelier/legacy:lint` and depend on `org.melusina.atelier/legacy` — required for generated projects to compile.
-- ASDF testsuite module renamed from `"inspector"` to `"legacy-inspector"` (with `:pathname "inspector"`) to avoid name collision with the new `testsuite/inspector.lisp` file.
+- ASDF testsuite module renamed from `"inspector"` to `"legacy-inspector"` (with `:pathname "inspector"`) to avoid name collision with the new `test/inspector.lisp` file.
 - `edit-first-line` and `edit-last-line` added to legacy package imports and atelier exports — needed by codestyle-0003 and codestyle-0004 inspectors.
-- `testsuite/utilities.lisp` updated: `atelier::anomaly`, `atelier::autocorrect`, `atelier::*hint-pathname*` → `atelier/legacy::` equivalents.
+- `test/utilities.lisp` updated: `atelier::anomaly`, `atelier::autocorrect`, `atelier::*hint-pathname*` → `atelier/legacy::` equivalents.
 
 ## Notes for product-ownership retrospective
 - Stories remaining undelivered in this slice: none — all delivered
