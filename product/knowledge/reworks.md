@@ -76,3 +76,11 @@ What was reworked, why, and what could have prevented it. The most direct learni
 **Effort cost:** minor — single `:after` method in `maintainer.lisp`.
 **Preventable?** no — this is a usability improvement, not a bug.
 **Lesson:** The finding→maintainer relationship is runtime-discoverable via `resolve-finding`. Surfacing it in `describe-object` makes the protocol self-documenting.
+
+## Slice 011, Phase 1: `assert-t` on generalised-boolean return value
+
+**What was reworked:** First draft of `validate-collect-lint-files-project-scope` used `(assert-t has-test-file)` where `has-test-file` came from `(some ... files)` with a `search` predicate. `some` returns the first non-nil value from the predicate, and `search` returns the integer position of the match — not `T`.
+**Trigger:** Full test run surfaced 494/495 with one failure; the assertion failed with `EXPR: 31`.
+**Effort cost:** minor — one edit to switch to `assert-t*`.
+**Preventable?** yes — the project memory note explicitly flags that `assert-t` is strict. Reading that before writing the first assertion would have caught it.
+**Lesson:** When asserting "this expression is truthy but not necessarily T", use `assert-t*`. When asserting "this expression is exactly T", use `assert-t`. `(some ...)` and `(search ...)` are generalised-boolean contexts.

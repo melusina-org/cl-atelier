@@ -39,7 +39,7 @@ name: Lisp development file
 
 (defun lint ()
   "Lint the project using the new-style linter."
-  (atelier:lint-system "${LISP_SYSTEM_NAME}"))
+  (atelier:lint "${LISP_SYSTEM_NAME}"))
 
 #+quicklisp
 (defun reload ()

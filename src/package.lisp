@@ -295,8 +295,12 @@
    #:resolution-proposed-finding
    #:resolution-proposed-maintainer-name
    #:effective-maintainer-disposition
-   #:linter-op
-   #:lint-system
+   #:lint-op
+   #:lint
+   #:collect-lint-files
+   #:inspect-lint-files
+   #:plan-resolutions
+   #:apply-lint-resolutions
    #:lint-string
    #:collect-sibling-systems
    #:collect-all-source-files

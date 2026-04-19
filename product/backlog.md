@@ -30,6 +30,7 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | CST-level CL inspectors (earmuffs, constant-naming, bare-lambda, loop-keywords, labels-for-flet, single-branch-if, single-form-progn, when-not) | Slices 004–007 |
 | Pre-commit hook installer | Slice 009 |
 | Project structure inspectors (system naming, file naming, test mirror) | Slice 009 |
+| Linter API cleanup (lint entry point, :action/:scope keywords, composable primitives, lint-op) | Slice 011 |
 
 ## Under consideration
 

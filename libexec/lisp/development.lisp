@@ -35,7 +35,7 @@
 
 (defun lint ()
   "Lint the Atelier project using the new-style linter."
-  (atelier:lint-system "org.melusina.atelier"))
+  (atelier:lint "org.melusina.atelier"))
 
 #+quicklisp
 (defun reload ()

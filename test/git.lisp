@@ -62,7 +62,7 @@ FUNCTION receives the directory pathname. The directory is cleaned up on exit."
        (assert-t (not (null (probe-file hook-path))))
        (let ((content (uiop:read-file-string hook-path)))
          (assert-t (not (null (search "sbcl" content))))
-         (assert-t (not (null (search "lint-system" content))))
+         (assert-t (not (null (search "(atelier:lint " content))))
          (assert-t (not (null (search "test-system" content))))
          (assert-t (not (null (search "test-project" content)))))))))
 

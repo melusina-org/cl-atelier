@@ -63,8 +63,9 @@ Numbering is global and continuous across all slices.
 ## INV-10: Autofix is opt-in; default `lint-system` never modifies files
 
 **Discovered:** slice 005 (autofix pipeline)
-**Invariant:** `(atelier:lint-system "...")` without `:autofix t` must never modify any file on disk. `:autofix t` is the only switch that enables write-back.
-**Rationale:** Slice 005 made autofix opt-in as a safety contract.
+**Superseded by INV-15:** slice 011 (linter API cleanup) replaced `lint-system` with `lint` and made `:action :fix` the DWIM default. The "no side effects" contract is now expressed by `:action :inspect` (findings only) or `:action :preview` (planned resolutions, no write-back); the old boolean opt-in design has been retired.
+**Original invariant (historical):** `(atelier:lint-system "...")` without `:autofix t` must never modify any file on disk. `:autofix t` is the only switch that enables write-back.
+**Original rationale:** Slice 005 made autofix opt-in as a safety contract.
 
 ## INV-11: Templates under `resource/template/` are API consumers
 
@@ -89,3 +90,16 @@ Numbering is global and continuous across all slices.
 **Discovered:** slice 009, phase 1
 **Invariant:** The pre-commit hook installed by `install-pre-commit-hook` uses `#!/bin/sh`, `set -eu`, and calls `sbcl --non-interactive --load <asd-file>`. It does not depend on Quicklisp being configured or on any specific ASDF source registry.
 **Rationale:** Pre-commit hooks must work in CI environments and fresh clones where Quicklisp may not be configured.
+
+## INV-15: `LINT` decomposes into four composable primitives
+
+**Discovered:** slice 011, phase 1
+**Invariant:** `(atelier:lint system :action :fix :scope :system)` is semantically equivalent to the ordered composition
+
+    (apply-lint-resolutions
+     (plan-resolutions
+      (inspect-lint-files
+       (collect-lint-files system :scope :system))))
+
+iterated to convergence (with the interactive-acceptance layer that `lint :action :fix` adds on top). Any future refactor must preserve this equivalence so callers who need the pipeline without the orchestrator (CI dry-run reporters, MCP tools, LSP endpoints, custom batch scripts) can reach for the primitives without losing DWIM semantics. The invariant is enforced by `validate-lint-composes-primitives` in `test/lint.lisp`.
+**Rationale:** Slice 011 retired the monolithic `lint-system` because its two boolean flags (`:autofix`, `:sibling-systems`) could not be composed and the function body locked a three-stage pipeline behind an opaque surface. Splitting the pipeline without preserving the equivalence would make the DWIM default drift from the primitive chain — the precise failure mode that motivated the split.

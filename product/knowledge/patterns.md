@@ -59,3 +59,17 @@ Patterns observed across slices that are likely to recur. Each entry names a sig
 **Pattern:** A plan specifies `file-finding` subclasses for an inspector, then pairs them with maintainers producing `text-resolution`. The write-back engine crashes because `resolution-text-span` calls `finding-line` — a slot that `file-finding` does not have.
 **Signal:** A maintainer that returns `make-text-resolution` paired with a finding class inheriting from `file-finding` (not `line-finding`).
 **Mitigation:** When designing the finding hierarchy, check whether any planned maintainer produces `text-resolution`. If so, the finding must be a `line-finding` (or `syntax-finding`) subclass.
+
+## Two-boolean encoding of a single decision axis
+
+**Discovered:** slice 011, phase 1
+**Pattern:** An entry point grows two independent boolean keyword arguments whose cross-product describes a finite set of named outcomes. Callers cannot grep for intentional uses (every call site looks the same at a glance), and the documentation burden scales with `2^n`. The original `lint-system :autofix t|nil :sibling-systems t|nil` had four outcomes that each deserved a name.
+**Signal:** A `defun` with two or more boolean `&key` options that together encode a single outcome (rather than two unrelated flags).
+**Mitigation:** Replace boolean flags with a single keyword-valued option per decision axis and enumerate the values with `ecase` at the point of use. Values are self-documenting and grep-friendly. Cf. WITH-OPEN-FILE's `:direction` and `:if-exists` design in CLHS.
+
+## DWIM surface hides composable primitives
+
+**Discovered:** slice 011, phase 1
+**Pattern:** A function body orchestrates several conceptual stages (collect → inspect → plan → apply) inside a single `defun`, exposing only the terminal result. Callers who need only one stage cannot reach it without reimplementing the others. The monolithic surface looks convenient but prevents composition into larger pipelines (CI dry-run reporters, MCP tools, LSP endpoints).
+**Signal:** An entry point with a `flet`-shaped pipeline where each local function is the real atomic operation but is inaccessible to callers.
+**Mitigation:** Extract each stage into an exported primitive. Keep the DWIM orchestrator as a thin composition over the primitives. Add a composition invariant stating that the orchestrator equals the ordered composition of the primitives (enforced by a testcase) so future refactors cannot diverge silently.

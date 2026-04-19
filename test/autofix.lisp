@@ -1,4 +1,4 @@
-;;;; autofix.lisp — Testsuite for lint-system :autofix integration
+;;;; autofix.lisp — Testsuite for LINT :action :fix integration
 
 ;;;; Atelier (https://github.com/melusina-org/cl-atelier)
 ;;;; This file is part of Atelier.
@@ -44,8 +44,8 @@ Returns the list of findings produced."
 ;;;; Slow tests — file-based autofix integration
 ;;;;
 
-(define-testcase validate-lint-system-autofix ()
-  "Verify that the autofix pipeline fixes source files.
+(define-testcase validate-lint-fix ()
+  "Verify that the fix pipeline rewrites source files.
 Asserts that trailing whitespace on a code line is removed. Does not
 assert exact file content because other maintainers (e.g. SPDX header)
 may also modify the file."
@@ -60,8 +60,8 @@ may also modify the file."
         (assert-t (not (null (search "(defvar *x* 1)" content))))
         (assert-nil (search "(defvar *x* 1)   " content))))))
 
-(define-testcase validate-lint-system-no-autofix ()
-  "Verify that inspection without autofix does not modify source files."
+(define-testcase validate-lint-inspect ()
+  "Verify that :ACTION :INSPECT does not modify source files."
   (uiop:with-temporary-file (:pathname p :type "lisp" :keep nil)
     (let ((original (format nil "(defvar *x* 1)   ~%")))
       (with-open-file (s p :direction :output :if-exists :supersede
@@ -71,7 +71,7 @@ may also modify the file."
       (assert-string= original
                       (uiop:read-file-string p :external-format :utf-8)))))
 
-(define-testcase validate-lint-system-partial-autofix ()
+(define-testcase validate-lint-partial-fix ()
   "Verify that only findings with registered maintainers are fixed."
   (uiop:with-temporary-file (:pathname p :type "lisp" :keep nil)
     (with-open-file (s p :direction :output :if-exists :supersede
@@ -397,9 +397,9 @@ Lisp form."
 
 (define-testcase validate-autofix ()
   "Run all autofix integration tests (slow — file I/O)."
-  (validate-lint-system-autofix)
-  (validate-lint-system-no-autofix)
-  (validate-lint-system-partial-autofix))
+  (validate-lint-fix)
+  (validate-lint-inspect)
+  (validate-lint-partial-fix))
 
 (define-testcase testsuite-autofix ()
   "Run all autofix and fixture-discovery tests."

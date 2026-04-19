@@ -106,6 +106,7 @@
      (:file "pretty-printer")
      (:file "write-back")
      (:file "git")
+     (:file "lint")
      (:module "inspectors"
       :components
       ((:file "check-file-encoding")

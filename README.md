@@ -79,22 +79,46 @@ concrete fix that can be applied automatically:
 
 ### Running the Linter
 
-Lint a system and return findings:
+Lint a system using the DWIM default (inspect, fix what is safe to fix,
+return the remaining findings):
 
 ```lisp
-(atelier:lint-system "org.my.project")
+(atelier:lint "org.my.project")
 ```
 
-Lint with autofix — applies all automatic resolutions and returns remaining findings:
+Two keyword-valued options describe the outcome:
+
+| Option | Values | Meaning |
+|--------|--------|---------|
+| `:action` | `:inspect` | Inspect only; return findings; write no files. |
+|          | `:preview` | Inspect and plan resolutions; return the list of resolutions that would be applied; write no files. |
+|          | `:fix`     | Inspect, plan, and apply resolutions; iterate until convergence or a per-pass limit of 10; return remaining findings. (Default.) |
+| `:scope`  | `:system`  | Requested system's source files plus its `.asd`. (Default.) |
+|           | `:project` | Every source file of every system declared in the same `.asd`. |
+
+Examples:
 
 ```lisp
-(atelier:lint-system "org.my.project" :autofix t)
+(atelier:lint "org.my.project" :action :inspect)     ; findings only
+(atelier:lint "org.my.project" :action :preview)     ; planned resolutions
+(atelier:lint "org.my.project" :scope :project)      ; whole project, with fixes
+```
+
+The underlying pipeline is exposed as four primitives for callers that
+need to compose the linter into a larger workflow (CI dry-run reporter,
+MCP tool, LSP endpoint):
+
+```lisp
+(atelier:collect-lint-files system &key scope)        ; → list of pathnames
+(atelier:inspect-lint-files pathnames &key system-designator) ; → findings
+(atelier:plan-resolutions findings)                   ; → resolutions
+(atelier:apply-lint-resolutions resolutions)          ; → written pathnames
 ```
 
 As an ASDF operation:
 
 ```lisp
-(asdf:operate 'atelier:linter-op "org.my.project")
+(asdf:operate 'atelier:lint-op "org.my.project")
 ```
 
 
@@ -131,13 +155,13 @@ Linter configuration is declared as ASDF components in the system definition:
  :maintainer-overrides ((fix-labels-to-flet . :interactive)))
 ```
 
-When no configuration components are present, `lint-system` applies
+When no configuration components are present, `lint` applies
 sensible defaults and emits a warning.
 
 
 ### Autofix Signalling
 
-During `lint-system :autofix t`, each proposed resolution is signalled
+During `lint :action :fix`, each proposed resolution is signalled
 as a `resolution-proposed` condition with two restarts:
 - `apply-resolution` — apply the fix
 - `skip-resolution` — skip this fix
@@ -171,7 +195,7 @@ them in a companion ASDF system:
 ```
 
 Loading the system is sufficient to activate the inspector in subsequent
-`lint-system` calls.
+`lint` calls.
 
 
 ## MCP Server

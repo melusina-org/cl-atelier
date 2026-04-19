@@ -57,7 +57,7 @@ sbcl --non-interactive \\
      --load ~S \\
      --eval '(require :asdf)' \\
      --eval '(asdf:load-system ~S)' \\
-     --eval '(atelier:lint-system ~S :autofix t)' \\
+     --eval '(atelier:lint ~S :action :fix)' \\
      --eval '(asdf:test-system ~S)'
 "
           asd-file

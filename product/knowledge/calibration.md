@@ -51,3 +51,13 @@ Running record of where plans over- or under-estimated effort, pass counts, or o
 **Category patterns:**
 - File-level inspectors on .asd files are simpler than CST inspectors: no Eclector parsing, straightforward READ + search-based position tracking.
 - Test isolation for filesystem-mutating tests (pre-commit hooks) requires dedicated temp directories, not the shared system temp dir.
+
+## Slice 011: Linter API Cleanup
+
+**Planned phases:** 1 — **Actual phases:** 1
+**Effort surprises:**
+- Slice scoped as S (1–2 days); delivered in a single session.
+- The primitive extraction was almost mechanical (literal `flet` → `defun` lift) because the original `lint-system` had already separated the stages as local helpers. The real design work was naming the public primitives and deciding where dynamic-configuration binding belonged.
+**Category patterns:**
+- API-cleanup slices benefit from an upfront design discussion ("what is the surface shape?") before any code is touched — we converged in a short back-and-forth on `:action :inspect|:preview|:fix` and `:scope :system|:project` and the subsequent refactor did not revisit the surface.
+- When removing a symbol (vs. deprecating), grepping the production tree (`src/`, `test/`, `libexec/`, `README.md`, `CLAUDE.md`, `resource/`) plus separately acknowledging intentional "name-of-absent-symbol" test assertions is the right audit before declaring the symbol gone.

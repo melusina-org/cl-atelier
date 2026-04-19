@@ -36,9 +36,9 @@ Run the linter on this project:
 (atelier/development:lint)
 ```
 
-Lint with autofix:
+Lint with autofix (DWIM default: inspect, apply automatic fixes, return remaining findings):
 ```lisp
-(atelier:lint-system "org.melusina.atelier" :autofix t)
+(atelier:lint "org.melusina.atelier")
 ```
 
 ## ASDF Systems
@@ -101,7 +101,7 @@ Two template kinds:
 
 **Maintainer maturity:** Each maintainer has a `:maturity` slot (`:stable` or `:experimental`). Experimental maintainers signal a warning instead of auto-applying in batch mode.
 
-**Autofix signalling:** During `lint-system :autofix t`, each resolution is signalled as `resolution-proposed` with `apply-resolution` and `skip-resolution` restarts. The `linter-configuration` can override per-maintainer disposition (`:auto`, `:interactive`, `:skip`).
+**Autofix signalling:** During `lint :action :fix`, each resolution is signalled as `resolution-proposed` with `apply-resolution` and `skip-resolution` restarts. The `linter-configuration` can override per-maintainer disposition (`:auto`, `:interactive`, `:skip`).
 
 **Comment style:** `file-comment-prefix` maps file extensions to comment prefixes: Lisp (`;;;; `), Shell/Make/Docker/Terraform (`# `), C/C++ (`// `), TeX (`% `), Autoconf (`dnl `).
 
@@ -115,7 +115,7 @@ Two template kinds:
 
 **Use `syntax-resolution` with `cst-node` when the transform target differs from the finding.** A finding's `cst-node` identifies where the problem was detected (for diagnostic display). The resolution's `cst-node` identifies what source span to replace (for the write-back engine). When a maintainer transforms a larger enclosing form (e.g., `fix-bare-lambda` detects the lambda but transforms the enclosing call), set the resolution's `cst-node` to the enclosing form's CST node. The write-back engine uses `(or (resolution-cst-node resolution) (finding-cst-node finding))` for the source span.
 
-**Inspection is fast and frequent; resolution is slow and rare.** Inspectors run on every `lint-system` call. Maintainers run only during `:autofix t`. Design inspectors to be lightweight (no file I/O, no parsing). Maintainers can do more work (walk the CST root, compute call graphs) because they run only on the small number of findings that actually need fixing.
+**Inspection is fast and frequent; resolution is slow and rare.** Inspectors run on every `lint` call. Maintainers run only under `:action :fix` (and are surfaced, without side effects, under `:action :preview`). Design inspectors to be lightweight (no file I/O, no parsing). Maintainers can do more work (walk the CST root, compute call graphs) because they run only on the small number of findings that actually need fixing.
 
 **Prefer `syntax-resolution` over `text-resolution` for CST-level maintainers.** Syntax resolutions let the write-back engine handle position conversion and pretty-printing. Text resolutions require the maintainer to compute line/column positions and generate formatted text — which means re-reading the line vector.
 

@@ -1,5 +1,5 @@
 # Roadmap: Atelier
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-19
 
 The roadmap is a projection of the backlog's top items into time horizons. It does not introduce new items — every item in Now or Next must appear in the backlog.
 
@@ -7,7 +7,7 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 
 | Slice | Phase | Goal | Notes |
 |-------|-------|------|-------|
-| [010-pretty-printer-emacs-compatibility](slice/010-pretty-printer-emacs-compatibility/slice.md) | Planned | G2, G4 | Fixture, Emacs reformat tool, convergence |
+| [010-pretty-printer-emacs-compatibility](slice/010-pretty-printer-emacs-compatibility/slice.md) | Complete (retrospective pending) | G2, G4 | Fixture, Emacs reformat tool, convergence |
 
 ## Next (intended for the following 1–3 slices)
 
@@ -44,6 +44,7 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | [007-maintainer-and-inspector-expansion](slice/007-maintainer-and-inspector-expansion/slice.md) | Bet | G2 | ✅ |
 | [008-remove-line-length-inspector](slice/008-remove-line-length-inspector/slice.md) | Maintenance | — | ✅ |
 | [009-project-structure-and-hooks](slice/009-project-structure-and-hooks/slice.md) | New capability | G2 | ✅ |
+| [011-linter-api-cleanup](slice/011-linter-api-cleanup/slice.md) | Improvement | — | ✅ |
 
 ## Considering (may or may not happen — feedback welcome)
 
@@ -76,3 +77,4 @@ The roadmap is a projection of the backlog's top items into time horizons. It do
 | 2026-04-14 | Slice 009 (project structure + hooks) added to Now. |
 | 2026-04-14 | Slice 009 completed, moved to Completed. |
 | 2026-04-16 | Backlog cleanup. Next: pretty-printer/SLIME-SLY (#1), Trivia pattern matching (#2), code formatter (#3), CLI wrapper (#4). Later: projectional editor, LLM maintainer, external tool wrappers, templates, config tie-breaking, doc generation. |
+| 2026-04-19 | Slice 011 (linter API cleanup) added and completed — `atelier:lint` with `:action`/`:scope` keyword-valued options, four composable primitives, `lint-op` replacing `linter-op`. Slice 010 marked complete; retrospective pending. |

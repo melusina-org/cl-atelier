@@ -12,13 +12,13 @@
 
 
 ;;;;
-;;;; Dynamic Context for Lint System
+;;;; Dynamic Context for LINT
 ;;;;
-;;;; These DEFVAR forms must appear before lint-system's LET* binding.
-;;;; They were previously in runner.lisp, but asdf.lisp is loaded before
-;;;; runner.lisp in the ASDF serial order. Without the DEFVAR, SBCL
-;;;; compiles the LET* bindings as lexical and they are invisible to
-;;;; callees (check-test-mirror, mirror-eligible-p, etc.).
+;;;; These DEFVAR forms must appear before LINT's and INSPECT-LINT-FILES'
+;;;; LET* bindings. They were previously in runner.lisp, but asdf.lisp is
+;;;; loaded before runner.lisp in the ASDF serial order. Without the
+;;;; DEFVAR, SBCL compiles the LET* bindings as lexical and they are
+;;;; invisible to callees (check-test-mirror, mirror-eligible-p, etc.).
 
 (defvar *project-configuration* nil
   "The project configuration for the system currently being linted.")
@@ -479,139 +479,254 @@ and renames the corresponding .lisp files on disk."
                    (rename-file old-path new-path)))))))))
    resolutions-by-file))
 
-(defun lint-system (system-designator &key (autofix t) (sibling-systems t))
-  "Lint source files in the system designated by SYSTEM-DESIGNATOR.
-Return a list of findings. Reads project and linter configuration from
-ASDF components when present; otherwise uses sensible defaults.
-When SIBLING-SYSTEMS is true (the default), lint the .asd file and every
-source file in all systems defined in the same .asd file. When NIL, lint
-only the source files of the requested system.
-When AUTOFIX is true, applies automatic resolutions for each finding
-that has a registered maintainer, grouped by file, then re-inspects
-each modified file until no further fixable findings remain or the
-per-file pass limit is reached. Returns the full findings list from
-the final inspection pass."
+;;;
+;;; LINT is composed of four primitives:
+;;;
+;;;   COLLECT-LINT-FILES    system → list of pathnames.
+;;;   INSPECT-LINT-FILES    pathnames → findings.
+;;;   PLAN-RESOLUTIONS      findings → resolutions.
+;;;   APPLY-LINT-RESOLUTIONS resolutions → list of rewritten pathnames.
+;;;
+;;; LINT itself is a thin orchestrator over these four. Each primitive is
+;;; a pure-ish function (INSPECT-LINT-FILES, APPLY-LINT-RESOLUTIONS touch
+;;; the filesystem; the other two do not) and may be composed by callers
+;;; who need something other than the DWIM default.
+;;;
+
+(defun collect-lint-files (system-designator &key (scope :system))
+  "Return the pathnames the linter inspects for SYSTEM-DESIGNATOR at SCOPE.
+SCOPE is :SYSTEM (default — the requested system's source files plus
+its .asd file) or :PROJECT (additionally, every source file of every
+system declared in the same .asd). The .asd file is always included so
+file-level inspectors such as CHECK-SYSTEM-NAMING and CHECK-TEST-MIRROR
+continue to have the system declarations to work on."
+  (declare (type (member :system :project) scope)
+           (values list))
+  (let ((system (asdf:find-system system-designator)))
+    (ecase scope
+      (:system
+       (let ((asd-file (asdf:system-source-file system))
+             (sources (collect-system-source-files system)))
+         (if asd-file
+             (cons (truename asd-file) sources)
+             sources)))
+      (:project
+       (collect-all-source-files system)))))
+
+(defun inspect-lint-files (pathnames &key system-designator)
+  "Run the inspection pipeline over PATHNAMES and return the list of findings.
+When SYSTEM-DESIGNATOR is supplied, project and linter configuration
+are loaded from that system and bound dynamically while inspecting so
+per-project disabled inspectors, severity overrides, and inspector
+file exclusions apply. When NIL, inspectors run under whatever
+*PROJECT-CONFIGURATION* and *LINTER-CONFIGURATION* the caller has
+already bound (or the default NIL bindings)."
+  (declare (type list pathnames)
+           (values list))
+  (flet ((inspect-all ()
+           (loop :for pathname :in pathnames :nconc (perform-inspection pathname))))
+    (if system-designator
+        (let* ((system (asdf:find-system system-designator))
+               (*project-configuration* (load-system-project-configuration system))
+               (*linter-configuration* (load-system-linter-configuration system)))
+          (inspect-all))
+        (inspect-all))))
+
+(defun plan-resolutions (findings)
+  "Return the resolutions that the linter would apply for FINDINGS.
+Walks each finding's registered maintainers via RESOLVE-FINDING. Only
+LINE-FINDING instances yield resolutions because TEXT-RESOLUTION needs
+line/column positions to compute its write-back span. Drops resolutions
+produced by test-package maintainers (a safeguard against test fixtures
+shadowing the production pipeline) and resolutions whose maintainer's
+effective disposition is :SKIP. Returns the eligible resolutions in
+finding order; does not signal RESOLUTION-PROPOSED. For interactive
+acceptance see LINT :action :fix, which layers signalling on top of
+this planning step.
+
+The effective disposition is read from *LINTER-CONFIGURATION*, which
+the caller must have bound (LINT binds it from the system designator
+before calling this function)."
+  (declare (type list findings)
+           (values list))
+  (flet ((production-resolution-p (resolution)
+           (let ((pkg (symbol-package (resolution-maintainer resolution))))
+             (and pkg
+                  (not (search "TEST" (package-name pkg) :test #'char-equal)))))
+         (eligible-resolution-p (resolution)
+           (not (eq :skip (effective-maintainer-disposition
+                           (resolution-maintainer resolution))))))
+    (loop :for finding :in findings
+          :when (typep finding 'line-finding)
+            :nconc (loop :for resolution :in (resolve-finding finding)
+                         :when (and (production-resolution-p resolution)
+                                    (eligible-resolution-p resolution))
+                           :collect resolution))))
+
+(defun apply-lint-resolutions (resolutions)
+  "Apply RESOLUTIONS to their files atomically and return the rewritten pathnames.
+Resolutions are grouped by their finding's FINDING-FILE; each file is
+rewritten once with every applicable resolution applied end-to-start
+via APPLY-RESOLUTIONS-TO-FILE. Returns a list of the pathnames that
+were written. Does not perform post-write file renames — those are the
+responsibility of LINT :action :fix which knows the system context
+needed for component-name renames."
+  (declare (type list resolutions)
+           (values list))
+  (let ((by-file (make-hash-table :test 'equal))
+        (written nil))
+    (dolist (resolution resolutions)
+      (push resolution
+            (gethash (finding-file (resolution-finding resolution)) by-file)))
+    (maphash (lambda (pathname file-resolutions)
+               (apply-resolutions-to-file pathname (nreverse file-resolutions))
+               (push pathname written))
+             by-file)
+    (nreverse written)))
+
+(defun interactively-accept-resolutions (resolutions)
+  "Signal RESOLUTION-PROPOSED for each resolution and return those accepted.
+:AUTO-disposed maintainers SIGNAL and default to accepted; :INTERACTIVE-
+disposed maintainers WARN and default to rejected. Both expose
+APPLY-RESOLUTION and SKIP-RESOLUTION restarts so a handler-bind in the
+caller can override the default. Used internally by LINT :action :fix."
+  (declare (type list resolutions)
+           (values list))
+  (flet ((accepted-p (resolution)
+           (let* ((finding (resolution-finding resolution))
+                  (maint-name (resolution-maintainer resolution))
+                  (disposition (effective-maintainer-disposition maint-name))
+                  (description (resolution-description resolution))
+                  (apply-report
+                    (format nil "Apply fix: ~A" description))
+                  (skip-report
+                    (format nil "Skip ~A on ~A."
+                            maint-name
+                            (when (typep finding 'file-finding)
+                              (file-namestring (finding-file finding))))))
+             (case disposition
+               (:skip nil)
+               (:interactive
+                (restart-case
+                    (progn
+                      (warn 'resolution-proposed
+                            :resolution resolution
+                            :finding finding
+                            :maintainer-name maint-name)
+                      nil)
+                  (apply-resolution ()
+                    :report (lambda (s) (write-string apply-report s))
+                    t)
+                  (skip-resolution ()
+                    :report (lambda (s) (write-string skip-report s))
+                    nil)))
+               (otherwise
+                (restart-case
+                    (progn
+                      (signal 'resolution-proposed
+                              :resolution resolution
+                              :finding finding
+                              :maintainer-name maint-name)
+                      t)
+                  (apply-resolution ()
+                    :report (lambda (s) (write-string apply-report s))
+                    t)
+                  (skip-resolution ()
+                    :report (lambda (s) (write-string skip-report s))
+                    nil)))))))
+    (remove-if-not #'accepted-p resolutions)))
+
+(defun perform-component-renames-from-resolutions (resolutions system)
+  "Rename source files on disk for accepted FIX-DEPRECATED-COMPONENT-NAME resolutions."
+  (declare (type list resolutions)
+           (type asdf:system system))
+  (let ((by-file (make-hash-table :test 'equal)))
+    (dolist (resolution resolutions)
+      (push resolution
+            (gethash (finding-file (resolution-finding resolution)) by-file)))
+    (perform-component-renames by-file system)))
+
+(defun lint (system-designator &key (action :fix) (scope :system))
+  "Lint SYSTEM-DESIGNATOR and return findings or resolutions by ACTION.
+
+ACTION is one of:
+  :INSPECT — inspect only; return the findings list; write no files.
+  :PREVIEW — inspect and plan resolutions; return the resolutions that
+             would be applied under :AUTO disposition; write no files.
+  :FIX     — inspect, plan, and apply resolutions; iterate until no
+             further resolutions are accepted or the per-pass limit of
+             10 is reached. Each resolution signals RESOLUTION-PROPOSED
+             with APPLY-RESOLUTION and SKIP-RESOLUTION restarts (as a
+             SIGNAL for :AUTO dispositions, as a WARN for :INTERACTIVE).
+             Returns the remaining findings from the final pass.
+             (Default.)
+
+SCOPE is one of:
+  :SYSTEM  — only the requested system's source files plus its .asd
+             file. (Default.)
+  :PROJECT — every source file of every system declared in the same
+             .asd file.
+
+Any other value for ACTION or SCOPE signals a TYPE-ERROR.
+
+Project and linter configuration are loaded from SYSTEM-DESIGNATOR and
+bound dynamically for the duration of the call."
+  (declare (type (member :inspect :preview :fix) action)
+           (type (member :system :project) scope)
+           (values list))
   (let* ((system (asdf:find-system system-designator))
          (*project-configuration* (load-system-project-configuration system))
-         (*linter-configuration* (load-system-linter-configuration system)))
-    (flet ((inspect-system ()
-             (loop :for pathname :in (if sibling-systems
-                                         (collect-all-source-files system)
-                                         (collect-system-source-files system))
-                   :nconc (perform-inspection pathname)))
-           (resolutions-for-findings (findings)
-             ;; Only line-findings carry line/column positions for TEXT-RESOLUTION.
-             ;; Group non-nil production resolutions by file, signalling
-             ;; RESOLUTION-PROPOSED for each and respecting dispositions.
-             (flet ((production-resolution-p (resolution)
-                      (let ((pkg (symbol-package (resolution-maintainer resolution))))
-                        (and pkg
-                             (not (search "TEST" (package-name pkg) :test #'char-equal)))))
-                    (accept-resolution-p (resolution)
-                      ;; Signal resolution-proposed with restarts.
-                      ;; Returns T if the resolution should be applied.
-                      (let* ((maint-name (resolution-maintainer resolution))
-                             (disposition (effective-maintainer-disposition maint-name))
-                             (description (resolution-description resolution))
-                             (finding (resolution-finding resolution))
-                             (apply-report
-                               (format nil "Apply fix: ~A" description))
-                             (skip-report
-                               (format nil "Skip ~A on ~A."
-                                       maint-name
-                                       (when (typep finding 'file-finding)
-                                         (file-namestring (finding-file finding))))))
-                        (case disposition
-                          (:skip nil)
-                          (:interactive
-                           ;; Experimental or interactive: signal as warning.
-                           (restart-case
-                               (progn
-                                 (warn 'resolution-proposed
-                                       :resolution resolution
-                                       :finding finding
-                                       :maintainer-name maint-name)
-                                 ;; If warning is not handled, skip in batch.
-                                 nil)
-                             (apply-resolution ()
-                               :report (lambda (s) (write-string apply-report s))
-                               t)
-                             (skip-resolution ()
-                               :report (lambda (s) (write-string skip-report s))
-                               nil)))
-                          (otherwise
-                           ;; :auto — signal and auto-apply.
-                           (restart-case
-                               (progn
-                                 (signal 'resolution-proposed
-                                         :resolution resolution
-                                         :finding finding
-                                         :maintainer-name maint-name)
-                                 t)
-                             (apply-resolution ()
-                               :report (lambda (s) (write-string apply-report s))
-                               t)
-                             (skip-resolution ()
-                               :report (lambda (s) (write-string skip-report s))
-                               nil)))))))
-               (let ((by-file (make-hash-table :test 'equal)))
-                 (dolist (finding findings)
-                   (when (typep finding 'line-finding)
-                     (dolist (resolution (resolve-finding finding))
-                       (when (and (production-resolution-p resolution)
-                                  (accept-resolution-p resolution))
-                         (push resolution (gethash (finding-file finding) by-file))))))
-                 by-file)))
-           (apply-all-resolutions (resolutions-by-file)
-             ;; Write each file back with its resolutions applied end-to-start.
-             (maphash (lambda (pathname resolutions)
-                        (apply-resolutions-to-file pathname (nreverse resolutions)))
-                      resolutions-by-file)
-             ;; Perform file renames for deprecated-component-name fixes.
-             (perform-component-renames resolutions-by-file system)))
-      (if (not autofix)
-          (inspect-system)
-          ;; Autofix loop: inspect → resolve → apply → re-inspect until clean.
-          ;; The pass limit guards against a maintainer that reintroduces the
-          ;; finding it was supposed to fix.
-          (loop :with findings = (inspect-system)
-                :repeat 10
-                :for resolutions-by-file = (resolutions-for-findings findings)
-                :while (plusp (hash-table-count resolutions-by-file))
-                :do (apply-all-resolutions resolutions-by-file)
-                    (setf findings (inspect-system))
-                :finally (return findings))))))
+         (*linter-configuration* (load-system-linter-configuration system))
+         (pathnames (collect-lint-files system :scope scope)))
+    (ecase action
+      (:inspect
+       (inspect-lint-files pathnames))
+      (:preview
+       (plan-resolutions (inspect-lint-files pathnames)))
+      (:fix
+       ;; Autofix loop: inspect → plan → accept → apply → re-inspect.
+       ;; The pass limit guards against a maintainer that reintroduces
+       ;; the finding it was supposed to fix.
+       (loop :with findings = (inspect-lint-files pathnames)
+             :repeat 10
+             :for accepted = (interactively-accept-resolutions
+                              (plan-resolutions findings))
+             :while accepted
+             :do (apply-lint-resolutions accepted)
+                 (perform-component-renames-from-resolutions accepted system)
+                 (setf findings (inspect-lint-files pathnames))
+             :finally (return findings))))))
 
 
 ;;;;
-;;;; Linter Operation
+;;;; Lint Operation
 ;;;;
 
-(defclass linter-op (asdf:operation)
+(defclass lint-op (asdf:non-propagating-operation)
   ()
   (:documentation "An ASDF operation that lints source files in a system.
-Delegates to LINT-SYSTEM for the actual inspection work."))
+Delegates to LINT for the actual inspection work. Inheriting from
+ASDF:NON-PROPAGATING-OPERATION tells the plan walker the operation has
+no dependencies — linting a system does not require linting its
+dependencies — which is required by ASDF 3.1 and silences the
+propagation-scheme warning."))
 
 (defvar *linter-findings* nil
-  "Accumulator for findings produced during a linter-op run.")
+  "Accumulator for findings produced during a lint-op run.")
 
-(defmethod asdf:perform ((operation linter-op) (component asdf:system))
-  "Lint COMPONENT by delegating to LINT-SYSTEM."
+(defmethod asdf:perform ((operation lint-op) (component asdf:system))
+  "Lint COMPONENT by delegating to LINT with the default :FIX action and :SYSTEM scope."
   (setf *linter-findings*
-        (lint-system (asdf:component-name component))))
+        (lint (asdf:component-name component))))
 
-(defmethod asdf:perform ((operation linter-op) (component asdf:static-file))
+(defmethod asdf:perform ((operation lint-op) (component asdf:static-file))
   "Do nothing for static files."
   (declare (ignore operation component))
   nil)
 
-(defmethod asdf:perform ((operation linter-op) (component asdf:module))
+(defmethod asdf:perform ((operation lint-op) (component asdf:module))
   "Do nothing for modules."
   (declare (ignore operation component))
-  nil)
-
-(defmethod asdf:component-depends-on ((operation linter-op) (component t))
-  "Linter-op has no compile/load dependencies."
   nil)
 
 ;;;; End of file `asdf.lisp'

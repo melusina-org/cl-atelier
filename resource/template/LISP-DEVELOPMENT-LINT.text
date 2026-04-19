@@ -24,7 +24,7 @@ lint_sbcl()
 lint_main()
 {
     lint_sbcl --load "${TOPLEVELDIR}/libexec/lisp/setup.lisp"\
-	      --eval '(atelier:lint-system "${LISP_SYSTEM_NAME}")'
+	      --eval '(atelier:lint "${LISP_SYSTEM_NAME}")'
 }
 
 lint_main "$@"

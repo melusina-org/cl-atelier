@@ -32,7 +32,8 @@
   (testsuite-fix-header-line)
   (testsuite-fix-footer-line)
   (testsuite-fix-labels-to-flet)
-  (testsuite-fix-mixed-indentation))
+  (testsuite-fix-mixed-indentation)
+  (validate-lint-fast))
 
 
 ;;;;
@@ -65,6 +66,7 @@
   (testsuite-check-system-naming)
   (testsuite-fix-deprecated-names)
   (testsuite-git)
+  (validate-lint-slow)
   (atelier/test/editor:run-all-editor-tests))
 
 

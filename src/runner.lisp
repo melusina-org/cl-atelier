@@ -53,9 +53,10 @@ Return a list of findings for this line, or NIL. LINE is a string.
 
 ;;; *PROJECT-CONFIGURATION* and *LINTER-CONFIGURATION* are defined
 ;;; in asdf.lisp (loaded before runner.lisp in the ASDF serial order)
-;;; because lint-system in asdf.lisp must LET-bind them as special
-;;; variables. If the DEFVAR appears after the LET, SBCL compiles
-;;; the LET as lexical and the binding is invisible to callees.
+;;; because LINT and INSPECT-LINT-FILES in asdf.lisp must LET-bind
+;;; them as special variables. If the DEFVAR appears after the LET,
+;;; SBCL compiles the LET as lexical and the binding is invisible to
+;;; callees.
 
 (defvar *current-cst-root* nil
   "The list of top-level CST forms of the file currently being inspected.
