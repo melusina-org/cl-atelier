@@ -350,6 +350,7 @@ Includes SYSTEM itself. Returns a list of ASDF:SYSTEM objects."
        (lambda (sys)
          (let ((sys-file (asdf:system-source-file sys)))
            (when (and sys-file
+                      (probe-file sys-file)
                       (equal (truename sys-file) asd-truename))
              (push sys siblings))))))
     (nreverse siblings)))
@@ -364,7 +365,7 @@ file-level inspectors (e.g. check-system-naming) can inspect the system definiti
          (seen (make-hash-table :test 'equal))
          (result nil))
     ;; Include the .asd file first
-    (when asd-file
+    (when (and asd-file (probe-file asd-file))
       (let ((asd-truename (truename asd-file)))
         (setf (gethash asd-truename seen) t)
         (push asd-truename result)))
