@@ -71,6 +71,18 @@
 
 
 ;;;;
+;;;; Idempotency
+;;;;
+
+(define-testcase validate-run-all-tests-is-idempotent ()
+  "Two consecutive calls to RUN-ALL-TESTS in the same image must both succeed.
+This guards against test-suite pollution via dangling ASDF registry entries
+left behind by testcases that load systems from temporary directories."
+  (run-all-tests)
+  (run-all-tests))
+
+
+;;;;
 ;;;; Aggregate Entry Point
 ;;;;
 

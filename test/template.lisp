@@ -68,11 +68,16 @@
       (asdf:clear-system "net.cl-user.acme.example")
       (asdf:clear-system "net.cl-user.acme.example/test")
       (asdf:clear-system "net.cl-user.acme.example/development")
-      (asdf:load-system "net.cl-user.acme.example/test")
-      (asdf:operate 'asdf:test-op "net.cl-user.acme.example")
-      (uiop:symbol-call "EXAMPLE/TEST" "RUN-ALL-TESTS")
-      (asdf:load-system "net.cl-user.acme.example/development")
-      (uiop:symbol-call "EXAMPLE/DEVELOPMENT" "LINT"))))
+      (unwind-protect
+           (progn
+             (asdf:load-system "net.cl-user.acme.example/test")
+             (asdf:operate 'asdf:test-op "net.cl-user.acme.example")
+             (uiop:symbol-call "EXAMPLE/TEST" "RUN-ALL-TESTS")
+             (asdf:load-system "net.cl-user.acme.example/development")
+             (uiop:symbol-call "EXAMPLE/DEVELOPMENT" "LINT"))
+        (asdf:clear-system "net.cl-user.acme.example")
+        (asdf:clear-system "net.cl-user.acme.example/test")
+        (asdf:clear-system "net.cl-user.acme.example/development")))))
 
 (define-testcase ensure-a-lisp-project-is-created-with-a-valid-test (pathname)
   (ensure-development-script-satisfy-formal-requirements
