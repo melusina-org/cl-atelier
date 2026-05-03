@@ -15,9 +15,8 @@
   :description "An atelier for Lisp developers"
   :author "Michaël Le Barbier"
   :depends-on (#:alexandria
+               #:osicat
 	       #:cl-ppcre
-	       #:org.melusina.rashell
-	       #:osicat
 	       #:trivia)
   :components
   ((:module "src"

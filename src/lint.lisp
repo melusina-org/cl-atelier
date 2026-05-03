@@ -819,15 +819,7 @@ is called on pathnames on that list."
 	       (t
 		(uiop:quit (if hints 1 0))))))
     (let ((hints nil))
-      (rashell:do-find (pathname ('(:or
-				    (:and (:name ".DS_Store") :prune)
-				    (:and (:name ".git") :prune)
-				    (:and (:name ".hg") :prune)
-				    (:and (:name ".svn") :prune)
-				    (:and (:name "CVS") :prune)
-				    (:and (:name "*.fasl") :prune)
-				    (:and (:has-kind :regular) :print))
-				  pathnames))
+      (dolist (pathname (apply #'find-regular-files pathnames))
 	(setf hints (nconc hints (handler-lint-1 (pathname pathname)))))
       (epilogue hints))))
 

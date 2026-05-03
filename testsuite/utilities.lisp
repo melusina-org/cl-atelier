@@ -61,6 +61,58 @@
 	      (invoke-restart 'atelier::autocorrect))))
        ,@body-forms)))
 
+;;;;
+;;;; File Utilities
+;;;;
+
+(defun file-regular-p (pathname)
+  (and (uiop:file-exists-p pathname) t))
+
+(defun file-mode (pathname)
+  "Return the Unix file mode of PATHNAME."
+  (parse-integer
+   (uiop:run-program (list "stat" #+darwin "-f%Op" #+linux "-c%a" (namestring pathname))
+         :output '(:string :stripped t))
+   :radix 8))
+
+(defun file-has-required-permissions-p (pathname required-permissions)
+  "Predicate that recognises if file under PATHNAME has at least the REQUIRED-PERMISSIONS."
+  (let ((actual-permissions
+    (file-mode pathname)))
+    (eq required-permissions (logand actual-permissions required-permissions))))
+
+
+;;;;
+;;;; Temporary Directory
+;;;;
+
+(declaim (inline call-with-temporary-directory))
+(defun call-with-temporary-directory (function)
+  (flet ((make-directory-pathname ()
+    (uiop:ensure-directory-pathname
+     (merge-pathnames
+      (format nil "atelier-test-~6,'0X/" (random #xFFFFFF))
+      (uiop:temporary-directory))))
+   (validate-directory-pathname (pathname)
+     (let ((directory-name
+       (car (last (pathname-directory pathname)))))
+       (and (uiop:ensure-directory-pathname pathname)
+      (zerop (search "atelier-test-" directory-name :test #'string=))
+      (= (length directory-name) #.(length "atelier-test-123456"))))))
+    (let ((directory
+      (make-directory-pathname)))
+      (ensure-directories-exist directory)
+      (unwind-protect
+     (funcall function directory)
+  (uiop:delete-directory-tree directory
+            :validate #'validate-directory-pathname
+            :if-does-not-exist :ignore)))))
+
+(defmacro with-temporary-directory ((pathname) &body body)
+  `(locally (declare (inline call-with-temporary-directory))
+     (call-with-temporary-directory (lambda (,pathname) ,@body))))
+
+
 
 ;;;;
 ;;;; Testsuite Utilities
