@@ -13,8 +13,7 @@ secret detection.
   case `validate-lint-lines`.
 * `development/build [-v]`: cold build of `org.melusina.atelier` and
   its testsuite system. `-v` enables compiler verbosity.
-
-(`development/lint` exists but is currently broken — do not rely on it.)
+* `development/lint`: identify anomalies in code.
 
 ## Conventions
 

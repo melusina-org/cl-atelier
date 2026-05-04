@@ -22,7 +22,7 @@
 
 (defun system-relative-pathname (pathname)
   (flet ((system-source-directory ()
-	   (asdf:system-source-directory #.(string-downcase (package-name *package*)))))
+	   (asdf:system-source-directory "org.melusina.atelier")))
     (merge-pathnames pathname (system-source-directory))))
 
 (defun system-relative-pathnames (&rest pathnames)
@@ -49,11 +49,8 @@
       #p"development"
       #p"doc"
       #p"docker"
-      #p"docker/compose/cid.yml"
-      #p"docker/image/linux/users.conf"
       #p"src"
       #p"subr"
-      #p"support"
       #p"testsuite"
       #p"libexec/lisp/development.lisp"
       #p"libexec/setup"

@@ -23,14 +23,7 @@ lint_sbcl()
 lint_main()
 {
     lint_sbcl --eval '(ql:quickload "org.melusina.atelier/development")'\
-	      --eval '(atelier:lint
- #p"src"
- #p"testsuite"
- #p"development"
- #p"subr"
- #p"libexec/lisp/development.lisp"
- #p"org.melusina.atelier.asd"
-)'
+	      --eval '(atelier/development:lint)'
 }
 
 lint_main "$@"
